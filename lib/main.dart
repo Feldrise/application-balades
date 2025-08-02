@@ -1,18 +1,33 @@
+import 'package:balade/core/widgets/splash_screen.dart';
+import 'package:balade/features/authentication/authentication_provider.dart';
+import 'package:balade/features/authentication/data/models/authed_user/authed_user.dart';
+import 'package:balade/features/navigation/routes.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_web_plugins/flutter_web_plugins.dart';
+import 'package:intl/intl_standalone.dart';
 import 'util.dart';
 import 'themes/theme.dart';
 
-void main() {
-  runApp(const MyApp());
+Future<void> main() async {
+  usePathUrlStrategy();
+
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await findSystemLocale();
+
+  runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final brightness = View.of(context).platformDispatcher.platformBrightness;
+    // final brightness = Brightness.light;
 
     // Retrieves the default theme for the platform
     //TextTheme textTheme = Theme.of(context).textTheme;
@@ -21,79 +36,32 @@ class MyApp extends StatelessWidget {
     TextTheme textTheme = createTextTheme(context, "Lora", "Lato");
 
     MaterialTheme theme = MaterialTheme(textTheme);
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: brightness == Brightness.light ? theme.light() : theme.dark(),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+    return FutureBuilder(
+      future: ref.read(authenticationProvider.notifier).init(shouldFakeDelay: false),
 
-  final String title;
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SplashScreen();
+        }
 
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
+        return Builder(
+          builder: (context) {
+            final AuthedUser? authedUser = ref.watch(authenticationProvider);
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text('$_counter', style: Theme.of(context).textTheme.headlineMedium),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+            return MaterialApp.router(
+              title: 'Balade',
+              theme: brightness == Brightness.light ? theme.light() : theme.dark(),
+              debugShowCheckedModeBanner: false,
+              localizationsDelegates: GlobalMaterialLocalizations.delegates,
+              supportedLocales: const [
+                Locale('fr', ''), // French
+              ],
+              routerConfig: router(),
+            );
+          },
+        );
+      },
     );
   }
 }
