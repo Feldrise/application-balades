@@ -3,6 +3,7 @@ import 'package:balade/features/admin/admin_home_page/admin_home_page.dart';
 import 'package:balade/features/authentication/admin_login_page.dart';
 import 'package:balade/features/authentication/data/models/authed_user/authed_user.dart';
 import 'package:balade/features/navigation/main_page/main_page.dart';
+import 'package:balade/features/ramble/add_ramble_page/add_ramble_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -48,6 +49,12 @@ GoRouter router(AuthedUser? loggedUser) => GoRouter(
         GoRoute(
           path: "/admin",
           pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: loggedUser == null ? AdminLoginPage() : const AdminHomePage()),
+          routes: [
+            GoRoute(
+              path: "nouvelle-balade",
+              pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const RambleFormDemoPage()),
+            ),
+          ],
         ),
         GoRoute(
           path: "/aide",
