@@ -1,3 +1,7 @@
+import 'package:balade/core/widgets/loading_overlay.dart';
+import 'package:balade/features/admin/admin_home_page/admin_home_page.dart';
+import 'package:balade/features/authentication/admin_login_page.dart';
+import 'package:balade/features/authentication/data/models/authed_user/authed_user.dart';
 import 'package:balade/features/navigation/main_page/main_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -20,10 +24,10 @@ CustomTransitionPage<dynamic> _buildPageWithDefaultTransition<T>({required Build
   );
 }
 
-GoRouter router() => GoRouter(
+GoRouter router(AuthedUser? loggedUser) => GoRouter(
   routes: [
     ShellRoute(
-      builder: (context, state, child) => MainPage(child: child),
+      builder: (context, state, child) => MainPage(child: LoadingOverlay(child: child)),
       routes: [
         GoRoute(
           path: "/",
@@ -43,7 +47,7 @@ GoRouter router() => GoRouter(
         ),
         GoRoute(
           path: "/admin",
-          pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const _AdminPage()),
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: loggedUser == null ? AdminLoginPage() : const AdminHomePage()),
         ),
         GoRoute(
           path: "/aide",
@@ -119,18 +123,6 @@ class _AccountPage extends StatelessWidget {
     return const Scaffold(
       backgroundColor: Colors.transparent,
       body: Center(child: Text("Mon Compte - À venir")),
-    );
-  }
-}
-
-class _AdminPage extends StatelessWidget {
-  const _AdminPage();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Center(child: Text("Administration - À venir")),
     );
   }
 }

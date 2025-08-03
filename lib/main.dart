@@ -26,8 +26,8 @@ class MyApp extends ConsumerWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final brightness = View.of(context).platformDispatcher.platformBrightness;
-    // final brightness = Brightness.light;
+    // final brightness = View.of(context).platformDispatcher.platformBrightness;
+    final brightness = Brightness.light;
 
     // Retrieves the default theme for the platform
     //TextTheme textTheme = Theme.of(context).textTheme;
@@ -57,7 +57,7 @@ class MyApp extends ConsumerWidget {
               supportedLocales: const [
                 Locale('fr', ''), // French
               ],
-              routerConfig: router(),
+              routerConfig: router(authedUser),
             );
           },
         );

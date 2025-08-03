@@ -340,8 +340,50 @@ class MaterialTheme {
     brightness: colorScheme.brightness,
     colorScheme: colorScheme,
     textTheme: textTheme.apply(bodyColor: colorScheme.onSurface, displayColor: colorScheme.onSurface),
-    scaffoldBackgroundColor: colorScheme.surface,
+    scaffoldBackgroundColor: colorScheme.surfaceContainer,
     canvasColor: colorScheme.surface,
+
+    cardTheme: CardThemeData(
+      elevation: 16,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(2.0),
+        side: BorderSide(color: colorScheme.outlineVariant, width: 1),
+      ),
+    ),
+
+    inputDecorationTheme: InputDecorationTheme(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      fillColor: colorScheme.surface,
+      filled: true,
+      // floatingLabelBehavior: FloatingLabelBehavior.always,
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(2.0),
+      ),
+      border: OutlineInputBorder(
+        borderSide: BorderSide(color: colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(2.0),
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2.0)),
+      ),
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2.0)),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2.0)),
+      ),
+    ),
   );
 
   List<ExtendedColor> get extendedColors => [];
