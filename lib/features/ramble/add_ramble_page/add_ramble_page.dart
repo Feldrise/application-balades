@@ -10,6 +10,8 @@ class RambleFormDemoPage extends ConsumerStatefulWidget {
 }
 
 class _RambleFormDemoPageState extends ConsumerState<RambleFormDemoPage> {
+  final GlobalKey<RambleFormState> _formKey = GlobalKey<RambleFormState>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,11 +26,16 @@ class _RambleFormDemoPageState extends ConsumerState<RambleFormDemoPage> {
             child: const Text('Annuler'),
           ),
           const SizedBox(width: 12),
-          FilledButton(onPressed: () {}, child: Text('Créer la balade')),
+          FilledButton(
+            onPressed: () async {
+              await _formKey.currentState?.save();
+            },
+            child: Text('Créer la balade'),
+          ),
           const SizedBox(width: 12),
         ],
       ),
-      body: Center(child: RambleForm()),
+      body: Center(child: RambleForm(key: _formKey)),
     );
   }
 }

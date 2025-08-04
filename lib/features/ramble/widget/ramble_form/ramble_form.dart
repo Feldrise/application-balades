@@ -1,5 +1,16 @@
+import 'dart:convert';
+
 import 'package:balade/core/forms/duration_picker.dart';
+import 'package:balade/core/widgets/error_snackbar.dart';
+import 'package:balade/core/widgets/loading_overlay.dart';
+import 'package:balade/core/widgets/searchable_dropdown.dart';
+import 'package:balade/features/authentication/authentication_provider.dart';
+import 'package:balade/features/guides/dialogs/add_guide_dialog.dart';
+import 'package:balade/features/guides/guides_service.dart';
+import 'package:balade/features/guides/models/guide/guide.dart';
+import 'package:balade/features/guides/widgets/guide_small_card.dart';
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
+import 'package:balade/features/ramble/rambles_service.dart';
 import 'package:balade/features/ramble/widget/ramble_form/widgets/pricing_list.dart';
 import 'package:date_field/date_field.dart';
 import 'package:flutter/material.dart';
@@ -17,10 +28,10 @@ class RambleForm extends ConsumerStatefulWidget {
   final Ramble? initialRamble;
 
   @override
-  ConsumerState<RambleForm> createState() => _RambleFormState();
+  ConsumerState<RambleForm> createState() => RambleFormState();
 }
 
-class _RambleFormState extends ConsumerState<RambleForm> {
+class RambleFormState extends ConsumerState<RambleForm> {
   final _formKey = GlobalKey<FormState>();
 
   // Controllers
@@ -41,6 +52,8 @@ class _RambleFormState extends ConsumerState<RambleForm> {
   DateTime? _selectedDate;
   String _selectedDifficulty = "facile"; // Default difficulty
   Duration _selectedDuration = const Duration(hours: 2);
+
+  List<int> _selectedGuides = [];
 
   @override
   void initState() {
@@ -107,6 +120,64 @@ class _RambleFormState extends ConsumerState<RambleForm> {
                         _coverImage = image;
                       });
                     },
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 32),
+
+            // Guide information
+            FormSection(
+              title: 'Informations sur le(s) guide(s)',
+              children: [
+                SearchableDropdown<Guide>(
+                  label: "Rechercher un guide",
+                  displayStringForOption: (guide) => '${guide.firstName} ${guide.lastName}',
+                  onCreate: (name) async {
+                    final int? newGuideID = await showDialog<int>(
+                      context: context,
+                      builder: (context) => const LoadingOverlay(child: AddGuideDialog()),
+                    );
+
+                    if (newGuideID != null) {
+                      setState(() {
+                        _selectedGuides.add(newGuideID);
+                      });
+                    }
+                  },
+                  optionsBuilder: (textEditingValue) async {
+                    final List<Guide> guides = await GuidesService.instance.fetchGuides(textEditingValue.text, authorization: ref.read(authenticationProvider)?.token);
+
+                    return guides.where((guide) => !_selectedGuides.contains(guide.id)).toList();
+                  },
+                  onSelected: (guide) {
+                    if (guide != null && !_selectedGuides.contains(guide.id)) {
+                      setState(() {
+                        _selectedGuides.add(guide.id);
+                      });
+                    }
+                  },
+                  fakeOnCreate: (value) => Guide(0, firstName: "", lastName: "", email: "", isActive: true),
+                  shouldResetOnTap: true,
+                ),
+                SizedBox(),
+                FormLargeField(
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final guideId in _selectedGuides)
+                        GuideSmallCard(
+                          guideId: guideId,
+                          onRemove: () {
+                            setState(() {
+                              _selectedGuides.remove(guideId);
+                            });
+                          },
+                          showRemoveButton: true,
+                        ),
+                    ],
                   ),
                 ),
               ],
@@ -291,5 +362,55 @@ class _RambleFormState extends ConsumerState<RambleForm> {
         ),
       ),
     );
+  }
+
+  Future<void> save() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    try {
+      LoadingOverlay.of(context).show();
+
+      final Map<String, Object?> data = {
+        'title': _titleController.text,
+        'description': _descriptionController.text,
+        'type': _selectedType,
+        'date': _selectedDate?.toUtc().toIso8601String(),
+        'location': _locationController.text,
+        'meeting_point': _meetingPointController.text,
+        'max_participants': int.tryParse(_maxParticipantsController.text),
+        'difficulty': _selectedDifficulty,
+        'estimated_duration': _selectedDuration.toString().split('.').first,
+        'equipment_needed': _equipmentController.text,
+        'prerequisites': _prerequisitesController.text,
+        if (_coverImage != null) 'cover_image_base64': base64Encode(_coverImage!.bytes),
+        'guide_ids': _selectedGuides,
+        'prices': [
+          for (final price in _prices) {'label': price.$1.text, 'amount': double.tryParse(price.$2.text) ?? 0.0},
+        ],
+      };
+
+      if (widget.initialRamble != null) {
+        // // Update existing ramble
+        // data['id'] = widget.initialRamble!.id;
+        // await RambleService.instance.updateRamble(data, authorization: ref.read(authenticationProvider)?.token);
+      } else {
+        // Create new ramble
+        await RamblesService.instance.createRamble(data, authorization: ref.read(authenticationProvider)!.token);
+      }
+
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ErrorSnackbar.show(context, 'Erreur lors de la sauvegarde : $e');
+      }
+    } finally {
+      if (mounted) {
+        LoadingOverlay.of(context).hide();
+      }
+    }
   }
 }
