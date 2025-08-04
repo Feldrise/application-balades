@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:balade/core/constants.dart';
 import 'package:balade/core/forms/duration_picker.dart';
 import 'package:balade/core/widgets/error_snackbar.dart';
 import 'package:balade/core/widgets/loading_overlay.dart';
@@ -113,7 +114,8 @@ class RambleFormState extends ConsumerState<RambleForm> {
               children: [
                 FormLargeField(
                   child: ImageInput(
-                    networkImageUrl: widget.initialRamble?.coverImageUrl ?? '',
+                    // networkImageUrl: widget.initialRamble?.coverImageUrl ?? '',
+                    networkImageUrl: "$kBaseUrl/uploads/ramble/${widget.initialRamble?.id}/${widget.initialRamble?.coverImage}",
                     imageFile: _coverImage,
                     onChanged: (image) {
                       setState(() {

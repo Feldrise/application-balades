@@ -1,4 +1,5 @@
 import 'package:balade/core/serializers.dart';
+import 'package:balade/features/guides/models/guide/guide.dart';
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -48,8 +49,8 @@ abstract class Ramble with _$Ramble {
     @DurationSerializer() @JsonKey(name: 'estimated_duration') Duration? estimatedDuration,
     @JsonKey(name: 'equipment_needed') String? equipmentNeeded,
     String? prerequisites,
-    @JsonKey(name: 'cover_image_url') String? coverImageUrl,
-    @JsonKey(name: 'additional_documents_url') String? additionalDocumentsUrl,
+    @JsonKey(name: 'cover_image') String? coverImage,
+    @Default(<Guide>[]) List<Guide> guides,
   }) = _Ramble;
 
   factory Ramble.fromJson(Map<String, Object?> json) => _$RambleFromJson(json);

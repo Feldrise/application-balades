@@ -27,8 +27,12 @@ _Ramble _$RambleFromJson(Map<String, dynamic> json) => _Ramble(
   ),
   equipmentNeeded: json['equipment_needed'] as String?,
   prerequisites: json['prerequisites'] as String?,
-  coverImageUrl: json['cover_image_url'] as String?,
-  additionalDocumentsUrl: json['additional_documents_url'] as String?,
+  coverImage: json['cover_image'] as String?,
+  guides:
+      (json['guides'] as List<dynamic>?)
+          ?.map((e) => Guide.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <Guide>[],
 );
 
 Map<String, dynamic> _$RambleToJson(_Ramble instance) => <String, dynamic>{
@@ -48,8 +52,8 @@ Map<String, dynamic> _$RambleToJson(_Ramble instance) => <String, dynamic>{
   ),
   'equipment_needed': instance.equipmentNeeded,
   'prerequisites': instance.prerequisites,
-  'cover_image_url': instance.coverImageUrl,
-  'additional_documents_url': instance.additionalDocumentsUrl,
+  'cover_image': instance.coverImage,
+  'guides': instance.guides,
 };
 
 _RamblePrice _$RamblePriceFromJson(Map<String, dynamic> json) => _RamblePrice(
