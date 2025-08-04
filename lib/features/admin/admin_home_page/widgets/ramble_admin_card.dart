@@ -19,8 +19,6 @@ class RambleAdminCard extends StatelessWidget {
     final timeFormat = DateFormat('HH:mm');
 
     return Card(
-      elevation: 2,
-      margin: const EdgeInsets.all(8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

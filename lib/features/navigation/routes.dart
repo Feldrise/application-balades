@@ -4,6 +4,8 @@ import 'package:balade/features/authentication/admin_login_page.dart';
 import 'package:balade/features/authentication/data/models/authed_user/authed_user.dart';
 import 'package:balade/features/navigation/main_page/main_page.dart';
 import 'package:balade/features/ramble/add_ramble_page/add_ramble_page.dart';
+import 'package:balade/features/ramble/public_ramble_details_page/public_ramble_details_page.dart';
+import 'package:balade/features/ramble/public_rambles_page/public_rambles_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -36,7 +38,27 @@ GoRouter router(AuthedUser? loggedUser) => GoRouter(
         ),
         GoRoute(
           path: "/balades",
-          pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const _BalladesPage()),
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const PublicRamblesPage()),
+          routes: [
+            GoRoute(
+              path: "/:id",
+              pageBuilder: (context, state) {
+                final id = int.tryParse(state.pathParameters['id'] ?? '');
+                if (id == null) {
+                  return _buildPageWithDefaultTransition(
+                    context: context,
+                    state: state,
+                    child: const Scaffold(body: Center(child: Text('ID de balade invalide'))),
+                  );
+                }
+                return _buildPageWithDefaultTransition(
+                  context: context,
+                  state: state,
+                  child: PublicRambleDetailsPage(rambleId: id),
+                );
+              },
+            ),
+          ],
         ),
         GoRoute(
           path: "/mes-reservations",
@@ -94,18 +116,6 @@ class _HomePage extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _BalladesPage extends StatelessWidget {
-  const _BalladesPage();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Center(child: Text("Page des Balades - À venir")),
     );
   }
 }

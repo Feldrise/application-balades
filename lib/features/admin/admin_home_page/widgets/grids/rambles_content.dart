@@ -29,6 +29,7 @@ class RamblesGrid extends StatelessWidget {
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
         childAspectRatio: childAspectRatio,
+        mainAxisExtent: 530,
         crossAxisSpacing: spacing,
         mainAxisSpacing: spacing,
       ),
