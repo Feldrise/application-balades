@@ -1,12 +1,12 @@
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
+import 'package:balade/features/registrations/widgets/registration_form_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class RambleRegistrationSection extends StatelessWidget {
-  const RambleRegistrationSection({super.key, required this.ramble, this.onRegister, this.onShare, this.isRegistered = false, this.isLoading = false, this.isCompact = false});
+  const RambleRegistrationSection({super.key, required this.ramble, this.onShare, this.isRegistered = false, this.isLoading = false, this.isCompact = false});
 
   final Ramble ramble;
-  final VoidCallback? onRegister;
   final VoidCallback? onShare;
   final bool isRegistered;
   final bool isLoading;
@@ -188,24 +188,33 @@ class RambleRegistrationSection extends StatelessWidget {
 
   Widget _buildActionButton(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return FilledButton.icon(
-      onPressed: _canRegister() ? onRegister : null,
+      onPressed: _canRegister() ? () => _showRegistrationForm(context) : null,
       icon: isLoading ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : Icon(_getButtonIcon()),
       label: Text(_getButtonText()),
       style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), backgroundColor: _getButtonColor(context)),
     );
   }
 
+  void _showRegistrationForm(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => RegistrationFormSheet(ramble: ramble),
+    );
+  }
+
   bool _canRegister() {
     if (isLoading) return false;
     if (isRegistered) return false;
-    if (ramble.status != 'active') return false;
+    if (ramble.status == 'cancelled' || ramble.status == 'archived') return false;
     if (ramble.date != null && ramble.date!.isBefore(DateTime.now())) return false;
     return true;
   }
 
   IconData _getButtonIcon() {
     if (isRegistered) return Icons.check;
-    if (ramble.status != 'active') return Icons.block;
+    if (ramble.status == 'cancelled') return Icons.block;
     if (ramble.date != null && ramble.date!.isBefore(DateTime.now())) return Icons.schedule;
     return Icons.person_add;
   }
@@ -226,7 +235,7 @@ class RambleRegistrationSection extends StatelessWidget {
   }
 
   IconData _getStatusIcon() {
-    if (ramble.status == 'active') return Icons.check_circle;
+    if (ramble.status == 'published' || ramble.status == 'active') return Icons.check_circle;
     if (ramble.status == 'cancelled') return Icons.cancel;
     if (ramble.status == 'full') return Icons.group;
     return Icons.info;

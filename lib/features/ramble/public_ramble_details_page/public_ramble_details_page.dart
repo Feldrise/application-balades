@@ -20,37 +20,6 @@ class _PublicRambleDetailsPageState extends State<PublicRambleDetailsPage> {
   bool isLoading = false;
   bool isFavorite = false;
 
-  void _handleRegister() async {
-    if (isLoading) return;
-
-    setState(() {
-      isLoading = true;
-    });
-
-    try {
-      // TODO: Implement actual registration logic
-      await Future.delayed(const Duration(seconds: 2)); // Simulate API call
-
-      setState(() {
-        isRegistered = true;
-      });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Inscription réussie !'), backgroundColor: Colors.green));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur lors de l\'inscription: $e'), backgroundColor: Colors.red));
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
-    }
-  }
-
   void _handleShare() {
     // TODO: Implement share functionality
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fonctionnalité de partage à implémenter')));
@@ -159,7 +128,6 @@ class _PublicRambleDetailsPageState extends State<PublicRambleDetailsPage> {
                 // Registration section
                 RambleRegistrationSection(
                   ramble: ramble,
-                  onRegister: _handleRegister,
                   onShare: _handleShare,
                   isRegistered: isRegistered,
                   isLoading: isLoading,
@@ -190,7 +158,7 @@ class _PublicRambleDetailsPageState extends State<PublicRambleDetailsPage> {
           const SizedBox(height: 24),
 
           // Registration section
-          RambleRegistrationSection(ramble: ramble, onRegister: _handleRegister, onShare: _handleShare, isRegistered: isRegistered, isLoading: isLoading, isCompact: false),
+          RambleRegistrationSection(ramble: ramble, onShare: _handleShare, isRegistered: isRegistered, isLoading: isLoading, isCompact: false),
 
           const SizedBox(height: 24),
 
@@ -227,7 +195,6 @@ class _PublicRambleDetailsPageState extends State<PublicRambleDetailsPage> {
           padding: const EdgeInsets.all(16),
           child: RambleRegistrationSection(
             ramble: ramble,
-            onRegister: _handleRegister,
             onShare: _handleShare,
             isRegistered: isRegistered,
             isLoading: isLoading,
