@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Registration {
 
- int get id;@JsonKey(name: 'created_at')@DateSerializer() DateTime get createdAt;@JsonKey(name: 'updated_at')@DateSerializer() DateTime get updatedAt;@JsonKey(name: 'first_name') String get firstName;@JsonKey(name: 'last_name') String get lastName; String get email; String? get phone; String get status;@JsonKey(name: 'registration_date')@DateSerializer() DateTime get registrationDate;@JsonKey(name: 'confirmation_date')@DateSerializer() DateTime? get confirmationDate;@JsonKey(name: 'confirmation_deadline')@DateSerializer() DateTime? get confirmationDeadline;@JsonKey(name: 'cancellation_date')@DateSerializer() DateTime? get cancellationDate;@JsonKey(name: 'cancellation_reason') String? get cancellationReason;@JsonKey(name: 'ramble_id') int get rambleId;@JsonKey(name: 'user_id') int? get userId;@JsonKey(name: 'group_id') int? get groupId;
+ int get id;@JsonKey(name: 'created_at')@DateSerializer() DateTime get createdAt;@JsonKey(name: 'updated_at')@DateSerializer() DateTime get updatedAt;@JsonKey(name: 'first_name') String get firstName;@JsonKey(name: 'last_name') String get lastName; String get email; String? get phone; String get status;@JsonKey(name: 'registration_date')@DateSerializer() DateTime get registrationDate;@JsonKey(name: 'confirmation_date')@DateSerializer() DateTime? get confirmationDate;@JsonKey(name: 'confirmation_deadline')@DateSerializer() DateTime? get confirmationDeadline;@JsonKey(name: 'cancellation_date')@DateSerializer() DateTime? get cancellationDate;@JsonKey(name: 'cancellation_reason') String? get cancellationReason;@JsonKey(name: 'ramble_id') int get rambleId;@JsonKey(name: 'user_id') int? get userId;@JsonKey(name: 'group_id') int? get groupId;// Optional embedded ramble summary returned by the list API
+ RegistrationRambleSummary? get ramble;
 /// Create a copy of Registration
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +29,16 @@ $RegistrationCopyWith<Registration> get copyWith => _$RegistrationCopyWithImpl<R
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Registration&&(identical(other.id, id) || other.id == id)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.status, status) || other.status == status)&&(identical(other.registrationDate, registrationDate) || other.registrationDate == registrationDate)&&(identical(other.confirmationDate, confirmationDate) || other.confirmationDate == confirmationDate)&&(identical(other.confirmationDeadline, confirmationDeadline) || other.confirmationDeadline == confirmationDeadline)&&(identical(other.cancellationDate, cancellationDate) || other.cancellationDate == cancellationDate)&&(identical(other.cancellationReason, cancellationReason) || other.cancellationReason == cancellationReason)&&(identical(other.rambleId, rambleId) || other.rambleId == rambleId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.groupId, groupId) || other.groupId == groupId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Registration&&(identical(other.id, id) || other.id == id)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.status, status) || other.status == status)&&(identical(other.registrationDate, registrationDate) || other.registrationDate == registrationDate)&&(identical(other.confirmationDate, confirmationDate) || other.confirmationDate == confirmationDate)&&(identical(other.confirmationDeadline, confirmationDeadline) || other.confirmationDeadline == confirmationDeadline)&&(identical(other.cancellationDate, cancellationDate) || other.cancellationDate == cancellationDate)&&(identical(other.cancellationReason, cancellationReason) || other.cancellationReason == cancellationReason)&&(identical(other.rambleId, rambleId) || other.rambleId == rambleId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.groupId, groupId) || other.groupId == groupId)&&(identical(other.ramble, ramble) || other.ramble == ramble));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,createdAt,updatedAt,firstName,lastName,email,phone,status,registrationDate,confirmationDate,confirmationDeadline,cancellationDate,cancellationReason,rambleId,userId,groupId);
+int get hashCode => Object.hash(runtimeType,id,createdAt,updatedAt,firstName,lastName,email,phone,status,registrationDate,confirmationDate,confirmationDeadline,cancellationDate,cancellationReason,rambleId,userId,groupId,ramble);
 
 @override
 String toString() {
-  return 'Registration(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, firstName: $firstName, lastName: $lastName, email: $email, phone: $phone, status: $status, registrationDate: $registrationDate, confirmationDate: $confirmationDate, confirmationDeadline: $confirmationDeadline, cancellationDate: $cancellationDate, cancellationReason: $cancellationReason, rambleId: $rambleId, userId: $userId, groupId: $groupId)';
+  return 'Registration(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, firstName: $firstName, lastName: $lastName, email: $email, phone: $phone, status: $status, registrationDate: $registrationDate, confirmationDate: $confirmationDate, confirmationDeadline: $confirmationDeadline, cancellationDate: $cancellationDate, cancellationReason: $cancellationReason, rambleId: $rambleId, userId: $userId, groupId: $groupId, ramble: $ramble)';
 }
 
 
@@ -48,11 +49,11 @@ abstract mixin class $RegistrationCopyWith<$Res>  {
   factory $RegistrationCopyWith(Registration value, $Res Function(Registration) _then) = _$RegistrationCopyWithImpl;
 @useResult
 $Res call({
- int id,@JsonKey(name: 'created_at')@DateSerializer() DateTime createdAt,@JsonKey(name: 'updated_at')@DateSerializer() DateTime updatedAt,@JsonKey(name: 'first_name') String firstName,@JsonKey(name: 'last_name') String lastName, String email, String? phone, String status,@JsonKey(name: 'registration_date')@DateSerializer() DateTime registrationDate,@JsonKey(name: 'confirmation_date')@DateSerializer() DateTime? confirmationDate,@JsonKey(name: 'confirmation_deadline')@DateSerializer() DateTime? confirmationDeadline,@JsonKey(name: 'cancellation_date')@DateSerializer() DateTime? cancellationDate,@JsonKey(name: 'cancellation_reason') String? cancellationReason,@JsonKey(name: 'ramble_id') int rambleId,@JsonKey(name: 'user_id') int? userId,@JsonKey(name: 'group_id') int? groupId
+ int id,@JsonKey(name: 'created_at')@DateSerializer() DateTime createdAt,@JsonKey(name: 'updated_at')@DateSerializer() DateTime updatedAt,@JsonKey(name: 'first_name') String firstName,@JsonKey(name: 'last_name') String lastName, String email, String? phone, String status,@JsonKey(name: 'registration_date')@DateSerializer() DateTime registrationDate,@JsonKey(name: 'confirmation_date')@DateSerializer() DateTime? confirmationDate,@JsonKey(name: 'confirmation_deadline')@DateSerializer() DateTime? confirmationDeadline,@JsonKey(name: 'cancellation_date')@DateSerializer() DateTime? cancellationDate,@JsonKey(name: 'cancellation_reason') String? cancellationReason,@JsonKey(name: 'ramble_id') int rambleId,@JsonKey(name: 'user_id') int? userId,@JsonKey(name: 'group_id') int? groupId, RegistrationRambleSummary? ramble
 });
 
 
-
+$RegistrationRambleSummaryCopyWith<$Res>? get ramble;
 
 }
 /// @nodoc
@@ -65,7 +66,7 @@ class _$RegistrationCopyWithImpl<$Res>
 
 /// Create a copy of Registration
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? createdAt = null,Object? updatedAt = null,Object? firstName = null,Object? lastName = null,Object? email = null,Object? phone = freezed,Object? status = null,Object? registrationDate = null,Object? confirmationDate = freezed,Object? confirmationDeadline = freezed,Object? cancellationDate = freezed,Object? cancellationReason = freezed,Object? rambleId = null,Object? userId = freezed,Object? groupId = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? createdAt = null,Object? updatedAt = null,Object? firstName = null,Object? lastName = null,Object? email = null,Object? phone = freezed,Object? status = null,Object? registrationDate = null,Object? confirmationDate = freezed,Object? confirmationDeadline = freezed,Object? cancellationDate = freezed,Object? cancellationReason = freezed,Object? rambleId = null,Object? userId = freezed,Object? groupId = freezed,Object? ramble = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -83,10 +84,23 @@ as DateTime?,cancellationReason: freezed == cancellationReason ? _self.cancellat
 as String?,rambleId: null == rambleId ? _self.rambleId : rambleId // ignore: cast_nullable_to_non_nullable
 as int,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
 as int?,groupId: freezed == groupId ? _self.groupId : groupId // ignore: cast_nullable_to_non_nullable
-as int?,
+as int?,ramble: freezed == ramble ? _self.ramble : ramble // ignore: cast_nullable_to_non_nullable
+as RegistrationRambleSummary?,
   ));
 }
+/// Create a copy of Registration
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$RegistrationRambleSummaryCopyWith<$Res>? get ramble {
+    if (_self.ramble == null) {
+    return null;
+  }
 
+  return $RegistrationRambleSummaryCopyWith<$Res>(_self.ramble!, (value) {
+    return _then(_self.copyWith(ramble: value));
+  });
+}
 }
 
 
@@ -168,10 +182,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id, @JsonKey(name: 'created_at')@DateSerializer()  DateTime createdAt, @JsonKey(name: 'updated_at')@DateSerializer()  DateTime updatedAt, @JsonKey(name: 'first_name')  String firstName, @JsonKey(name: 'last_name')  String lastName,  String email,  String? phone,  String status, @JsonKey(name: 'registration_date')@DateSerializer()  DateTime registrationDate, @JsonKey(name: 'confirmation_date')@DateSerializer()  DateTime? confirmationDate, @JsonKey(name: 'confirmation_deadline')@DateSerializer()  DateTime? confirmationDeadline, @JsonKey(name: 'cancellation_date')@DateSerializer()  DateTime? cancellationDate, @JsonKey(name: 'cancellation_reason')  String? cancellationReason, @JsonKey(name: 'ramble_id')  int rambleId, @JsonKey(name: 'user_id')  int? userId, @JsonKey(name: 'group_id')  int? groupId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id, @JsonKey(name: 'created_at')@DateSerializer()  DateTime createdAt, @JsonKey(name: 'updated_at')@DateSerializer()  DateTime updatedAt, @JsonKey(name: 'first_name')  String firstName, @JsonKey(name: 'last_name')  String lastName,  String email,  String? phone,  String status, @JsonKey(name: 'registration_date')@DateSerializer()  DateTime registrationDate, @JsonKey(name: 'confirmation_date')@DateSerializer()  DateTime? confirmationDate, @JsonKey(name: 'confirmation_deadline')@DateSerializer()  DateTime? confirmationDeadline, @JsonKey(name: 'cancellation_date')@DateSerializer()  DateTime? cancellationDate, @JsonKey(name: 'cancellation_reason')  String? cancellationReason, @JsonKey(name: 'ramble_id')  int rambleId, @JsonKey(name: 'user_id')  int? userId, @JsonKey(name: 'group_id')  int? groupId,  RegistrationRambleSummary? ramble)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Registration() when $default != null:
-return $default(_that.id,_that.createdAt,_that.updatedAt,_that.firstName,_that.lastName,_that.email,_that.phone,_that.status,_that.registrationDate,_that.confirmationDate,_that.confirmationDeadline,_that.cancellationDate,_that.cancellationReason,_that.rambleId,_that.userId,_that.groupId);case _:
+return $default(_that.id,_that.createdAt,_that.updatedAt,_that.firstName,_that.lastName,_that.email,_that.phone,_that.status,_that.registrationDate,_that.confirmationDate,_that.confirmationDeadline,_that.cancellationDate,_that.cancellationReason,_that.rambleId,_that.userId,_that.groupId,_that.ramble);case _:
   return orElse();
 
 }
@@ -189,10 +203,10 @@ return $default(_that.id,_that.createdAt,_that.updatedAt,_that.firstName,_that.l
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id, @JsonKey(name: 'created_at')@DateSerializer()  DateTime createdAt, @JsonKey(name: 'updated_at')@DateSerializer()  DateTime updatedAt, @JsonKey(name: 'first_name')  String firstName, @JsonKey(name: 'last_name')  String lastName,  String email,  String? phone,  String status, @JsonKey(name: 'registration_date')@DateSerializer()  DateTime registrationDate, @JsonKey(name: 'confirmation_date')@DateSerializer()  DateTime? confirmationDate, @JsonKey(name: 'confirmation_deadline')@DateSerializer()  DateTime? confirmationDeadline, @JsonKey(name: 'cancellation_date')@DateSerializer()  DateTime? cancellationDate, @JsonKey(name: 'cancellation_reason')  String? cancellationReason, @JsonKey(name: 'ramble_id')  int rambleId, @JsonKey(name: 'user_id')  int? userId, @JsonKey(name: 'group_id')  int? groupId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id, @JsonKey(name: 'created_at')@DateSerializer()  DateTime createdAt, @JsonKey(name: 'updated_at')@DateSerializer()  DateTime updatedAt, @JsonKey(name: 'first_name')  String firstName, @JsonKey(name: 'last_name')  String lastName,  String email,  String? phone,  String status, @JsonKey(name: 'registration_date')@DateSerializer()  DateTime registrationDate, @JsonKey(name: 'confirmation_date')@DateSerializer()  DateTime? confirmationDate, @JsonKey(name: 'confirmation_deadline')@DateSerializer()  DateTime? confirmationDeadline, @JsonKey(name: 'cancellation_date')@DateSerializer()  DateTime? cancellationDate, @JsonKey(name: 'cancellation_reason')  String? cancellationReason, @JsonKey(name: 'ramble_id')  int rambleId, @JsonKey(name: 'user_id')  int? userId, @JsonKey(name: 'group_id')  int? groupId,  RegistrationRambleSummary? ramble)  $default,) {final _that = this;
 switch (_that) {
 case _Registration():
-return $default(_that.id,_that.createdAt,_that.updatedAt,_that.firstName,_that.lastName,_that.email,_that.phone,_that.status,_that.registrationDate,_that.confirmationDate,_that.confirmationDeadline,_that.cancellationDate,_that.cancellationReason,_that.rambleId,_that.userId,_that.groupId);case _:
+return $default(_that.id,_that.createdAt,_that.updatedAt,_that.firstName,_that.lastName,_that.email,_that.phone,_that.status,_that.registrationDate,_that.confirmationDate,_that.confirmationDeadline,_that.cancellationDate,_that.cancellationReason,_that.rambleId,_that.userId,_that.groupId,_that.ramble);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -209,10 +223,10 @@ return $default(_that.id,_that.createdAt,_that.updatedAt,_that.firstName,_that.l
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id, @JsonKey(name: 'created_at')@DateSerializer()  DateTime createdAt, @JsonKey(name: 'updated_at')@DateSerializer()  DateTime updatedAt, @JsonKey(name: 'first_name')  String firstName, @JsonKey(name: 'last_name')  String lastName,  String email,  String? phone,  String status, @JsonKey(name: 'registration_date')@DateSerializer()  DateTime registrationDate, @JsonKey(name: 'confirmation_date')@DateSerializer()  DateTime? confirmationDate, @JsonKey(name: 'confirmation_deadline')@DateSerializer()  DateTime? confirmationDeadline, @JsonKey(name: 'cancellation_date')@DateSerializer()  DateTime? cancellationDate, @JsonKey(name: 'cancellation_reason')  String? cancellationReason, @JsonKey(name: 'ramble_id')  int rambleId, @JsonKey(name: 'user_id')  int? userId, @JsonKey(name: 'group_id')  int? groupId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id, @JsonKey(name: 'created_at')@DateSerializer()  DateTime createdAt, @JsonKey(name: 'updated_at')@DateSerializer()  DateTime updatedAt, @JsonKey(name: 'first_name')  String firstName, @JsonKey(name: 'last_name')  String lastName,  String email,  String? phone,  String status, @JsonKey(name: 'registration_date')@DateSerializer()  DateTime registrationDate, @JsonKey(name: 'confirmation_date')@DateSerializer()  DateTime? confirmationDate, @JsonKey(name: 'confirmation_deadline')@DateSerializer()  DateTime? confirmationDeadline, @JsonKey(name: 'cancellation_date')@DateSerializer()  DateTime? cancellationDate, @JsonKey(name: 'cancellation_reason')  String? cancellationReason, @JsonKey(name: 'ramble_id')  int rambleId, @JsonKey(name: 'user_id')  int? userId, @JsonKey(name: 'group_id')  int? groupId,  RegistrationRambleSummary? ramble)?  $default,) {final _that = this;
 switch (_that) {
 case _Registration() when $default != null:
-return $default(_that.id,_that.createdAt,_that.updatedAt,_that.firstName,_that.lastName,_that.email,_that.phone,_that.status,_that.registrationDate,_that.confirmationDate,_that.confirmationDeadline,_that.cancellationDate,_that.cancellationReason,_that.rambleId,_that.userId,_that.groupId);case _:
+return $default(_that.id,_that.createdAt,_that.updatedAt,_that.firstName,_that.lastName,_that.email,_that.phone,_that.status,_that.registrationDate,_that.confirmationDate,_that.confirmationDeadline,_that.cancellationDate,_that.cancellationReason,_that.rambleId,_that.userId,_that.groupId,_that.ramble);case _:
   return null;
 
 }
@@ -224,7 +238,7 @@ return $default(_that.id,_that.createdAt,_that.updatedAt,_that.firstName,_that.l
 @JsonSerializable()
 
 class _Registration implements Registration {
-  const _Registration(this.id, {@JsonKey(name: 'created_at')@DateSerializer() required this.createdAt, @JsonKey(name: 'updated_at')@DateSerializer() required this.updatedAt, @JsonKey(name: 'first_name') required this.firstName, @JsonKey(name: 'last_name') required this.lastName, required this.email, this.phone, required this.status, @JsonKey(name: 'registration_date')@DateSerializer() required this.registrationDate, @JsonKey(name: 'confirmation_date')@DateSerializer() this.confirmationDate, @JsonKey(name: 'confirmation_deadline')@DateSerializer() this.confirmationDeadline, @JsonKey(name: 'cancellation_date')@DateSerializer() this.cancellationDate, @JsonKey(name: 'cancellation_reason') this.cancellationReason, @JsonKey(name: 'ramble_id') required this.rambleId, @JsonKey(name: 'user_id') this.userId, @JsonKey(name: 'group_id') this.groupId});
+  const _Registration(this.id, {@JsonKey(name: 'created_at')@DateSerializer() required this.createdAt, @JsonKey(name: 'updated_at')@DateSerializer() required this.updatedAt, @JsonKey(name: 'first_name') required this.firstName, @JsonKey(name: 'last_name') required this.lastName, required this.email, this.phone, required this.status, @JsonKey(name: 'registration_date')@DateSerializer() required this.registrationDate, @JsonKey(name: 'confirmation_date')@DateSerializer() this.confirmationDate, @JsonKey(name: 'confirmation_deadline')@DateSerializer() this.confirmationDeadline, @JsonKey(name: 'cancellation_date')@DateSerializer() this.cancellationDate, @JsonKey(name: 'cancellation_reason') this.cancellationReason, @JsonKey(name: 'ramble_id') required this.rambleId, @JsonKey(name: 'user_id') this.userId, @JsonKey(name: 'group_id') this.groupId, this.ramble});
   factory _Registration.fromJson(Map<String, dynamic> json) => _$RegistrationFromJson(json);
 
 @override final  int id;
@@ -243,6 +257,8 @@ class _Registration implements Registration {
 @override@JsonKey(name: 'ramble_id') final  int rambleId;
 @override@JsonKey(name: 'user_id') final  int? userId;
 @override@JsonKey(name: 'group_id') final  int? groupId;
+// Optional embedded ramble summary returned by the list API
+@override final  RegistrationRambleSummary? ramble;
 
 /// Create a copy of Registration
 /// with the given fields replaced by the non-null parameter values.
@@ -257,16 +273,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Registration&&(identical(other.id, id) || other.id == id)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.status, status) || other.status == status)&&(identical(other.registrationDate, registrationDate) || other.registrationDate == registrationDate)&&(identical(other.confirmationDate, confirmationDate) || other.confirmationDate == confirmationDate)&&(identical(other.confirmationDeadline, confirmationDeadline) || other.confirmationDeadline == confirmationDeadline)&&(identical(other.cancellationDate, cancellationDate) || other.cancellationDate == cancellationDate)&&(identical(other.cancellationReason, cancellationReason) || other.cancellationReason == cancellationReason)&&(identical(other.rambleId, rambleId) || other.rambleId == rambleId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.groupId, groupId) || other.groupId == groupId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Registration&&(identical(other.id, id) || other.id == id)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.status, status) || other.status == status)&&(identical(other.registrationDate, registrationDate) || other.registrationDate == registrationDate)&&(identical(other.confirmationDate, confirmationDate) || other.confirmationDate == confirmationDate)&&(identical(other.confirmationDeadline, confirmationDeadline) || other.confirmationDeadline == confirmationDeadline)&&(identical(other.cancellationDate, cancellationDate) || other.cancellationDate == cancellationDate)&&(identical(other.cancellationReason, cancellationReason) || other.cancellationReason == cancellationReason)&&(identical(other.rambleId, rambleId) || other.rambleId == rambleId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.groupId, groupId) || other.groupId == groupId)&&(identical(other.ramble, ramble) || other.ramble == ramble));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,createdAt,updatedAt,firstName,lastName,email,phone,status,registrationDate,confirmationDate,confirmationDeadline,cancellationDate,cancellationReason,rambleId,userId,groupId);
+int get hashCode => Object.hash(runtimeType,id,createdAt,updatedAt,firstName,lastName,email,phone,status,registrationDate,confirmationDate,confirmationDeadline,cancellationDate,cancellationReason,rambleId,userId,groupId,ramble);
 
 @override
 String toString() {
-  return 'Registration(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, firstName: $firstName, lastName: $lastName, email: $email, phone: $phone, status: $status, registrationDate: $registrationDate, confirmationDate: $confirmationDate, confirmationDeadline: $confirmationDeadline, cancellationDate: $cancellationDate, cancellationReason: $cancellationReason, rambleId: $rambleId, userId: $userId, groupId: $groupId)';
+  return 'Registration(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, firstName: $firstName, lastName: $lastName, email: $email, phone: $phone, status: $status, registrationDate: $registrationDate, confirmationDate: $confirmationDate, confirmationDeadline: $confirmationDeadline, cancellationDate: $cancellationDate, cancellationReason: $cancellationReason, rambleId: $rambleId, userId: $userId, groupId: $groupId, ramble: $ramble)';
 }
 
 
@@ -277,11 +293,11 @@ abstract mixin class _$RegistrationCopyWith<$Res> implements $RegistrationCopyWi
   factory _$RegistrationCopyWith(_Registration value, $Res Function(_Registration) _then) = __$RegistrationCopyWithImpl;
 @override @useResult
 $Res call({
- int id,@JsonKey(name: 'created_at')@DateSerializer() DateTime createdAt,@JsonKey(name: 'updated_at')@DateSerializer() DateTime updatedAt,@JsonKey(name: 'first_name') String firstName,@JsonKey(name: 'last_name') String lastName, String email, String? phone, String status,@JsonKey(name: 'registration_date')@DateSerializer() DateTime registrationDate,@JsonKey(name: 'confirmation_date')@DateSerializer() DateTime? confirmationDate,@JsonKey(name: 'confirmation_deadline')@DateSerializer() DateTime? confirmationDeadline,@JsonKey(name: 'cancellation_date')@DateSerializer() DateTime? cancellationDate,@JsonKey(name: 'cancellation_reason') String? cancellationReason,@JsonKey(name: 'ramble_id') int rambleId,@JsonKey(name: 'user_id') int? userId,@JsonKey(name: 'group_id') int? groupId
+ int id,@JsonKey(name: 'created_at')@DateSerializer() DateTime createdAt,@JsonKey(name: 'updated_at')@DateSerializer() DateTime updatedAt,@JsonKey(name: 'first_name') String firstName,@JsonKey(name: 'last_name') String lastName, String email, String? phone, String status,@JsonKey(name: 'registration_date')@DateSerializer() DateTime registrationDate,@JsonKey(name: 'confirmation_date')@DateSerializer() DateTime? confirmationDate,@JsonKey(name: 'confirmation_deadline')@DateSerializer() DateTime? confirmationDeadline,@JsonKey(name: 'cancellation_date')@DateSerializer() DateTime? cancellationDate,@JsonKey(name: 'cancellation_reason') String? cancellationReason,@JsonKey(name: 'ramble_id') int rambleId,@JsonKey(name: 'user_id') int? userId,@JsonKey(name: 'group_id') int? groupId, RegistrationRambleSummary? ramble
 });
 
 
-
+@override $RegistrationRambleSummaryCopyWith<$Res>? get ramble;
 
 }
 /// @nodoc
@@ -294,7 +310,7 @@ class __$RegistrationCopyWithImpl<$Res>
 
 /// Create a copy of Registration
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? createdAt = null,Object? updatedAt = null,Object? firstName = null,Object? lastName = null,Object? email = null,Object? phone = freezed,Object? status = null,Object? registrationDate = null,Object? confirmationDate = freezed,Object? confirmationDeadline = freezed,Object? cancellationDate = freezed,Object? cancellationReason = freezed,Object? rambleId = null,Object? userId = freezed,Object? groupId = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? createdAt = null,Object? updatedAt = null,Object? firstName = null,Object? lastName = null,Object? email = null,Object? phone = freezed,Object? status = null,Object? registrationDate = null,Object? confirmationDate = freezed,Object? confirmationDeadline = freezed,Object? cancellationDate = freezed,Object? cancellationReason = freezed,Object? rambleId = null,Object? userId = freezed,Object? groupId = freezed,Object? ramble = freezed,}) {
   return _then(_Registration(
 null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -312,7 +328,289 @@ as DateTime?,cancellationReason: freezed == cancellationReason ? _self.cancellat
 as String?,rambleId: null == rambleId ? _self.rambleId : rambleId // ignore: cast_nullable_to_non_nullable
 as int,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
 as int?,groupId: freezed == groupId ? _self.groupId : groupId // ignore: cast_nullable_to_non_nullable
-as int?,
+as int?,ramble: freezed == ramble ? _self.ramble : ramble // ignore: cast_nullable_to_non_nullable
+as RegistrationRambleSummary?,
+  ));
+}
+
+/// Create a copy of Registration
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$RegistrationRambleSummaryCopyWith<$Res>? get ramble {
+    if (_self.ramble == null) {
+    return null;
+  }
+
+  return $RegistrationRambleSummaryCopyWith<$Res>(_self.ramble!, (value) {
+    return _then(_self.copyWith(ramble: value));
+  });
+}
+}
+
+
+/// @nodoc
+mixin _$RegistrationRambleSummary {
+
+ String get title;@DateSerializer() DateTime? get date; String? get location;
+/// Create a copy of RegistrationRambleSummary
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$RegistrationRambleSummaryCopyWith<RegistrationRambleSummary> get copyWith => _$RegistrationRambleSummaryCopyWithImpl<RegistrationRambleSummary>(this as RegistrationRambleSummary, _$identity);
+
+  /// Serializes this RegistrationRambleSummary to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RegistrationRambleSummary&&(identical(other.title, title) || other.title == title)&&(identical(other.date, date) || other.date == date)&&(identical(other.location, location) || other.location == location));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,title,date,location);
+
+@override
+String toString() {
+  return 'RegistrationRambleSummary(title: $title, date: $date, location: $location)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $RegistrationRambleSummaryCopyWith<$Res>  {
+  factory $RegistrationRambleSummaryCopyWith(RegistrationRambleSummary value, $Res Function(RegistrationRambleSummary) _then) = _$RegistrationRambleSummaryCopyWithImpl;
+@useResult
+$Res call({
+ String title,@DateSerializer() DateTime? date, String? location
+});
+
+
+
+
+}
+/// @nodoc
+class _$RegistrationRambleSummaryCopyWithImpl<$Res>
+    implements $RegistrationRambleSummaryCopyWith<$Res> {
+  _$RegistrationRambleSummaryCopyWithImpl(this._self, this._then);
+
+  final RegistrationRambleSummary _self;
+  final $Res Function(RegistrationRambleSummary) _then;
+
+/// Create a copy of RegistrationRambleSummary
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? date = freezed,Object? location = freezed,}) {
+  return _then(_self.copyWith(
+title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,date: freezed == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
+as DateTime?,location: freezed == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [RegistrationRambleSummary].
+extension RegistrationRambleSummaryPatterns on RegistrationRambleSummary {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _RegistrationRambleSummary value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _RegistrationRambleSummary() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _RegistrationRambleSummary value)  $default,){
+final _that = this;
+switch (_that) {
+case _RegistrationRambleSummary():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _RegistrationRambleSummary value)?  $default,){
+final _that = this;
+switch (_that) {
+case _RegistrationRambleSummary() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String title, @DateSerializer()  DateTime? date,  String? location)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _RegistrationRambleSummary() when $default != null:
+return $default(_that.title,_that.date,_that.location);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String title, @DateSerializer()  DateTime? date,  String? location)  $default,) {final _that = this;
+switch (_that) {
+case _RegistrationRambleSummary():
+return $default(_that.title,_that.date,_that.location);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String title, @DateSerializer()  DateTime? date,  String? location)?  $default,) {final _that = this;
+switch (_that) {
+case _RegistrationRambleSummary() when $default != null:
+return $default(_that.title,_that.date,_that.location);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _RegistrationRambleSummary implements RegistrationRambleSummary {
+  const _RegistrationRambleSummary({required this.title, @DateSerializer() this.date, this.location});
+  factory _RegistrationRambleSummary.fromJson(Map<String, dynamic> json) => _$RegistrationRambleSummaryFromJson(json);
+
+@override final  String title;
+@override@DateSerializer() final  DateTime? date;
+@override final  String? location;
+
+/// Create a copy of RegistrationRambleSummary
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$RegistrationRambleSummaryCopyWith<_RegistrationRambleSummary> get copyWith => __$RegistrationRambleSummaryCopyWithImpl<_RegistrationRambleSummary>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$RegistrationRambleSummaryToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RegistrationRambleSummary&&(identical(other.title, title) || other.title == title)&&(identical(other.date, date) || other.date == date)&&(identical(other.location, location) || other.location == location));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,title,date,location);
+
+@override
+String toString() {
+  return 'RegistrationRambleSummary(title: $title, date: $date, location: $location)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$RegistrationRambleSummaryCopyWith<$Res> implements $RegistrationRambleSummaryCopyWith<$Res> {
+  factory _$RegistrationRambleSummaryCopyWith(_RegistrationRambleSummary value, $Res Function(_RegistrationRambleSummary) _then) = __$RegistrationRambleSummaryCopyWithImpl;
+@override @useResult
+$Res call({
+ String title,@DateSerializer() DateTime? date, String? location
+});
+
+
+
+
+}
+/// @nodoc
+class __$RegistrationRambleSummaryCopyWithImpl<$Res>
+    implements _$RegistrationRambleSummaryCopyWith<$Res> {
+  __$RegistrationRambleSummaryCopyWithImpl(this._self, this._then);
+
+  final _RegistrationRambleSummary _self;
+  final $Res Function(_RegistrationRambleSummary) _then;
+
+/// Create a copy of RegistrationRambleSummary
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? title = null,Object? date = freezed,Object? location = freezed,}) {
+  return _then(_RegistrationRambleSummary(
+title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,date: freezed == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
+as DateTime?,location: freezed == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

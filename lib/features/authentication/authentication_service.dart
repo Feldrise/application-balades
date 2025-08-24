@@ -50,4 +50,21 @@ class AuthenticationService {
 
     return LoginResult.fromJson(jsonDecode(response.body) as Map<String, Object?>);
   }
+
+  // Optional precheck endpoint to see if email exists
+  // Returns true if email exists (401), false if not (200 "not exists")
+  Future<bool> checkEmailExists(String email) async {
+    final uri = Uri.parse('$serviceBaseUrl/check-email').replace(queryParameters: {'email': email});
+    final http.Response response = await http.get(uri);
+
+    if (response.statusCode == 200) {
+      // not exists
+      return false;
+    }
+    if (response.statusCode == 401) {
+      // exists according to spec
+      return true;
+    }
+    throw PlatformException(code: response.statusCode.toString(), message: 'Failed to check email: ${response.reasonPhrase}');
+  }
 }

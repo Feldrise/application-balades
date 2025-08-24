@@ -4,6 +4,8 @@ import 'package:balade/features/authentication/admin_login_page.dart';
 import 'package:balade/features/authentication/data/models/authed_user/authed_user.dart';
 import 'package:balade/features/navigation/main_page/main_page.dart';
 import 'package:balade/features/ramble/add_ramble_page/add_ramble_page.dart';
+import 'package:balade/features/authentication/login_page.dart';
+import 'package:balade/features/registrations/user_registrations_page.dart';
 import 'package:balade/features/ramble/public_ramble_details_page/public_ramble_details_page.dart';
 import 'package:balade/features/ramble/public_rambles_page/public_rambles_page.dart';
 import 'package:flutter/material.dart';
@@ -62,7 +64,11 @@ GoRouter router(AuthedUser? loggedUser) => GoRouter(
         ),
         GoRoute(
           path: "/mes-reservations",
-          pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const _ReservationsPage()),
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const UserRegistrationsPage()),
+        ),
+        GoRoute(
+          path: "/connexion",
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const LoginPage()),
         ),
         GoRoute(
           path: "/mon-compte",
@@ -120,17 +126,7 @@ class _HomePage extends StatelessWidget {
   }
 }
 
-class _ReservationsPage extends StatelessWidget {
-  const _ReservationsPage();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Center(child: Text("Mes Réservations - À venir")),
-    );
-  }
-}
+// Removed temporary Reservations placeholder; now using UserRegistrationsPage
 
 class _AccountPage extends StatelessWidget {
   const _AccountPage();

@@ -30,6 +30,11 @@ _Registration _$RegistrationFromJson(Map<String, dynamic> json) =>
       rambleId: (json['ramble_id'] as num).toInt(),
       userId: (json['user_id'] as num?)?.toInt(),
       groupId: (json['group_id'] as num?)?.toInt(),
+      ramble: json['ramble'] == null
+          ? null
+          : RegistrationRambleSummary.fromJson(
+              json['ramble'] as Map<String, dynamic>,
+            ),
     );
 
 Map<String, dynamic> _$RegistrationToJson(
@@ -53,6 +58,23 @@ Map<String, dynamic> _$RegistrationToJson(
   'ramble_id': instance.rambleId,
   'user_id': instance.userId,
   'group_id': instance.groupId,
+  'ramble': instance.ramble,
+};
+
+_RegistrationRambleSummary _$RegistrationRambleSummaryFromJson(
+  Map<String, dynamic> json,
+) => _RegistrationRambleSummary(
+  title: json['title'] as String,
+  date: const DateSerializer().fromJson(json['date'] as String?),
+  location: json['location'] as String?,
+);
+
+Map<String, dynamic> _$RegistrationRambleSummaryToJson(
+  _RegistrationRambleSummary instance,
+) => <String, dynamic>{
+  'title': instance.title,
+  'date': const DateSerializer().toJson(instance.date),
+  'location': instance.location,
 };
 
 _RegistrationParticipant _$RegistrationParticipantFromJson(

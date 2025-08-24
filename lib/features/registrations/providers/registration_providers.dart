@@ -1,3 +1,4 @@
+import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/registrations/models/registration/registration.dart';
 import 'package:balade/features/registrations/registrations_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,10 +22,14 @@ final registrationProvider = FutureProvider.autoDispose.family<Registration, int
 
 // Provider pour récupérer les inscriptions de l'utilisateur
 final userRegistrationsProvider = FutureProvider.autoDispose<List<Registration>>((ref) async {
+  final authed = ref.watch(authenticationProvider);
   final service = ref.read(registrationsServiceProvider);
-  // TODO: Get authorization token from auth provider
-  const authorization = ''; // This should come from auth state
-  return await service.fetchUserRegistrations(authorization: authorization);
+
+  if (authed == null) {
+    throw Exception('NOT_AUTHENTICATED');
+  }
+
+  return await service.fetchUserRegistrations(authorization: authed.token);
 });
 
 // Provider pour gérer l'état du formulaire d'inscription

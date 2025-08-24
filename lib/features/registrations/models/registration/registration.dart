@@ -23,9 +23,18 @@ abstract class Registration with _$Registration {
     @JsonKey(name: 'ramble_id') required int rambleId,
     @JsonKey(name: 'user_id') int? userId,
     @JsonKey(name: 'group_id') int? groupId,
+    // Optional embedded ramble summary returned by the list API
+    RegistrationRambleSummary? ramble,
   }) = _Registration;
 
   factory Registration.fromJson(Map<String, Object?> json) => _$RegistrationFromJson(json);
+}
+
+@freezed
+abstract class RegistrationRambleSummary with _$RegistrationRambleSummary {
+  const factory RegistrationRambleSummary({required String title, @DateSerializer() DateTime? date, String? location}) = _RegistrationRambleSummary;
+
+  factory RegistrationRambleSummary.fromJson(Map<String, Object?> json) => _$RegistrationRambleSummaryFromJson(json);
 }
 
 @freezed
