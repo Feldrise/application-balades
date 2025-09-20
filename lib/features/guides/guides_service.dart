@@ -47,4 +47,16 @@ class GuidesService {
 
     return jsonDecode(response.body)['id'] as int;
   }
+
+  Future<void> updateGuide(int id, Map<String, Object?> data, {required String authorization}) async {
+    final http.Response response = await http.put(
+      Uri.parse('$serviceBaseUrl/$id'),
+      headers: {'Content-Type': 'application/json', 'Authorization': "Bearer $authorization"},
+      body: jsonEncode(data),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update guide: ${response.body}');
+    }
+  }
 }

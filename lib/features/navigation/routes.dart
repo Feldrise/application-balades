@@ -127,7 +127,7 @@ class _HomePage extends StatelessWidget {
             Icon(Icons.eco, size: 64, color: theme.colorScheme.primary),
             const SizedBox(height: 16),
             Text(
-              'Bienvenue sur Balade Écologique',
+              'Bienvenue sur Balade EcoLogique',
               style: theme.textTheme.headlineMedium?.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),

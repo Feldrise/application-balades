@@ -272,7 +272,13 @@ class GuideFormState extends ConsumerState<GuideForm> {
         'emergency_contact_phone': _emergencyContactPhoneController.value.toString(),
       };
 
-      if (widget.initialGuide == null) {
+      if (widget.initialGuide != null) {
+        await GuidesService.instance.updateGuide(widget.initialGuide!.id, data, authorization: ref.read(authenticationProvider)!.token);
+
+        if (mounted) {
+          Navigator.of(context).pop(widget.initialGuide!.id);
+        }
+      } else {
         final int guideId = await GuidesService.instance.createGuide(data, authorization: ref.read(authenticationProvider)!.token);
 
         if (mounted) {

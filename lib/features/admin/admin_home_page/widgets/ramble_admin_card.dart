@@ -123,7 +123,7 @@ class RambleAdminCard extends StatelessWidget {
                   const SizedBox(height: 12),
                   Text('Guides:', style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 4),
-                  ...ramble.guides.map((guide) => GuideSmallCard(guideId: guide.id, showRemoveButton: false)),
+                  ...ramble.guides.map((guide) => GuideSmallCard(guideId: guide.id)),
                 ],
 
                 // Prices

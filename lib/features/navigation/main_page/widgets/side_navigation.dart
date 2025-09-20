@@ -61,7 +61,7 @@ class SideNavigation extends StatelessWidget {
                 Divider(color: theme.colorScheme.outline.withAlpha(50)),
                 const SizedBox(height: 8),
                 Text(
-                  '© 2025 Balade Écologique',
+                  '© 2025 Balade EcoLogique',
                   style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withAlpha(151)),
                   textAlign: TextAlign.center,
                 ),

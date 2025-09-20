@@ -59,7 +59,7 @@ class _PublicRamblesPageState extends ConsumerState<PublicRamblesPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Balades Écologiques'),
+        title: const Text('Balades EcoLogiques'),
         centerTitle: false,
         actions: [
           if (isMobile) IconButton(onPressed: _showFiltersBottomSheet, icon: const Icon(Icons.filter_list)),

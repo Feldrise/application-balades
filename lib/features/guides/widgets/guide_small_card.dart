@@ -1,14 +1,17 @@
 import 'package:balade/core/constants.dart';
+import 'package:balade/core/widgets/loading_overlay.dart';
+import 'package:balade/features/guides/dialogs/edit_guide_dialog.dart';
 import 'package:balade/features/guides/guides_service.dart';
 import 'package:balade/features/guides/models/guide/guide.dart';
 import 'package:flutter/material.dart';
 
 class GuideSmallCard extends StatelessWidget {
-  const GuideSmallCard({super.key, required this.guideId, this.onRemove, this.showRemoveButton = true});
+  const GuideSmallCard({super.key, required this.guideId, this.onRemove, this.onGuideEdited});
 
   final int guideId;
+
   final VoidCallback? onRemove;
-  final bool showRemoveButton;
+  final VoidCallback? onGuideEdited;
 
   @override
   Widget build(BuildContext context) {
@@ -77,8 +80,30 @@ class GuideSmallCard extends StatelessWidget {
                   ),
                 ),
 
+                const Expanded(child: SizedBox()),
+
+                // Edit button
+                if (onGuideEdited != null) ...[
+                  IconButton(
+                    onPressed: () async {
+                      final result = await showDialog(
+                        context: context,
+                        builder: (context) => LoadingOverlay(child: EditGuideDialog(guideId: guideId)),
+                      );
+                      if (result == true && onGuideEdited != null) {
+                        onGuideEdited!();
+                      }
+                    },
+                    icon: const Icon(Icons.edit_outlined),
+                    iconSize: 18,
+                    tooltip: 'Modifier ce guide',
+                    style: IconButton.styleFrom(minimumSize: const Size(32, 32), tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+
                 // Remove button
-                if (showRemoveButton && onRemove != null)
+                if (onRemove != null)
                   IconButton(
                     onPressed: onRemove,
                     icon: const Icon(Icons.close),

@@ -34,7 +34,7 @@ class MainNavigationDrawer extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Balade Écologique',
+                  'Balade EcoLogique',
                   style: theme.textTheme.titleLarge?.copyWith(color: theme.colorScheme.onPrimary, fontWeight: FontWeight.bold),
                 ),
                 Text('Découvrez la nature', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onPrimary.withAlpha(201))),
@@ -78,7 +78,7 @@ class MainNavigationDrawer extends StatelessWidget {
                 const Divider(),
                 const SizedBox(height: 8),
                 Text(
-                  '© 2025 Balade Écologique',
+                  '© 2025 Balade EcoLogique',
                   style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withAlpha(151)),
                   textAlign: TextAlign.center,
                 ),

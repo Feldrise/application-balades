@@ -179,7 +179,7 @@ class RambleFormState extends ConsumerState<RambleForm> {
                               _selectedGuides.remove(guideId);
                             });
                           },
-                          showRemoveButton: true,
+                          onGuideEdited: () => setState(() {}),
                         ),
                     ],
                   ),
@@ -348,14 +348,6 @@ class RambleFormState extends ConsumerState<RambleForm> {
                       labelText: 'Équipement recommandé',
                       hintText: 'Ex: Chaussures de marche, vêtements adaptés à la météo...',
                       alignLabelWithHint: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-                      ),
                     ),
                     maxLines: 3,
                     maxLength: 300,
@@ -369,14 +361,6 @@ class RambleFormState extends ConsumerState<RambleForm> {
                       labelText: 'Prérequis et conditions particulières',
                       hintText: 'Ex: Bonne condition physique requise, accessible aux débutants...',
                       alignLabelWithHint: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-                      ),
                     ),
                     maxLines: 3,
                     maxLength: 300,

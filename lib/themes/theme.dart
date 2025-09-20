@@ -344,10 +344,10 @@ class MaterialTheme {
     canvasColor: colorScheme.surface,
 
     cardTheme: CardThemeData(
-      elevation: 30,
+      elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24.0),
-        // side: BorderSide(color: colorScheme.outlineVariant, width: 1),
+        borderRadius: BorderRadius.circular(6.0),
+        side: BorderSide(color: colorScheme.outlineVariant, width: 0.5),
       ),
     ),
 
@@ -358,30 +358,30 @@ class MaterialTheme {
       // floatingLabelBehavior: FloatingLabelBehavior.always,
       enabledBorder: OutlineInputBorder(
         borderSide: BorderSide(color: colorScheme.outlineVariant),
-        borderRadius: BorderRadius.circular(64.0),
+        borderRadius: BorderRadius.circular(6.0),
       ),
       border: OutlineInputBorder(
         borderSide: BorderSide(color: colorScheme.outlineVariant),
-        borderRadius: BorderRadius.circular(64.0),
+        borderRadius: BorderRadius.circular(6.0),
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         elevation: 0,
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(64.0)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6.0)),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(64.0)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6.0)),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(64.0)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6.0)),
       ),
     ),
   );

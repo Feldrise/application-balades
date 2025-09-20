@@ -25,7 +25,7 @@ class _MainPageState extends State<MainPage> {
 
     return Scaffold(
       key: _scaffoldKey,
-      appBar: BeAppbar(title: 'Balade Écologique', subtitle: 'Découvrez la nature'),
+      appBar: BeAppbar(title: 'Balade EcoLogique', subtitle: 'Découvrez la nature'),
       drawer: isDesktop ? null : MainNavigationDrawer(scaffoldKey: _scaffoldKey),
       body: Row(
         children: [
