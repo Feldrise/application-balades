@@ -48,11 +48,11 @@ class RegistrationsService {
   }
 
   /// Confirm or decline participation in a ramble
-  Future<Registration> confirmRegistration(int id, bool confirmed) async {
+  Future<Registration> confirmRegistration(int id, bool confirmed, {String? authorization}) async {
     final Uri uri = Uri.parse('$serviceBaseUrl/$id/confirm');
     final http.Response response = await http.put(
       uri,
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', if (authorization != null) 'Authorization': authorization},
       body: jsonEncode(ConfirmRegistrationRequest(confirmed: confirmed).toJson()),
     );
 

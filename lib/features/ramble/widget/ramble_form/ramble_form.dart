@@ -54,7 +54,7 @@ class RambleFormState extends ConsumerState<RambleForm> {
   String _selectedDifficulty = "facile"; // Default difficulty
   Duration _selectedDuration = const Duration(hours: 2);
 
-  List<int> _selectedGuides = [];
+  final List<int> _selectedGuides = [];
 
   @override
   void initState() {
@@ -72,6 +72,8 @@ class RambleFormState extends ConsumerState<RambleForm> {
     _selectedDate = widget.initialRamble?.date;
     _selectedDifficulty = widget.initialRamble?.difficulty ?? "facile";
     _selectedDuration = widget.initialRamble?.estimatedDuration ?? const Duration(hours: 2);
+
+    _selectedGuides.addAll(widget.initialRamble?.guides.map((g) => g.id) ?? []);
 
     if ((widget.initialRamble?.prices ?? []).isNotEmpty) {
       _prices.clear();
@@ -219,10 +221,18 @@ class RambleFormState extends ConsumerState<RambleForm> {
                 FormLargeField(
                   child: TextFormField(
                     controller: _descriptionController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Description',
                       hintText: 'Décrivez le contenu de la balade, ce que les participants vont découvrir...',
                       alignLabelWithHint: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                      ),
                     ),
                     maxLines: 4,
                     validator: FormValidator.requiredValidator,
@@ -334,10 +344,18 @@ class RambleFormState extends ConsumerState<RambleForm> {
                 FormLargeField(
                   child: TextFormField(
                     controller: _equipmentController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Équipement recommandé',
                       hintText: 'Ex: Chaussures de marche, vêtements adaptés à la météo...',
                       alignLabelWithHint: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                      ),
                     ),
                     maxLines: 3,
                     maxLength: 300,
@@ -347,10 +365,18 @@ class RambleFormState extends ConsumerState<RambleForm> {
                 FormLargeField(
                   child: TextFormField(
                     controller: _prerequisitesController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Prérequis et conditions particulières',
                       hintText: 'Ex: Bonne condition physique requise, accessible aux débutants...',
                       alignLabelWithHint: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                      ),
                     ),
                     maxLines: 3,
                     maxLength: 300,
@@ -394,9 +420,8 @@ class RambleFormState extends ConsumerState<RambleForm> {
       };
 
       if (widget.initialRamble != null) {
-        // // Update existing ramble
-        // data['id'] = widget.initialRamble!.id;
-        // await RambleService.instance.updateRamble(data, authorization: ref.read(authenticationProvider)?.token);
+        // Update existing ramble
+        await RamblesService.instance.updateRamble(widget.initialRamble!.id, data, authorization: ref.read(authenticationProvider)!.token);
       } else {
         // Create new ramble
         await RamblesService.instance.createRamble(data, authorization: ref.read(authenticationProvider)!.token);

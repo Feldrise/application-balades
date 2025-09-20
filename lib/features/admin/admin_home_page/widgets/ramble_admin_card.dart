@@ -3,6 +3,7 @@ import 'package:balade/features/guides/widgets/guide_small_card.dart';
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 
 class RambleAdminCard extends StatelessWidget {
   const RambleAdminCard({super.key, required this.ramble, this.onEdit, this.onDelete, this.onToggleStatus});
@@ -23,7 +24,7 @@ class RambleAdminCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header with cover image or type icon
-          _buildHeader(context),
+          GestureDetector(onTap: () => _openDetails(context), child: _buildHeader(context)),
 
           // Content
           Padding(
@@ -151,6 +152,15 @@ class RambleAdminCard extends StatelessWidget {
                           style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 8)),
                         ),
                       ),
+                    if (onEdit == null)
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => _openDetails(context),
+                          icon: const Icon(Icons.visibility, size: 16),
+                          label: const Text('Détails'),
+                          style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 8)),
+                        ),
+                      ),
                     if (onEdit != null && onToggleStatus != null) const SizedBox(width: 8),
                     if (onToggleStatus != null)
                       Expanded(
@@ -172,6 +182,10 @@ class RambleAdminCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _openDetails(BuildContext context) {
+    context.go('/admin/balade/${ramble.id}');
   }
 
   Widget _buildHeader(BuildContext context) {

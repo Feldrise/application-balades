@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:balade/features/ramble/widget/ramble_form/ramble_form.dart';
 
-class RambleFormDemoPage extends ConsumerStatefulWidget {
-  const RambleFormDemoPage({super.key});
+class AddRamblePage extends ConsumerStatefulWidget {
+  const AddRamblePage({super.key});
 
   @override
-  ConsumerState<RambleFormDemoPage> createState() => _RambleFormDemoPageState();
+  ConsumerState<AddRamblePage> createState() => _AddRamblePageState();
 }
 
-class _RambleFormDemoPageState extends ConsumerState<RambleFormDemoPage> {
+class _AddRamblePageState extends ConsumerState<AddRamblePage> {
   final GlobalKey<RambleFormState> _formKey = GlobalKey<RambleFormState>();
 
   @override

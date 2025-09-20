@@ -5,9 +5,11 @@ import 'package:balade/features/authentication/data/models/authed_user/authed_us
 import 'package:balade/features/navigation/main_page/main_page.dart';
 import 'package:balade/features/ramble/add_ramble_page/add_ramble_page.dart';
 import 'package:balade/features/authentication/login_page.dart';
+import 'package:balade/features/ramble/edit_ramble_page/edit_ramble_page.dart';
 import 'package:balade/features/registrations/user_registrations_page.dart';
 import 'package:balade/features/ramble/public_ramble_details_page/public_ramble_details_page.dart';
 import 'package:balade/features/ramble/public_rambles_page/public_rambles_page.dart';
+import 'package:balade/features/admin/ramble_details_page/admin_ramble_details_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -80,7 +82,23 @@ GoRouter router(AuthedUser? loggedUser) => GoRouter(
           routes: [
             GoRoute(
               path: "nouvelle-balade",
-              pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const RambleFormDemoPage()),
+              pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const AddRamblePage()),
+            ),
+            GoRoute(
+              path: "modifier-balade/:id",
+              pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+                context: context,
+                state: state,
+                child: EditRamblePage(id: state.pathParameters['id'] ?? ''),
+              ),
+            ),
+            GoRoute(
+              path: 'balade/:id',
+              pageBuilder: (context, state) {
+                final id = int.tryParse(state.pathParameters['id'] ?? '');
+                final child = id == null ? const Scaffold(body: Center(child: Text('ID de balade invalide'))) : AdminRambleDetailsPage(rambleId: id);
+                return _buildPageWithDefaultTransition(context: context, state: state, child: child);
+              },
             ),
           ],
         ),

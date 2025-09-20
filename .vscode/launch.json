@@ -1,0 +1,38 @@
+{
+	// Use IntelliSense to learn about possible attributes.
+	// Hover to view descriptions of existing attributes.
+	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "balades local",
+			"request": "launch",
+			"type": "dart",
+			"toolArgs": [
+				"--dart-define",
+				"API_BASE_URL=http://localhost:8080",
+			]
+		},
+		{
+			"name": "balades beta",
+			"request": "launch",
+			"type": "dart",
+			"toolArgs": [
+				"--dart-define",
+				"API_BASE_URL=https://api.balades.baladeecologique.com",
+			]
+		},
+		{
+			"name": "balades (profile mode)",
+			"request": "launch",
+			"type": "dart",
+			"flutterMode": "profile"
+		},
+		{
+			"name": "balades (release mode)",
+			"request": "launch",
+			"type": "dart",
+			"flutterMode": "release"
+		}
+	]
+}

@@ -10,6 +10,7 @@ import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class RamblesList extends ConsumerStatefulWidget {
   const RamblesList({super.key});
@@ -274,8 +275,7 @@ class _RamblesListState extends ConsumerState<RamblesList> {
   }
 
   void _handleEdit(Ramble ramble) {
-    // TODO: Navigate to edit page or show edit dialog
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Édition de "${ramble.title}"')));
+    context.go("/admin/modifier-balade/${ramble.id}");
   }
 
   void _handleToggleStatus(Ramble ramble) {
@@ -289,7 +289,6 @@ class _RamblesListState extends ConsumerState<RamblesList> {
   }
 
   void _handleCreateNew() {
-    // TODO: Navigate to create ramble page
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Création d\'une nouvelle balade')));
+    context.go("/admin/nouvelle-balade");
   }
 }

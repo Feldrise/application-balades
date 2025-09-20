@@ -88,4 +88,13 @@ class RamblesService {
 
     return jsonDecode(response.body)['id'] as int;
   }
+
+  Future<void> updateRamble(int id, Map<String, Object?> data, {required String authorization}) async {
+    final Uri uri = Uri.parse('$serviceBaseUrl/$id');
+    final http.Response response = await http.put(uri, headers: {'Content-Type': 'application/json', 'Authorization': "Bearer $authorization"}, body: jsonEncode(data));
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update ramble: ${response.body}');
+    }
+  }
 }

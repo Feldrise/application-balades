@@ -10,13 +10,6 @@ class AdminHomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Administration')),
       body: const RamblesList(),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          context.go("/admin/nouvelle-balade");
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('Ajouter une balade'),
-      ),
     );
   }
 }

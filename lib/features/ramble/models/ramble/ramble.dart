@@ -50,6 +50,7 @@ abstract class Ramble with _$Ramble {
     @JsonKey(name: 'equipment_needed') String? equipmentNeeded,
     String? prerequisites,
     @JsonKey(name: 'cover_image') String? coverImage,
+    @JsonKey(name: 'additional_documents_url') String? additionalDocumentsUrl,
     @Default(<Guide>[]) List<Guide> guides,
   }) = _Ramble;
 
