@@ -33,6 +33,31 @@ class RambleRegistrationSection extends StatelessWidget {
           children: [
             if (ramble.date != null) ...[_buildStatusRow(context, theme, colorScheme, true), const SizedBox(height: 16)],
 
+            if (ramble.placesLeft != null) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: _getPlacesLeftColor(context).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: _getPlacesLeftColor(context).withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(_getPlacesLeftIcon(), size: 16, color: _getPlacesLeftColor(context)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _getPlacesLeftText(),
+                        style: theme.textTheme.bodySmall?.copyWith(color: _getPlacesLeftColor(context), fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+
             SizedBox(width: double.infinity, child: _buildActionButton(context, theme, colorScheme)),
 
             if (onShare != null) ...[
@@ -150,6 +175,19 @@ class RambleRegistrationSection extends StatelessWidget {
                 ],
               ),
             ],
+            if (ramble.placesLeft != null) ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Icon(_getPlacesLeftIcon(), size: 16, color: _getPlacesLeftColor(context)),
+                  const SizedBox(width: 6),
+                  Text(
+                    _getPlacesLeftText(),
+                    style: theme.textTheme.bodySmall?.copyWith(color: _getPlacesLeftColor(context), fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+            ],
           ],
         ],
       ),
@@ -209,6 +247,7 @@ class RambleRegistrationSection extends StatelessWidget {
     if (isRegistered) return false;
     if (ramble.status == 'cancelled' || ramble.status == 'archived') return false;
     if (ramble.date != null && ramble.date!.isBefore(DateTime.now())) return false;
+    // Allow registration even when full (for waitlist)
     return true;
   }
 
@@ -216,14 +255,28 @@ class RambleRegistrationSection extends StatelessWidget {
     if (isRegistered) return Icons.check;
     if (ramble.status == 'cancelled') return Icons.block;
     if (ramble.date != null && ramble.date!.isBefore(DateTime.now())) return Icons.schedule;
+
+    // Check if it's waitlist
+    if (ramble.status == 'full' || (ramble.placesLeft != null && ramble.placesLeft! <= 0)) {
+      return Icons.queue;
+    }
+
     return Icons.person_add;
   }
 
   String _getButtonText() {
     if (isRegistered) return 'Inscrit';
     if (ramble.status == 'cancelled') return 'Annulée';
-    if (ramble.status == 'full') return 'Complet';
+    if (ramble.status == 'full') return 'Rejoindre la liste d\'attente';
     if (ramble.date != null && ramble.date!.isBefore(DateTime.now())) return 'Passée';
+
+    // Check places left for more specific messaging
+    if (ramble.placesLeft != null) {
+      if (ramble.placesLeft! <= 0) {
+        return 'Rejoindre la liste d\'attente';
+      }
+    }
+
     return 'S\'inscrire';
   }
 
@@ -235,7 +288,13 @@ class RambleRegistrationSection extends StatelessWidget {
   }
 
   IconData _getStatusIcon() {
-    if (ramble.status == 'published' || ramble.status == 'active') return Icons.check_circle;
+    if (ramble.status == 'published' || ramble.status == 'active') {
+      // Check places left for more accurate icon
+      if (ramble.placesLeft != null && ramble.placesLeft! <= 0) {
+        return Icons.group;
+      }
+      return Icons.check_circle;
+    }
     if (ramble.status == 'cancelled') return Icons.cancel;
     if (ramble.status == 'full') return Icons.group;
     return Icons.info;
@@ -244,6 +303,9 @@ class RambleRegistrationSection extends StatelessWidget {
   String _getStatusText() {
     switch (ramble.status) {
       case 'active':
+        if (ramble.placesLeft != null && ramble.placesLeft! <= 0) {
+          return 'Complet - Liste d\'attente disponible';
+        }
         return 'Places disponibles';
       case 'cancelled':
         return 'Balade annulée';
@@ -258,6 +320,10 @@ class RambleRegistrationSection extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     switch (ramble.status) {
       case 'active':
+        // Check places left for more accurate color
+        if (ramble.placesLeft != null && ramble.placesLeft! <= 0) {
+          return Colors.orange;
+        }
         return Colors.green;
       case 'cancelled':
         return colorScheme.error;
@@ -275,5 +341,31 @@ class RambleRegistrationSection extends StatelessWidget {
     }
     final prices = ramble.prices.map((p) => p.amount).toList()..sort();
     return '${prices.first.toStringAsFixed(0)}€';
+  }
+
+  IconData _getPlacesLeftIcon() {
+    if (ramble.placesLeft == null) return Icons.info;
+    if (ramble.placesLeft! > 0) return Icons.event_seat;
+    if (ramble.placesLeft! == 0) return Icons.queue;
+    return Icons.format_list_numbered; // For waitlist position
+  }
+
+  Color _getPlacesLeftColor(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    if (ramble.placesLeft == null) return colorScheme.onSurfaceVariant;
+    if (ramble.placesLeft! > 0) return Colors.green;
+    if (ramble.placesLeft! == 0) return Colors.orange;
+    return Colors.blue; // For waitlist position
+  }
+
+  String _getPlacesLeftText() {
+    if (ramble.placesLeft == null) return '';
+    if (ramble.placesLeft! > 0) {
+      return ramble.placesLeft! == 1 ? '1 place restante' : '${ramble.placesLeft} places restantes';
+    }
+    if (ramble.placesLeft! == 0) return 'Liste d\'attente ouverte';
+    // Negative value = waitlist position
+    final position = -ramble.placesLeft!;
+    return position == 1 ? '1ère position en liste d\'attente' : '${position}e position en liste d\'attente';
   }
 }

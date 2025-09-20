@@ -52,6 +52,7 @@ abstract class Ramble with _$Ramble {
     @JsonKey(name: 'cover_image') String? coverImage,
     @JsonKey(name: 'additional_documents_url') String? additionalDocumentsUrl,
     @Default(<Guide>[]) List<Guide> guides,
+    @JsonKey(name: 'places_left') int? placesLeft,
   }) = _Ramble;
 
   factory Ramble.fromJson(Map<String, Object?> json) => _$RambleFromJson(json);

@@ -4,11 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class RamblePublicCard extends StatelessWidget {
-  const RamblePublicCard({super.key, required this.ramble, this.onTap, this.onRegister});
+  const RamblePublicCard({super.key, required this.ramble, this.onTap});
 
   final Ramble ramble;
   final VoidCallback? onTap;
-  final VoidCallback? onRegister;
 
   @override
   Widget build(BuildContext context) {
@@ -126,9 +125,9 @@ class RamblePublicCard extends StatelessWidget {
                         ],
 
                         FilledButton.icon(
-                          onPressed: onRegister,
-                          icon: const Icon(Icons.person_add, size: 16),
-                          label: const Text('S\'inscrire'),
+                          onPressed: onTap,
+                          icon: const Icon(Icons.info_outline, size: 16),
+                          label: const Text('Détails'),
                           style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), textStyle: theme.textTheme.bodySmall),
                         ),
                       ],

@@ -33,16 +33,6 @@ class _PublicRamblesPageState extends ConsumerState<PublicRamblesPage> {
     ref.read(publicRamblesProvider.notifier).updateSearch(_searchController.text);
   }
 
-  void _onRambleRegister(int rambleId) {
-    // TODO: Navigate to registration page
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Inscription à la balade $rambleId (à implémenter)'),
-        action: SnackBarAction(label: 'OK', onPressed: () {}),
-      ),
-    );
-  }
-
   void _onRambleDetails(int rambleId) {
     context.go('/balades/$rambleId');
   }
@@ -216,7 +206,7 @@ class _PublicRamblesPageState extends ConsumerState<PublicRamblesPage> {
       itemCount: state.rambles.length,
       itemBuilder: (context, index) {
         final ramble = state.rambles[index];
-        return RamblePublicCard(ramble: ramble, onTap: () => _onRambleDetails(ramble.id), onRegister: () => _onRambleRegister(ramble.id));
+        return RamblePublicCard(ramble: ramble, onTap: () => _onRambleDetails(ramble.id));
       },
     );
   }
@@ -255,7 +245,7 @@ class _PublicRamblesPageState extends ConsumerState<PublicRamblesPage> {
           padding: const EdgeInsets.only(bottom: 16),
           child: SizedBox(
             height: 280,
-            child: RamblePublicCard(ramble: ramble, onTap: () => _onRambleDetails(ramble.id), onRegister: () => _onRambleRegister(ramble.id)),
+            child: RamblePublicCard(ramble: ramble, onTap: () => _onRambleDetails(ramble.id)),
           ),
         );
       },
