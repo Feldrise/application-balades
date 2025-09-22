@@ -5,6 +5,7 @@ import 'package:balade/core/forms/duration_picker.dart';
 import 'package:balade/core/widgets/error_snackbar.dart';
 import 'package:balade/core/widgets/loading_overlay.dart';
 import 'package:balade/core/widgets/searchable_dropdown.dart';
+import 'package:balade/features/admin/admin_home_page/providers/rambles_provider.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/guides/dialogs/add_guide_dialog.dart';
 import 'package:balade/features/guides/guides_service.dart';
@@ -412,7 +413,9 @@ class RambleFormState extends ConsumerState<RambleForm> {
       }
 
       if (mounted) {
-        Navigator.of(context).pop();
+        ref.read(ramblesProvider.notifier).loadRambles(authorization: ref.read(authenticationProvider)!.token);
+
+        Navigator.of(context).pop(true);
       }
     } catch (e) {
       if (mounted) {
