@@ -42,13 +42,10 @@ class RegistrationCard extends ConsumerWidget {
                   _buildRambleInfo(theme, rambleAsync),
                   const SizedBox(height: 12),
                   _buildRegistrationInfo(theme),
-                  if (_shouldShowConfirmation()) ...[
-                    const SizedBox(height: 12), 
-                    _buildConfirmationNeeded(theme)
-                  ],
+                  if (_shouldShowConfirmation()) ...[const SizedBox(height: 12), _buildConfirmationNeeded(theme)],
                   if (_hasAvailableActions() && !_shouldShowConfirmation()) ...[
-                    const SizedBox(height: 12), 
-                    RegistrationActions(registration: registration, onConfirm: onConfirm, onCancel: onCancel)
+                    const SizedBox(height: 12),
+                    RegistrationActions(registration: registration, onConfirm: onConfirm, onCancel: onCancel),
                   ],
                 ],
               ),
@@ -273,11 +270,7 @@ class RegistrationCard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.orange.shade50, Colors.orange.shade100],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        gradient: LinearGradient(colors: [Colors.orange.shade50, Colors.orange.shade100], begin: Alignment.topLeft, end: Alignment.bottomRight),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.orange.shade300),
       ),
@@ -288,10 +281,7 @@ class RegistrationCard extends ConsumerWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: Colors.orange.shade100,
-                  borderRadius: BorderRadius.circular(20),
-                ),
+                decoration: BoxDecoration(color: Colors.orange.shade100, borderRadius: BorderRadius.circular(20)),
                 child: Icon(Icons.schedule, size: 16, color: Colors.orange.shade700),
               ),
               const SizedBox(width: 12),
@@ -301,17 +291,9 @@ class RegistrationCard extends ConsumerWidget {
                   children: [
                     Text(
                       'Confirmation requise',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: Colors.orange.shade800,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: theme.textTheme.titleSmall?.copyWith(color: Colors.orange.shade800, fontWeight: FontWeight.w600),
                     ),
-                    Text(
-                      'Avant le ${_formatDeadline()}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.orange.shade700,
-                      ),
-                    ),
+                    Text('Avant le ${_formatDeadline()}', style: theme.textTheme.bodySmall?.copyWith(color: Colors.orange.shade700)),
                   ],
                 ),
               ),
@@ -325,11 +307,7 @@ class RegistrationCard extends ConsumerWidget {
                   onPressed: onConfirm,
                   icon: const Icon(Icons.check_circle, size: 18),
                   label: const Text('Confirmer ma présence'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Colors.green.shade600,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
+                  style: FilledButton.styleFrom(backgroundColor: Colors.green.shade600, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -364,10 +342,7 @@ class RegistrationCard extends ConsumerWidget {
     // 1. Status is pending
     // 2. We're within 3 days of the ramble (when confirmation is possible)
     // 3. There's a confirmation deadline set
-    return registration.status == 'pending' && 
-           _canConfirm() && 
-           registration.confirmationDeadline != null &&
-           registration.confirmationDeadline!.isAfter(DateTime.now());
+    return registration.status == 'pending' && _canConfirm() && registration.confirmationDeadline != null && registration.confirmationDeadline!.isAfter(DateTime.now());
   }
 
   String _formatDeadline() {

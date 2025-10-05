@@ -1,5 +1,9 @@
 import 'package:balade/core/widgets/loading_overlay.dart';
-import 'package:balade/features/admin/admin_home_page/admin_home_page.dart';
+import 'package:balade/features/admin/guides_management/admin_guides_page.dart';
+import 'package:balade/features/admin/layout/admin_layout.dart';
+import 'package:balade/features/admin/rambles_management/admin_rambles_page.dart';
+import 'package:balade/features/admin/registrations_management/admin_registrations_page.dart';
+import 'package:balade/features/admin/settings/admin_settings_page.dart';
 import 'package:balade/features/authentication/admin_login_page.dart';
 import 'package:balade/features/authentication/data/models/authed_user/authed_user.dart';
 import 'package:balade/features/navigation/main_page/main_page.dart';
@@ -76,29 +80,47 @@ GoRouter router(AuthedUser? loggedUser) => GoRouter(
           path: "/mon-compte",
           pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const _AccountPage()),
         ),
-        GoRoute(
-          path: "/admin",
-          pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: loggedUser == null ? AdminLoginPage() : const AdminHomePage()),
+        // Admin routes with nested layout
+        ShellRoute(
+          builder: (context, state, child) => loggedUser == null ? AdminLoginPage() : AdminLayout(child: child),
           routes: [
             GoRoute(
-              path: "nouvelle-balade",
-              pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const AddRamblePage()),
+              path: "/admin",
+              pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const AdminRamblesPage()),
+              routes: [
+                GoRoute(
+                  path: "nouvelle-balade",
+                  pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const AddRamblePage()),
+                ),
+                GoRoute(
+                  path: "modifier-balade/:id",
+                  pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+                    context: context,
+                    state: state,
+                    child: EditRamblePage(id: state.pathParameters['id'] ?? ''),
+                  ),
+                ),
+                GoRoute(
+                  path: "balade/:id",
+                  pageBuilder: (context, state) {
+                    final id = int.tryParse(state.pathParameters['id'] ?? '');
+                    final child = id == null ? const Scaffold(body: Center(child: Text('ID de balade invalide'))) : AdminRambleDetailsPage(rambleId: id);
+                    return _buildPageWithDefaultTransition(context: context, state: state, child: child);
+                  },
+                ),
+              ],
             ),
             GoRoute(
-              path: "modifier-balade/:id",
-              pageBuilder: (context, state) => _buildPageWithDefaultTransition(
-                context: context,
-                state: state,
-                child: EditRamblePage(id: state.pathParameters['id'] ?? ''),
-              ),
+              path: "/admin/guides",
+              pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const AdminGuidesPage()),
             ),
             GoRoute(
-              path: 'balade/:id',
-              pageBuilder: (context, state) {
-                final id = int.tryParse(state.pathParameters['id'] ?? '');
-                final child = id == null ? const Scaffold(body: Center(child: Text('ID de balade invalide'))) : AdminRambleDetailsPage(rambleId: id);
-                return _buildPageWithDefaultTransition(context: context, state: state, child: child);
-              },
+              path: "/admin/inscriptions",
+              pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const AdminRegistrationsPage()),
+            ),
+            GoRoute(
+              path: "/admin/parametres",
+              pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const AdminSettingsPage()),
             ),
           ],
         ),
