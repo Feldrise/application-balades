@@ -245,7 +245,7 @@ class RambleRegistrationSection extends StatelessWidget {
   bool _canRegister() {
     if (isLoading) return false;
     if (isRegistered) return false;
-    if (ramble.status == 'cancelled' || ramble.status == 'archived') return false;
+    if (ramble.isCancelled) return false;
     if (ramble.date != null && ramble.date!.isBefore(DateTime.now())) return false;
     // Allow registration even when full (for waitlist)
     return true;
@@ -253,11 +253,11 @@ class RambleRegistrationSection extends StatelessWidget {
 
   IconData _getButtonIcon() {
     if (isRegistered) return Icons.check;
-    if (ramble.status == 'cancelled') return Icons.block;
+    if (ramble.isCancelled) return Icons.block;
     if (ramble.date != null && ramble.date!.isBefore(DateTime.now())) return Icons.schedule;
 
-    // Check if it's waitlist
-    if (ramble.status == 'full' || (ramble.placesLeft != null && ramble.placesLeft! <= 0)) {
+    // Check if it's waitlist (no places left)
+    if (ramble.placesLeft != null && ramble.placesLeft! <= 0) {
       return Icons.queue;
     }
 
@@ -266,8 +266,7 @@ class RambleRegistrationSection extends StatelessWidget {
 
   String _getButtonText() {
     if (isRegistered) return 'Inscrit';
-    if (ramble.status == 'cancelled') return 'Annulée';
-    if (ramble.status == 'full') return 'Rejoindre la liste d\'attente';
+    if (ramble.isCancelled) return 'Annulée';
     if (ramble.date != null && ramble.date!.isBefore(DateTime.now())) return 'Passée';
 
     // Check places left for more specific messaging
@@ -288,50 +287,38 @@ class RambleRegistrationSection extends StatelessWidget {
   }
 
   IconData _getStatusIcon() {
-    if (ramble.status == 'published' || ramble.status == 'active') {
-      // Check places left for more accurate icon
-      if (ramble.placesLeft != null && ramble.placesLeft! <= 0) {
-        return Icons.group;
-      }
-      return Icons.check_circle;
+    if (ramble.isCancelled) return Icons.cancel;
+
+    // Check places left for more accurate icon
+    if (ramble.placesLeft != null && ramble.placesLeft! <= 0) {
+      return Icons.group;
     }
-    if (ramble.status == 'cancelled') return Icons.cancel;
-    if (ramble.status == 'full') return Icons.group;
-    return Icons.info;
+    return Icons.check_circle;
   }
 
   String _getStatusText() {
-    switch (ramble.status) {
-      case 'active':
-        if (ramble.placesLeft != null && ramble.placesLeft! <= 0) {
-          return 'Complet - Liste d\'attente disponible';
-        }
-        return 'Places disponibles';
-      case 'cancelled':
-        return 'Balade annulée';
-      case 'full':
-        return 'Complet - Liste d\'attente disponible';
-      default:
-        return ramble.status;
+    if (ramble.isCancelled) {
+      return 'Balade annulée';
     }
+
+    if (ramble.placesLeft != null && ramble.placesLeft! <= 0) {
+      return 'Complet - Liste d\'attente disponible';
+    }
+    return 'Places disponibles';
   }
 
   Color _getStatusColor(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    switch (ramble.status) {
-      case 'active':
-        // Check places left for more accurate color
-        if (ramble.placesLeft != null && ramble.placesLeft! <= 0) {
-          return Colors.orange;
-        }
-        return Colors.green;
-      case 'cancelled':
-        return colorScheme.error;
-      case 'full':
-        return Colors.orange;
-      default:
-        return colorScheme.onSurfaceVariant;
+
+    if (ramble.isCancelled) {
+      return colorScheme.error;
     }
+
+    // Check places left for more accurate color
+    if (ramble.placesLeft != null && ramble.placesLeft! <= 0) {
+      return Colors.orange;
+    }
+    return Colors.green;
   }
 
   String _getPriceText() {

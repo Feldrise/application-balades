@@ -5,12 +5,12 @@ import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 
 class RambleCompactCard extends StatelessWidget {
-  const RambleCompactCard({super.key, required this.ramble, this.onEdit, this.onDelete, this.onToggleStatus});
+  const RambleCompactCard({super.key, required this.ramble, this.onEdit, this.onDelete, this.onCancel});
 
   final Ramble ramble;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
-  final VoidCallback? onToggleStatus;
+  final VoidCallback? onCancel;
 
   @override
   Widget build(BuildContext context) {
@@ -155,22 +155,12 @@ class RambleCompactCard extends StatelessWidget {
     Color statusColor;
     IconData statusIcon;
 
-    switch (ramble.status) {
-      case 'published':
-        statusColor = Colors.green;
-        statusIcon = Icons.visibility;
-        break;
-      case 'draft':
-        statusColor = Colors.orange;
-        statusIcon = Icons.edit;
-        break;
-      case 'cancelled':
-        statusColor = Colors.red;
-        statusIcon = Icons.cancel;
-        break;
-      default:
-        statusColor = Colors.grey;
-        statusIcon = Icons.help_outline;
+    if (ramble.isCancelled) {
+      statusColor = Colors.red;
+      statusIcon = Icons.cancel;
+    } else {
+      statusColor = Colors.green;
+      statusIcon = Icons.visibility;
     }
 
     return Container(
@@ -246,16 +236,13 @@ class RambleCompactCard extends StatelessWidget {
               ),
             ),
           ],
-          if (onToggleStatus != null) ...[
+          if (onCancel != null && !ramble.isCancelled) ...[
             if (onEdit != null) const SizedBox(width: 4),
             IconButton(
-              onPressed: onToggleStatus,
-              icon: Icon(ramble.status == 'published' ? Icons.visibility_off : Icons.visibility, size: 16),
-              tooltip: ramble.status == 'published' ? 'Masquer' : 'Publier',
-              style: IconButton.styleFrom(
-                minimumSize: const Size(32, 32),
-                backgroundColor: ramble.status == 'published' ? theme.colorScheme.secondary.withOpacity(0.1) : theme.colorScheme.primary.withOpacity(0.1),
-              ),
+              onPressed: onCancel,
+              icon: const Icon(Icons.cancel, size: 16),
+              tooltip: 'Annuler',
+              style: IconButton.styleFrom(minimumSize: const Size(32, 32), backgroundColor: theme.colorScheme.error.withOpacity(0.1)),
             ),
           ],
         ],

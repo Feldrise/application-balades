@@ -12,13 +12,13 @@ import 'package:intl/intl.dart';
 class RamblesFiltersSidebar extends ConsumerWidget {
   const RamblesFiltersSidebar({
     super.key,
-    required this.selectedStatus,
+    required this.selectedCancellationStatus,
     required this.selectedType,
     required this.selectedDifficulty,
     required this.selectedGuideId,
     required this.dateFrom,
     required this.dateTo,
-    required this.onStatusChanged,
+    required this.onCancellationStatusChanged,
     required this.onTypeChanged,
     required this.onDifficultyChanged,
     required this.onGuideChanged,
@@ -27,13 +27,13 @@ class RamblesFiltersSidebar extends ConsumerWidget {
     required this.onClearFilters,
   });
 
-  final String? selectedStatus;
+  final bool? selectedCancellationStatus; // null = all, false = active, true = cancelled
   final String? selectedType;
   final String? selectedDifficulty;
   final int? selectedGuideId;
   final DateTime? dateFrom;
   final DateTime? dateTo;
-  final ValueChanged<String?> onStatusChanged;
+  final ValueChanged<bool?> onCancellationStatusChanged;
   final ValueChanged<String?> onTypeChanged;
   final ValueChanged<String?> onDifficultyChanged;
   final ValueChanged<int?> onGuideChanged;
@@ -93,8 +93,8 @@ class RamblesFiltersSidebar extends ConsumerWidget {
 
           const SizedBox(height: 32),
 
-          // Status filter
-          _buildFilterSection(theme, 'Statut', [_buildStatusFilter(theme)]),
+          // Cancellation Status filter
+          _buildFilterSection(theme, 'Statut', [_buildCancellationStatusFilter(theme)]),
 
           const SizedBox(height: 24),
 
@@ -140,10 +140,17 @@ class RamblesFiltersSidebar extends ConsumerWidget {
       runSpacing: 8,
       children: [
         FilterChip(
-          label: const Text('Publié uniquement'),
-          selected: selectedStatus == 'published',
+          label: const Text('Actives uniquement'),
+          selected: selectedCancellationStatus == false,
           onSelected: (selected) {
-            onStatusChanged(selected ? 'published' : null);
+            onCancellationStatusChanged(selected ? false : null);
+          },
+        ),
+        FilterChip(
+          label: const Text('Annulées uniquement'),
+          selected: selectedCancellationStatus == true,
+          onSelected: (selected) {
+            onCancellationStatusChanged(selected ? true : null);
           },
         ),
         FilterChip(
@@ -182,18 +189,16 @@ class RamblesFiltersSidebar extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatusFilter(ThemeData theme) {
-    return DropdownButtonFormField<String>(
-      value: selectedStatus,
+  Widget _buildCancellationStatusFilter(ThemeData theme) {
+    return DropdownButtonFormField<bool?>(
+      value: selectedCancellationStatus,
       decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
       items: const [
-        DropdownMenuItem(value: null, child: Text('Tous les statuts')),
-        DropdownMenuItem(value: 'published', child: Text('✅ Publié')),
-        DropdownMenuItem(value: 'draft', child: Text('📝 Brouillon')),
-        DropdownMenuItem(value: 'cancelled', child: Text('❌ Annulé')),
-        DropdownMenuItem(value: 'completed', child: Text('✔️ Terminé')),
+        DropdownMenuItem(value: null, child: Text('Toutes les balades')),
+        DropdownMenuItem(value: false, child: Text('✅ Actives')),
+        DropdownMenuItem(value: true, child: Text('❌ Annulées')),
       ],
-      onChanged: onStatusChanged,
+      onChanged: onCancellationStatusChanged,
     );
   }
 

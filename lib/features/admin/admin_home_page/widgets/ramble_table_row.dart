@@ -4,11 +4,11 @@ import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 
 class RambleTableRow extends StatelessWidget {
-  const RambleTableRow({super.key, required this.ramble, this.onEdit, this.onToggleStatus, this.isHeader = false});
+  const RambleTableRow({super.key, required this.ramble, this.onEdit, this.onCancel, this.isHeader = false});
 
   final Ramble? ramble;
   final VoidCallback? onEdit;
-  final VoidCallback? onToggleStatus;
+  final VoidCallback? onCancel;
   final bool isHeader;
 
   @override
@@ -216,11 +216,11 @@ class RambleTableRow extends StatelessWidget {
                       style: IconButton.styleFrom(minimumSize: const Size(32, 32)),
                     ),
                   ],
-                  if (onToggleStatus != null) ...[
+                  if (onCancel != null && ramble != null && !ramble!.isCancelled) ...[
                     IconButton(
-                      onPressed: onToggleStatus,
-                      icon: Icon(ramble?.status == 'published' ? Icons.visibility_off : Icons.visibility, size: 16),
-                      tooltip: ramble?.status == 'published' ? 'Masquer' : 'Publier',
+                      onPressed: onCancel,
+                      icon: const Icon(Icons.cancel, size: 16),
+                      tooltip: 'Annuler',
                       style: IconButton.styleFrom(minimumSize: const Size(32, 32)),
                     ),
                   ],
@@ -245,22 +245,12 @@ class RambleTableRow extends StatelessWidget {
     Color statusColor;
     String statusLabel;
 
-    switch (ramble!.status) {
-      case 'published':
-        statusColor = Colors.green;
-        statusLabel = 'Publié';
-        break;
-      case 'draft':
-        statusColor = Colors.orange;
-        statusLabel = 'Brouillon';
-        break;
-      case 'cancelled':
-        statusColor = Colors.red;
-        statusLabel = 'Annulé';
-        break;
-      default:
-        statusColor = Colors.grey;
-        statusLabel = ramble!.status;
+    if (ramble!.isCancelled) {
+      statusColor = Colors.red;
+      statusLabel = 'Annulé';
+    } else {
+      statusColor = Colors.green;
+      statusLabel = 'Actif';
     }
 
     return Container(

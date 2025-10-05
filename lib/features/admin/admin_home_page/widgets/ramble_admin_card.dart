@@ -6,12 +6,12 @@ import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 
 class RambleAdminCard extends StatelessWidget {
-  const RambleAdminCard({super.key, required this.ramble, this.onEdit, this.onDelete, this.onToggleStatus});
+  const RambleAdminCard({super.key, required this.ramble, this.onEdit, this.onDelete, this.onCancel});
 
   final Ramble ramble;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
-  final VoidCallback? onToggleStatus;
+  final VoidCallback? onCancel;
 
   @override
   Widget build(BuildContext context) {
@@ -161,17 +161,14 @@ class RambleAdminCard extends StatelessWidget {
                           style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 8)),
                         ),
                       ),
-                    if (onEdit != null && onToggleStatus != null) const SizedBox(width: 8),
-                    if (onToggleStatus != null)
+                    if (onEdit != null && onCancel != null) const SizedBox(width: 8),
+                    if (onCancel != null && !ramble.isCancelled)
                       Expanded(
                         child: FilledButton.icon(
-                          onPressed: onToggleStatus,
-                          icon: Icon(ramble.status == 'published' ? Icons.visibility_off : Icons.visibility, size: 16),
-                          label: Text(ramble.status == 'published' ? 'Masquer' : 'Publier'),
-                          style: FilledButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            backgroundColor: ramble.status == 'published' ? theme.colorScheme.secondary : theme.colorScheme.primary,
-                          ),
+                          onPressed: onCancel,
+                          icon: const Icon(Icons.cancel, size: 16),
+                          label: const Text('Annuler'),
+                          style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 8), backgroundColor: theme.colorScheme.error),
                         ),
                       ),
                   ],
@@ -217,26 +214,12 @@ class RambleAdminCard extends StatelessWidget {
     Color statusColor;
     String statusLabel;
 
-    switch (ramble.status) {
-      case 'published':
-        statusColor = Colors.green;
-        statusLabel = 'Publié';
-        break;
-      case 'draft':
-        statusColor = Colors.orange;
-        statusLabel = 'Brouillon';
-        break;
-      case 'cancelled':
-        statusColor = Colors.red;
-        statusLabel = 'Annulé';
-        break;
-      case 'completed':
-        statusColor = Colors.blue;
-        statusLabel = 'Terminé';
-        break;
-      default:
-        statusColor = Colors.grey;
-        statusLabel = ramble.status;
+    if (ramble.isCancelled) {
+      statusColor = Colors.red;
+      statusLabel = 'Annulé';
+    } else {
+      statusColor = Colors.green;
+      statusLabel = 'Actif';
     }
 
     return Container(

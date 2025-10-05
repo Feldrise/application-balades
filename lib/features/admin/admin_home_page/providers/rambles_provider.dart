@@ -6,54 +6,32 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Filter state
 class RamblesFilterState {
-  const RamblesFilterState({this.search, this.status, this.type, this.difficulty, this.location, this.dateFrom, this.dateTo, this.guideId, this.isActive});
+  const RamblesFilterState({this.search, this.type, this.difficulty, this.location, this.dateFrom, this.dateTo, this.guideId, this.isCancelled});
 
   final String? search;
-  final String? status;
   final String? type;
   final String? difficulty;
   final String? location;
   final DateTime? dateFrom;
   final DateTime? dateTo;
   final int? guideId;
-  final bool? isActive;
+  final bool? isCancelled;
 
-  RamblesFilterState copyWith({
-    String? search,
-    String? status,
-    String? type,
-    String? difficulty,
-    String? location,
-    DateTime? dateFrom,
-    DateTime? dateTo,
-    int? guideId,
-    bool? isActive,
-  }) {
+  RamblesFilterState copyWith({String? search, String? type, String? difficulty, String? location, DateTime? dateFrom, DateTime? dateTo, int? guideId, bool? isCancelled}) {
     return RamblesFilterState(
       search: search ?? this.search,
-      status: status ?? this.status,
       type: type ?? this.type,
       difficulty: difficulty ?? this.difficulty,
       location: location ?? this.location,
       dateFrom: dateFrom ?? this.dateFrom,
       dateTo: dateTo ?? this.dateTo,
       guideId: guideId ?? this.guideId,
-      isActive: isActive ?? this.isActive,
+      isCancelled: isCancelled ?? this.isCancelled,
     );
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'search': search,
-      'status': status,
-      'type': type,
-      'difficulty': difficulty,
-      'location': location,
-      'dateFrom': dateFrom,
-      'dateTo': dateTo,
-      'guideId': guideId,
-      'isActive': isActive,
-    };
+    return {'search': search, 'type': type, 'difficulty': difficulty, 'location': location, 'dateFrom': dateFrom, 'dateTo': dateTo, 'guideId': guideId, 'isCancelled': isCancelled};
   }
 }
 
@@ -103,14 +81,13 @@ class RamblesNotifier extends StateNotifier<RamblesState> {
     try {
       final rambles = await _ramblesService.fetchRambles(
         search: state.filters.search?.isNotEmpty == true ? state.filters.search : null,
-        status: state.filters.status,
         type: state.filters.type,
         difficulty: state.filters.difficulty,
         location: state.filters.location,
         dateFrom: state.filters.dateFrom,
         dateTo: state.filters.dateTo,
         guideId: state.filters.guideId,
-        isActive: state.filters.isActive,
+        isCancelled: state.filters.isCancelled,
         authorization: authorization,
       );
 
@@ -161,8 +138,11 @@ class RamblesNotifier extends StateNotifier<RamblesState> {
         case 'title':
           comparison = a.title.compareTo(b.title);
           break;
-        case 'status':
-          comparison = a.status.compareTo(b.status);
+        case 'cancellation':
+          // Sort by cancellation status: active first, then cancelled
+          if (a.isCancelled != b.isCancelled) {
+            comparison = a.isCancelled ? 1 : -1;
+          }
           break;
       }
 

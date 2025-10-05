@@ -1,5 +1,6 @@
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class RambleDetailsInfo extends StatelessWidget {
   const RambleDetailsInfo({super.key, required this.ramble});
@@ -14,6 +15,42 @@ class RambleDetailsInfo extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Cancellation Alert
+        if (ramble.isCancelled) ...[
+          Card(
+            color: colorScheme.errorContainer,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.cancel, color: colorScheme.error, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Balade annulée',
+                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.error),
+                      ),
+                    ],
+                  ),
+                  if (ramble.cancellationReason != null) ...[
+                    const SizedBox(height: 12),
+                    Text('Motif : ${ramble.cancellationReason!}', style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onErrorContainer)),
+                  ],
+                  if (ramble.cancellationDate != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Annulée le ${DateFormat('dd/MM/yyyy à HH:mm', 'fr').format(ramble.cancellationDate!.toLocal())}',
+                      style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onErrorContainer.withValues(alpha: 0.7)),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
         // Description
         if (ramble.description != null && ramble.description!.isNotEmpty) ...[
           Card(

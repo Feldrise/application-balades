@@ -11,7 +11,7 @@ class RamblesGrid extends StatelessWidget {
     super.key,
     required this.rambles,
     required this.onEdit,
-    required this.onToggleStatus,
+    required this.onCancel,
     this.viewMode = RamblesViewMode.grid,
     this.crossAxisCount = 2,
     this.childAspectRatio = 1.2,
@@ -21,7 +21,7 @@ class RamblesGrid extends StatelessWidget {
 
   final List<Ramble> rambles;
   final Function(Ramble) onEdit;
-  final Function(Ramble) onToggleStatus;
+  final Function(Ramble) onCancel;
   final RamblesViewMode viewMode;
   final int crossAxisCount;
   final double childAspectRatio;
@@ -54,7 +54,7 @@ class RamblesGrid extends StatelessWidget {
       ),
       itemCount: rambles.length,
       itemBuilder: (context, index) {
-        return RambleAdminCard(ramble: rambles[index], onEdit: () => onEdit(rambles[index]), onToggleStatus: () => onToggleStatus(rambles[index]));
+        return RambleAdminCard(ramble: rambles[index], onEdit: () => onEdit(rambles[index]), onCancel: () => onCancel(rambles[index]));
       },
     );
   }
@@ -84,7 +84,7 @@ class RamblesGrid extends StatelessWidget {
           ),
           itemCount: rambles.length,
           itemBuilder: (context, index) {
-            return RambleCompactCard(ramble: rambles[index], onEdit: () => onEdit(rambles[index]), onToggleStatus: () => onToggleStatus(rambles[index]));
+            return RambleCompactCard(ramble: rambles[index], onEdit: () => onEdit(rambles[index]), onCancel: () => onCancel(rambles[index]));
           },
         );
       },
@@ -102,7 +102,7 @@ class RamblesGrid extends StatelessWidget {
             padding: EdgeInsets.zero,
             itemCount: rambles.length,
             itemBuilder: (context, index) {
-              return RambleTableRow(ramble: rambles[index], onEdit: () => onEdit(rambles[index]), onToggleStatus: () => onToggleStatus(rambles[index]));
+              return RambleTableRow(ramble: rambles[index], onEdit: () => onEdit(rambles[index]), onCancel: () => onCancel(rambles[index]));
             },
           ),
         ),
@@ -117,7 +117,7 @@ class RamblesGrid extends StatelessWidget {
       itemBuilder: (context, index) {
         return Padding(
           padding: EdgeInsets.symmetric(vertical: spacing / 2),
-          child: RambleAdminCard(ramble: rambles[index], onEdit: () => onEdit(rambles[index]), onToggleStatus: () => onToggleStatus(rambles[index])),
+          child: RambleAdminCard(ramble: rambles[index], onEdit: () => onEdit(rambles[index]), onCancel: () => onCancel(rambles[index])),
         );
       },
     );
@@ -125,11 +125,11 @@ class RamblesGrid extends StatelessWidget {
 }
 
 class RamblesListView extends StatelessWidget {
-  const RamblesListView({super.key, required this.rambles, required this.onEdit, required this.onToggleStatus, this.padding = const EdgeInsets.all(8)});
+  const RamblesListView({super.key, required this.rambles, required this.onEdit, required this.onCancel, this.padding = const EdgeInsets.all(8)});
 
   final List<Ramble> rambles;
   final Function(Ramble) onEdit;
-  final Function(Ramble) onToggleStatus;
+  final Function(Ramble) onCancel;
   final EdgeInsets padding;
 
   @override
@@ -138,7 +138,7 @@ class RamblesListView extends StatelessWidget {
       padding: padding,
       itemCount: rambles.length,
       itemBuilder: (context, index) {
-        return RambleAdminCard(ramble: rambles[index], onEdit: () => onEdit(rambles[index]), onToggleStatus: () => onToggleStatus(rambles[index]));
+        return RambleAdminCard(ramble: rambles[index], onEdit: () => onEdit(rambles[index]), onCancel: () => onCancel(rambles[index]));
       },
     );
   }

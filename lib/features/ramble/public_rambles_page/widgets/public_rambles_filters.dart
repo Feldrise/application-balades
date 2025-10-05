@@ -71,13 +71,19 @@ class PublicRamblesFilters extends ConsumerWidget {
               builder: (context, constraints) {
                 final isWide = constraints.maxWidth > 600;
                 if (isWide) {
-                  return Row(
+                  return Column(
                     children: [
-                      Expanded(child: _buildTypeFilter(state, notifier)),
-                      const SizedBox(width: 16),
-                      Expanded(child: _buildDifficultyFilter(state, notifier)),
-                      const SizedBox(width: 16),
-                      Expanded(child: _buildSortFilter(state, notifier)),
+                      Row(
+                        children: [
+                          Expanded(child: _buildTypeFilter(state, notifier)),
+                          const SizedBox(width: 16),
+                          Expanded(child: _buildDifficultyFilter(state, notifier)),
+                          const SizedBox(width: 16),
+                          Expanded(child: _buildSortFilter(state, notifier)),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      _buildShowCancelledFilter(state, notifier),
                     ],
                   );
                 } else {
@@ -88,6 +94,8 @@ class PublicRamblesFilters extends ConsumerWidget {
                       _buildDifficultyFilter(state, notifier),
                       const SizedBox(height: 12),
                       _buildSortFilter(state, notifier),
+                      const SizedBox(height: 12),
+                      _buildShowCancelledFilter(state, notifier),
                     ],
                   );
                 }
@@ -170,6 +178,25 @@ class PublicRamblesFilters extends ConsumerWidget {
           notifier.updateSort(value);
         }
       },
+    );
+  }
+
+  Widget _buildShowCancelledFilter(PublicRamblesState state, PublicRamblesNotifier notifier) {
+    return Row(
+      children: [
+        Checkbox(value: state.filterState.showCancelled, onChanged: (value) => notifier.updateShowCancelled(value ?? false)),
+        const SizedBox(width: 8),
+        GestureDetector(
+          onTap: () => notifier.updateShowCancelled(!state.filterState.showCancelled),
+          child: Row(
+            children: [
+              Icon(Icons.cancel, size: 16, color: Colors.red),
+              const SizedBox(width: 4),
+              const Text('Inclure les balades annulées'),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

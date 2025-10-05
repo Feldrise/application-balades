@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Filter state for public rambles (simplified)
 class PublicRamblesFilterState {
-  const PublicRamblesFilterState({this.search, this.type, this.difficulty, this.location, this.dateFrom, this.dateTo});
+  const PublicRamblesFilterState({this.search, this.type, this.difficulty, this.location, this.dateFrom, this.dateTo, this.showCancelled = false});
 
   final String? search;
   final String? type;
@@ -14,8 +14,9 @@ class PublicRamblesFilterState {
   final String? location;
   final DateTime? dateFrom;
   final DateTime? dateTo;
+  final bool showCancelled;
 
-  PublicRamblesFilterState copyWith({String? search, String? type, String? difficulty, String? location, DateTime? dateFrom, DateTime? dateTo}) {
+  PublicRamblesFilterState copyWith({String? search, String? type, String? difficulty, String? location, DateTime? dateFrom, DateTime? dateTo, bool? showCancelled}) {
     return PublicRamblesFilterState(
       search: search ?? this.search,
       type: type ?? this.type,
@@ -23,6 +24,7 @@ class PublicRamblesFilterState {
       location: location ?? this.location,
       dateFrom: dateFrom ?? this.dateFrom,
       dateTo: dateTo ?? this.dateTo,
+      showCancelled: showCancelled ?? this.showCancelled,
     );
   }
 
@@ -31,7 +33,13 @@ class PublicRamblesFilterState {
   }
 
   bool get hasActiveFilters {
-    return search?.isNotEmpty == true || type?.isNotEmpty == true || difficulty?.isNotEmpty == true || location?.isNotEmpty == true || dateFrom != null || dateTo != null;
+    return search?.isNotEmpty == true ||
+        type?.isNotEmpty == true ||
+        difficulty?.isNotEmpty == true ||
+        location?.isNotEmpty == true ||
+        dateFrom != null ||
+        dateTo != null ||
+        showCancelled;
   }
 }
 
@@ -98,7 +106,7 @@ class PublicRamblesNotifier extends StateNotifier<PublicRamblesState> {
         location: state.filterState.location,
         dateFrom: state.filterState.dateFrom,
         dateTo: state.filterState.dateTo,
-        isActive: true, // Only fetch active rambles
+        isCancelled: state.filterState.showCancelled ? null : false, // Include cancelled if showCancelled is true
       );
 
       // Sort the rambles locally since the service doesn't support sorting
@@ -136,6 +144,11 @@ class PublicRamblesNotifier extends StateNotifier<PublicRamblesState> {
     state = state.copyWith(
       filterState: state.filterState.copyWith(dateFrom: dateFrom, dateTo: dateTo),
     );
+    fetchRambles();
+  }
+
+  void updateShowCancelled(bool showCancelled) {
+    state = state.copyWith(filterState: state.filterState.copyWith(showCancelled: showCancelled));
     fetchRambles();
   }
 

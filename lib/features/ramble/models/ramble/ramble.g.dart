@@ -9,7 +9,11 @@ part of 'ramble.dart';
 _Ramble _$RambleFromJson(Map<String, dynamic> json) => _Ramble(
   (json['id'] as num).toInt(),
   title: json['title'] as String,
-  status: json['status'] as String,
+  isCancelled: json['is_cancelled'] as bool? ?? false,
+  cancellationDate: const DateSerializer().fromJson(
+    json['cancellation_date'] as String?,
+  ),
+  cancellationReason: json['cancellation_reason'] as String?,
   description: json['description'] as String?,
   type: json['type'] as String,
   date: const DateSerializer().fromJson(json['date'] as String?),
@@ -40,7 +44,9 @@ _Ramble _$RambleFromJson(Map<String, dynamic> json) => _Ramble(
 Map<String, dynamic> _$RambleToJson(_Ramble instance) => <String, dynamic>{
   'id': instance.id,
   'title': instance.title,
-  'status': instance.status,
+  'is_cancelled': instance.isCancelled,
+  'cancellation_date': const DateSerializer().toJson(instance.cancellationDate),
+  'cancellation_reason': instance.cancellationReason,
   'description': instance.description,
   'type': instance.type,
   'date': const DateSerializer().toJson(instance.date),

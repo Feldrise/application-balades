@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Ramble {
 
- int get id; String get title; String get status; String? get description; String get type;@DateSerializer() DateTime? get date; String? get location;@JsonKey(name: 'meeting_point') String? get meetingPoint;@JsonKey(name: 'max_participants') int? get maxParticipants; List<RamblePrice> get prices; String get difficulty;@DurationSerializer()@JsonKey(name: 'estimated_duration') Duration? get estimatedDuration;@JsonKey(name: 'equipment_needed') String? get equipmentNeeded; String? get prerequisites;@JsonKey(name: 'cover_image') String? get coverImage;@JsonKey(name: 'additional_documents_url') String? get additionalDocumentsUrl; List<Guide> get guides;@JsonKey(name: 'places_left') int? get placesLeft;
+ int get id; String get title;@JsonKey(name: 'is_cancelled') bool get isCancelled;@JsonKey(name: 'cancellation_date')@DateSerializer() DateTime? get cancellationDate;@JsonKey(name: 'cancellation_reason') String? get cancellationReason; String? get description; String get type;@DateSerializer() DateTime? get date; String? get location;@JsonKey(name: 'meeting_point') String? get meetingPoint;@JsonKey(name: 'max_participants') int? get maxParticipants; List<RamblePrice> get prices; String get difficulty;@DurationSerializer()@JsonKey(name: 'estimated_duration') Duration? get estimatedDuration;@JsonKey(name: 'equipment_needed') String? get equipmentNeeded; String? get prerequisites;@JsonKey(name: 'cover_image') String? get coverImage;@JsonKey(name: 'additional_documents_url') String? get additionalDocumentsUrl; List<Guide> get guides;@JsonKey(name: 'places_left') int? get placesLeft;
 /// Create a copy of Ramble
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $RambleCopyWith<Ramble> get copyWith => _$RambleCopyWithImpl<Ramble>(this as Ram
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Ramble&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.status, status) || other.status == status)&&(identical(other.description, description) || other.description == description)&&(identical(other.type, type) || other.type == type)&&(identical(other.date, date) || other.date == date)&&(identical(other.location, location) || other.location == location)&&(identical(other.meetingPoint, meetingPoint) || other.meetingPoint == meetingPoint)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants)&&const DeepCollectionEquality().equals(other.prices, prices)&&(identical(other.difficulty, difficulty) || other.difficulty == difficulty)&&(identical(other.estimatedDuration, estimatedDuration) || other.estimatedDuration == estimatedDuration)&&(identical(other.equipmentNeeded, equipmentNeeded) || other.equipmentNeeded == equipmentNeeded)&&(identical(other.prerequisites, prerequisites) || other.prerequisites == prerequisites)&&(identical(other.coverImage, coverImage) || other.coverImage == coverImage)&&(identical(other.additionalDocumentsUrl, additionalDocumentsUrl) || other.additionalDocumentsUrl == additionalDocumentsUrl)&&const DeepCollectionEquality().equals(other.guides, guides)&&(identical(other.placesLeft, placesLeft) || other.placesLeft == placesLeft));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Ramble&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.isCancelled, isCancelled) || other.isCancelled == isCancelled)&&(identical(other.cancellationDate, cancellationDate) || other.cancellationDate == cancellationDate)&&(identical(other.cancellationReason, cancellationReason) || other.cancellationReason == cancellationReason)&&(identical(other.description, description) || other.description == description)&&(identical(other.type, type) || other.type == type)&&(identical(other.date, date) || other.date == date)&&(identical(other.location, location) || other.location == location)&&(identical(other.meetingPoint, meetingPoint) || other.meetingPoint == meetingPoint)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants)&&const DeepCollectionEquality().equals(other.prices, prices)&&(identical(other.difficulty, difficulty) || other.difficulty == difficulty)&&(identical(other.estimatedDuration, estimatedDuration) || other.estimatedDuration == estimatedDuration)&&(identical(other.equipmentNeeded, equipmentNeeded) || other.equipmentNeeded == equipmentNeeded)&&(identical(other.prerequisites, prerequisites) || other.prerequisites == prerequisites)&&(identical(other.coverImage, coverImage) || other.coverImage == coverImage)&&(identical(other.additionalDocumentsUrl, additionalDocumentsUrl) || other.additionalDocumentsUrl == additionalDocumentsUrl)&&const DeepCollectionEquality().equals(other.guides, guides)&&(identical(other.placesLeft, placesLeft) || other.placesLeft == placesLeft));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,status,description,type,date,location,meetingPoint,maxParticipants,const DeepCollectionEquality().hash(prices),difficulty,estimatedDuration,equipmentNeeded,prerequisites,coverImage,additionalDocumentsUrl,const DeepCollectionEquality().hash(guides),placesLeft);
+int get hashCode => Object.hashAll([runtimeType,id,title,isCancelled,cancellationDate,cancellationReason,description,type,date,location,meetingPoint,maxParticipants,const DeepCollectionEquality().hash(prices),difficulty,estimatedDuration,equipmentNeeded,prerequisites,coverImage,additionalDocumentsUrl,const DeepCollectionEquality().hash(guides),placesLeft]);
 
 @override
 String toString() {
-  return 'Ramble(id: $id, title: $title, status: $status, description: $description, type: $type, date: $date, location: $location, meetingPoint: $meetingPoint, maxParticipants: $maxParticipants, prices: $prices, difficulty: $difficulty, estimatedDuration: $estimatedDuration, equipmentNeeded: $equipmentNeeded, prerequisites: $prerequisites, coverImage: $coverImage, additionalDocumentsUrl: $additionalDocumentsUrl, guides: $guides, placesLeft: $placesLeft)';
+  return 'Ramble(id: $id, title: $title, isCancelled: $isCancelled, cancellationDate: $cancellationDate, cancellationReason: $cancellationReason, description: $description, type: $type, date: $date, location: $location, meetingPoint: $meetingPoint, maxParticipants: $maxParticipants, prices: $prices, difficulty: $difficulty, estimatedDuration: $estimatedDuration, equipmentNeeded: $equipmentNeeded, prerequisites: $prerequisites, coverImage: $coverImage, additionalDocumentsUrl: $additionalDocumentsUrl, guides: $guides, placesLeft: $placesLeft)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $RambleCopyWith<$Res>  {
   factory $RambleCopyWith(Ramble value, $Res Function(Ramble) _then) = _$RambleCopyWithImpl;
 @useResult
 $Res call({
- int id, String title, String status, String? description, String type,@DateSerializer() DateTime? date, String? location,@JsonKey(name: 'meeting_point') String? meetingPoint,@JsonKey(name: 'max_participants') int? maxParticipants, List<RamblePrice> prices, String difficulty,@DurationSerializer()@JsonKey(name: 'estimated_duration') Duration? estimatedDuration,@JsonKey(name: 'equipment_needed') String? equipmentNeeded, String? prerequisites,@JsonKey(name: 'cover_image') String? coverImage,@JsonKey(name: 'additional_documents_url') String? additionalDocumentsUrl, List<Guide> guides,@JsonKey(name: 'places_left') int? placesLeft
+ int id, String title,@JsonKey(name: 'is_cancelled') bool isCancelled,@JsonKey(name: 'cancellation_date')@DateSerializer() DateTime? cancellationDate,@JsonKey(name: 'cancellation_reason') String? cancellationReason, String? description, String type,@DateSerializer() DateTime? date, String? location,@JsonKey(name: 'meeting_point') String? meetingPoint,@JsonKey(name: 'max_participants') int? maxParticipants, List<RamblePrice> prices, String difficulty,@DurationSerializer()@JsonKey(name: 'estimated_duration') Duration? estimatedDuration,@JsonKey(name: 'equipment_needed') String? equipmentNeeded, String? prerequisites,@JsonKey(name: 'cover_image') String? coverImage,@JsonKey(name: 'additional_documents_url') String? additionalDocumentsUrl, List<Guide> guides,@JsonKey(name: 'places_left') int? placesLeft
 });
 
 
@@ -65,12 +65,14 @@ class _$RambleCopyWithImpl<$Res>
 
 /// Create a copy of Ramble
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? status = null,Object? description = freezed,Object? type = null,Object? date = freezed,Object? location = freezed,Object? meetingPoint = freezed,Object? maxParticipants = freezed,Object? prices = null,Object? difficulty = null,Object? estimatedDuration = freezed,Object? equipmentNeeded = freezed,Object? prerequisites = freezed,Object? coverImage = freezed,Object? additionalDocumentsUrl = freezed,Object? guides = null,Object? placesLeft = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? isCancelled = null,Object? cancellationDate = freezed,Object? cancellationReason = freezed,Object? description = freezed,Object? type = null,Object? date = freezed,Object? location = freezed,Object? meetingPoint = freezed,Object? maxParticipants = freezed,Object? prices = null,Object? difficulty = null,Object? estimatedDuration = freezed,Object? equipmentNeeded = freezed,Object? prerequisites = freezed,Object? coverImage = freezed,Object? additionalDocumentsUrl = freezed,Object? guides = null,Object? placesLeft = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
-as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,isCancelled: null == isCancelled ? _self.isCancelled : isCancelled // ignore: cast_nullable_to_non_nullable
+as bool,cancellationDate: freezed == cancellationDate ? _self.cancellationDate : cancellationDate // ignore: cast_nullable_to_non_nullable
+as DateTime?,cancellationReason: freezed == cancellationReason ? _self.cancellationReason : cancellationReason // ignore: cast_nullable_to_non_nullable
+as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,date: freezed == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime?,location: freezed == location ? _self.location : location // ignore: cast_nullable_to_non_nullable
@@ -170,10 +172,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String title,  String status,  String? description,  String type, @DateSerializer()  DateTime? date,  String? location, @JsonKey(name: 'meeting_point')  String? meetingPoint, @JsonKey(name: 'max_participants')  int? maxParticipants,  List<RamblePrice> prices,  String difficulty, @DurationSerializer()@JsonKey(name: 'estimated_duration')  Duration? estimatedDuration, @JsonKey(name: 'equipment_needed')  String? equipmentNeeded,  String? prerequisites, @JsonKey(name: 'cover_image')  String? coverImage, @JsonKey(name: 'additional_documents_url')  String? additionalDocumentsUrl,  List<Guide> guides, @JsonKey(name: 'places_left')  int? placesLeft)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String title, @JsonKey(name: 'is_cancelled')  bool isCancelled, @JsonKey(name: 'cancellation_date')@DateSerializer()  DateTime? cancellationDate, @JsonKey(name: 'cancellation_reason')  String? cancellationReason,  String? description,  String type, @DateSerializer()  DateTime? date,  String? location, @JsonKey(name: 'meeting_point')  String? meetingPoint, @JsonKey(name: 'max_participants')  int? maxParticipants,  List<RamblePrice> prices,  String difficulty, @DurationSerializer()@JsonKey(name: 'estimated_duration')  Duration? estimatedDuration, @JsonKey(name: 'equipment_needed')  String? equipmentNeeded,  String? prerequisites, @JsonKey(name: 'cover_image')  String? coverImage, @JsonKey(name: 'additional_documents_url')  String? additionalDocumentsUrl,  List<Guide> guides, @JsonKey(name: 'places_left')  int? placesLeft)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Ramble() when $default != null:
-return $default(_that.id,_that.title,_that.status,_that.description,_that.type,_that.date,_that.location,_that.meetingPoint,_that.maxParticipants,_that.prices,_that.difficulty,_that.estimatedDuration,_that.equipmentNeeded,_that.prerequisites,_that.coverImage,_that.additionalDocumentsUrl,_that.guides,_that.placesLeft);case _:
+return $default(_that.id,_that.title,_that.isCancelled,_that.cancellationDate,_that.cancellationReason,_that.description,_that.type,_that.date,_that.location,_that.meetingPoint,_that.maxParticipants,_that.prices,_that.difficulty,_that.estimatedDuration,_that.equipmentNeeded,_that.prerequisites,_that.coverImage,_that.additionalDocumentsUrl,_that.guides,_that.placesLeft);case _:
   return orElse();
 
 }
@@ -191,10 +193,10 @@ return $default(_that.id,_that.title,_that.status,_that.description,_that.type,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String title,  String status,  String? description,  String type, @DateSerializer()  DateTime? date,  String? location, @JsonKey(name: 'meeting_point')  String? meetingPoint, @JsonKey(name: 'max_participants')  int? maxParticipants,  List<RamblePrice> prices,  String difficulty, @DurationSerializer()@JsonKey(name: 'estimated_duration')  Duration? estimatedDuration, @JsonKey(name: 'equipment_needed')  String? equipmentNeeded,  String? prerequisites, @JsonKey(name: 'cover_image')  String? coverImage, @JsonKey(name: 'additional_documents_url')  String? additionalDocumentsUrl,  List<Guide> guides, @JsonKey(name: 'places_left')  int? placesLeft)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String title, @JsonKey(name: 'is_cancelled')  bool isCancelled, @JsonKey(name: 'cancellation_date')@DateSerializer()  DateTime? cancellationDate, @JsonKey(name: 'cancellation_reason')  String? cancellationReason,  String? description,  String type, @DateSerializer()  DateTime? date,  String? location, @JsonKey(name: 'meeting_point')  String? meetingPoint, @JsonKey(name: 'max_participants')  int? maxParticipants,  List<RamblePrice> prices,  String difficulty, @DurationSerializer()@JsonKey(name: 'estimated_duration')  Duration? estimatedDuration, @JsonKey(name: 'equipment_needed')  String? equipmentNeeded,  String? prerequisites, @JsonKey(name: 'cover_image')  String? coverImage, @JsonKey(name: 'additional_documents_url')  String? additionalDocumentsUrl,  List<Guide> guides, @JsonKey(name: 'places_left')  int? placesLeft)  $default,) {final _that = this;
 switch (_that) {
 case _Ramble():
-return $default(_that.id,_that.title,_that.status,_that.description,_that.type,_that.date,_that.location,_that.meetingPoint,_that.maxParticipants,_that.prices,_that.difficulty,_that.estimatedDuration,_that.equipmentNeeded,_that.prerequisites,_that.coverImage,_that.additionalDocumentsUrl,_that.guides,_that.placesLeft);case _:
+return $default(_that.id,_that.title,_that.isCancelled,_that.cancellationDate,_that.cancellationReason,_that.description,_that.type,_that.date,_that.location,_that.meetingPoint,_that.maxParticipants,_that.prices,_that.difficulty,_that.estimatedDuration,_that.equipmentNeeded,_that.prerequisites,_that.coverImage,_that.additionalDocumentsUrl,_that.guides,_that.placesLeft);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -211,10 +213,10 @@ return $default(_that.id,_that.title,_that.status,_that.description,_that.type,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String title,  String status,  String? description,  String type, @DateSerializer()  DateTime? date,  String? location, @JsonKey(name: 'meeting_point')  String? meetingPoint, @JsonKey(name: 'max_participants')  int? maxParticipants,  List<RamblePrice> prices,  String difficulty, @DurationSerializer()@JsonKey(name: 'estimated_duration')  Duration? estimatedDuration, @JsonKey(name: 'equipment_needed')  String? equipmentNeeded,  String? prerequisites, @JsonKey(name: 'cover_image')  String? coverImage, @JsonKey(name: 'additional_documents_url')  String? additionalDocumentsUrl,  List<Guide> guides, @JsonKey(name: 'places_left')  int? placesLeft)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String title, @JsonKey(name: 'is_cancelled')  bool isCancelled, @JsonKey(name: 'cancellation_date')@DateSerializer()  DateTime? cancellationDate, @JsonKey(name: 'cancellation_reason')  String? cancellationReason,  String? description,  String type, @DateSerializer()  DateTime? date,  String? location, @JsonKey(name: 'meeting_point')  String? meetingPoint, @JsonKey(name: 'max_participants')  int? maxParticipants,  List<RamblePrice> prices,  String difficulty, @DurationSerializer()@JsonKey(name: 'estimated_duration')  Duration? estimatedDuration, @JsonKey(name: 'equipment_needed')  String? equipmentNeeded,  String? prerequisites, @JsonKey(name: 'cover_image')  String? coverImage, @JsonKey(name: 'additional_documents_url')  String? additionalDocumentsUrl,  List<Guide> guides, @JsonKey(name: 'places_left')  int? placesLeft)?  $default,) {final _that = this;
 switch (_that) {
 case _Ramble() when $default != null:
-return $default(_that.id,_that.title,_that.status,_that.description,_that.type,_that.date,_that.location,_that.meetingPoint,_that.maxParticipants,_that.prices,_that.difficulty,_that.estimatedDuration,_that.equipmentNeeded,_that.prerequisites,_that.coverImage,_that.additionalDocumentsUrl,_that.guides,_that.placesLeft);case _:
+return $default(_that.id,_that.title,_that.isCancelled,_that.cancellationDate,_that.cancellationReason,_that.description,_that.type,_that.date,_that.location,_that.meetingPoint,_that.maxParticipants,_that.prices,_that.difficulty,_that.estimatedDuration,_that.equipmentNeeded,_that.prerequisites,_that.coverImage,_that.additionalDocumentsUrl,_that.guides,_that.placesLeft);case _:
   return null;
 
 }
@@ -226,12 +228,14 @@ return $default(_that.id,_that.title,_that.status,_that.description,_that.type,_
 @JsonSerializable()
 
 class _Ramble implements Ramble {
-  const _Ramble(this.id, {required this.title, required this.status, this.description, required this.type, @DateSerializer() this.date, this.location, @JsonKey(name: 'meeting_point') this.meetingPoint, @JsonKey(name: 'max_participants') this.maxParticipants, final  List<RamblePrice> prices = const <RamblePrice>[], required this.difficulty, @DurationSerializer()@JsonKey(name: 'estimated_duration') this.estimatedDuration, @JsonKey(name: 'equipment_needed') this.equipmentNeeded, this.prerequisites, @JsonKey(name: 'cover_image') this.coverImage, @JsonKey(name: 'additional_documents_url') this.additionalDocumentsUrl, final  List<Guide> guides = const <Guide>[], @JsonKey(name: 'places_left') this.placesLeft}): _prices = prices,_guides = guides;
+  const _Ramble(this.id, {required this.title, @JsonKey(name: 'is_cancelled') this.isCancelled = false, @JsonKey(name: 'cancellation_date')@DateSerializer() this.cancellationDate, @JsonKey(name: 'cancellation_reason') this.cancellationReason, this.description, required this.type, @DateSerializer() this.date, this.location, @JsonKey(name: 'meeting_point') this.meetingPoint, @JsonKey(name: 'max_participants') this.maxParticipants, final  List<RamblePrice> prices = const <RamblePrice>[], required this.difficulty, @DurationSerializer()@JsonKey(name: 'estimated_duration') this.estimatedDuration, @JsonKey(name: 'equipment_needed') this.equipmentNeeded, this.prerequisites, @JsonKey(name: 'cover_image') this.coverImage, @JsonKey(name: 'additional_documents_url') this.additionalDocumentsUrl, final  List<Guide> guides = const <Guide>[], @JsonKey(name: 'places_left') this.placesLeft}): _prices = prices,_guides = guides;
   factory _Ramble.fromJson(Map<String, dynamic> json) => _$RambleFromJson(json);
 
 @override final  int id;
 @override final  String title;
-@override final  String status;
+@override@JsonKey(name: 'is_cancelled') final  bool isCancelled;
+@override@JsonKey(name: 'cancellation_date')@DateSerializer() final  DateTime? cancellationDate;
+@override@JsonKey(name: 'cancellation_reason') final  String? cancellationReason;
 @override final  String? description;
 @override final  String type;
 @override@DateSerializer() final  DateTime? date;
@@ -273,16 +277,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Ramble&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.status, status) || other.status == status)&&(identical(other.description, description) || other.description == description)&&(identical(other.type, type) || other.type == type)&&(identical(other.date, date) || other.date == date)&&(identical(other.location, location) || other.location == location)&&(identical(other.meetingPoint, meetingPoint) || other.meetingPoint == meetingPoint)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants)&&const DeepCollectionEquality().equals(other._prices, _prices)&&(identical(other.difficulty, difficulty) || other.difficulty == difficulty)&&(identical(other.estimatedDuration, estimatedDuration) || other.estimatedDuration == estimatedDuration)&&(identical(other.equipmentNeeded, equipmentNeeded) || other.equipmentNeeded == equipmentNeeded)&&(identical(other.prerequisites, prerequisites) || other.prerequisites == prerequisites)&&(identical(other.coverImage, coverImage) || other.coverImage == coverImage)&&(identical(other.additionalDocumentsUrl, additionalDocumentsUrl) || other.additionalDocumentsUrl == additionalDocumentsUrl)&&const DeepCollectionEquality().equals(other._guides, _guides)&&(identical(other.placesLeft, placesLeft) || other.placesLeft == placesLeft));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Ramble&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.isCancelled, isCancelled) || other.isCancelled == isCancelled)&&(identical(other.cancellationDate, cancellationDate) || other.cancellationDate == cancellationDate)&&(identical(other.cancellationReason, cancellationReason) || other.cancellationReason == cancellationReason)&&(identical(other.description, description) || other.description == description)&&(identical(other.type, type) || other.type == type)&&(identical(other.date, date) || other.date == date)&&(identical(other.location, location) || other.location == location)&&(identical(other.meetingPoint, meetingPoint) || other.meetingPoint == meetingPoint)&&(identical(other.maxParticipants, maxParticipants) || other.maxParticipants == maxParticipants)&&const DeepCollectionEquality().equals(other._prices, _prices)&&(identical(other.difficulty, difficulty) || other.difficulty == difficulty)&&(identical(other.estimatedDuration, estimatedDuration) || other.estimatedDuration == estimatedDuration)&&(identical(other.equipmentNeeded, equipmentNeeded) || other.equipmentNeeded == equipmentNeeded)&&(identical(other.prerequisites, prerequisites) || other.prerequisites == prerequisites)&&(identical(other.coverImage, coverImage) || other.coverImage == coverImage)&&(identical(other.additionalDocumentsUrl, additionalDocumentsUrl) || other.additionalDocumentsUrl == additionalDocumentsUrl)&&const DeepCollectionEquality().equals(other._guides, _guides)&&(identical(other.placesLeft, placesLeft) || other.placesLeft == placesLeft));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,status,description,type,date,location,meetingPoint,maxParticipants,const DeepCollectionEquality().hash(_prices),difficulty,estimatedDuration,equipmentNeeded,prerequisites,coverImage,additionalDocumentsUrl,const DeepCollectionEquality().hash(_guides),placesLeft);
+int get hashCode => Object.hashAll([runtimeType,id,title,isCancelled,cancellationDate,cancellationReason,description,type,date,location,meetingPoint,maxParticipants,const DeepCollectionEquality().hash(_prices),difficulty,estimatedDuration,equipmentNeeded,prerequisites,coverImage,additionalDocumentsUrl,const DeepCollectionEquality().hash(_guides),placesLeft]);
 
 @override
 String toString() {
-  return 'Ramble(id: $id, title: $title, status: $status, description: $description, type: $type, date: $date, location: $location, meetingPoint: $meetingPoint, maxParticipants: $maxParticipants, prices: $prices, difficulty: $difficulty, estimatedDuration: $estimatedDuration, equipmentNeeded: $equipmentNeeded, prerequisites: $prerequisites, coverImage: $coverImage, additionalDocumentsUrl: $additionalDocumentsUrl, guides: $guides, placesLeft: $placesLeft)';
+  return 'Ramble(id: $id, title: $title, isCancelled: $isCancelled, cancellationDate: $cancellationDate, cancellationReason: $cancellationReason, description: $description, type: $type, date: $date, location: $location, meetingPoint: $meetingPoint, maxParticipants: $maxParticipants, prices: $prices, difficulty: $difficulty, estimatedDuration: $estimatedDuration, equipmentNeeded: $equipmentNeeded, prerequisites: $prerequisites, coverImage: $coverImage, additionalDocumentsUrl: $additionalDocumentsUrl, guides: $guides, placesLeft: $placesLeft)';
 }
 
 
@@ -293,7 +297,7 @@ abstract mixin class _$RambleCopyWith<$Res> implements $RambleCopyWith<$Res> {
   factory _$RambleCopyWith(_Ramble value, $Res Function(_Ramble) _then) = __$RambleCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String title, String status, String? description, String type,@DateSerializer() DateTime? date, String? location,@JsonKey(name: 'meeting_point') String? meetingPoint,@JsonKey(name: 'max_participants') int? maxParticipants, List<RamblePrice> prices, String difficulty,@DurationSerializer()@JsonKey(name: 'estimated_duration') Duration? estimatedDuration,@JsonKey(name: 'equipment_needed') String? equipmentNeeded, String? prerequisites,@JsonKey(name: 'cover_image') String? coverImage,@JsonKey(name: 'additional_documents_url') String? additionalDocumentsUrl, List<Guide> guides,@JsonKey(name: 'places_left') int? placesLeft
+ int id, String title,@JsonKey(name: 'is_cancelled') bool isCancelled,@JsonKey(name: 'cancellation_date')@DateSerializer() DateTime? cancellationDate,@JsonKey(name: 'cancellation_reason') String? cancellationReason, String? description, String type,@DateSerializer() DateTime? date, String? location,@JsonKey(name: 'meeting_point') String? meetingPoint,@JsonKey(name: 'max_participants') int? maxParticipants, List<RamblePrice> prices, String difficulty,@DurationSerializer()@JsonKey(name: 'estimated_duration') Duration? estimatedDuration,@JsonKey(name: 'equipment_needed') String? equipmentNeeded, String? prerequisites,@JsonKey(name: 'cover_image') String? coverImage,@JsonKey(name: 'additional_documents_url') String? additionalDocumentsUrl, List<Guide> guides,@JsonKey(name: 'places_left') int? placesLeft
 });
 
 
@@ -310,12 +314,14 @@ class __$RambleCopyWithImpl<$Res>
 
 /// Create a copy of Ramble
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? status = null,Object? description = freezed,Object? type = null,Object? date = freezed,Object? location = freezed,Object? meetingPoint = freezed,Object? maxParticipants = freezed,Object? prices = null,Object? difficulty = null,Object? estimatedDuration = freezed,Object? equipmentNeeded = freezed,Object? prerequisites = freezed,Object? coverImage = freezed,Object? additionalDocumentsUrl = freezed,Object? guides = null,Object? placesLeft = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? isCancelled = null,Object? cancellationDate = freezed,Object? cancellationReason = freezed,Object? description = freezed,Object? type = null,Object? date = freezed,Object? location = freezed,Object? meetingPoint = freezed,Object? maxParticipants = freezed,Object? prices = null,Object? difficulty = null,Object? estimatedDuration = freezed,Object? equipmentNeeded = freezed,Object? prerequisites = freezed,Object? coverImage = freezed,Object? additionalDocumentsUrl = freezed,Object? guides = null,Object? placesLeft = freezed,}) {
   return _then(_Ramble(
 null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
-as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,isCancelled: null == isCancelled ? _self.isCancelled : isCancelled // ignore: cast_nullable_to_non_nullable
+as bool,cancellationDate: freezed == cancellationDate ? _self.cancellationDate : cancellationDate // ignore: cast_nullable_to_non_nullable
+as DateTime?,cancellationReason: freezed == cancellationReason ? _self.cancellationReason : cancellationReason // ignore: cast_nullable_to_non_nullable
+as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,date: freezed == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
 as DateTime?,location: freezed == location ? _self.location : location // ignore: cast_nullable_to_non_nullable

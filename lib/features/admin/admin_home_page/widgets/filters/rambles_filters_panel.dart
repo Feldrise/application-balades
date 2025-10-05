@@ -11,13 +11,13 @@ import 'package:intl/intl.dart';
 class RamblesFiltersPanel extends ConsumerWidget {
   const RamblesFiltersPanel({
     super.key,
-    required this.selectedStatus,
+    required this.selectedCancellationStatus,
     required this.selectedType,
     required this.selectedDifficulty,
     required this.selectedGuideId,
     required this.dateFrom,
     required this.dateTo,
-    required this.onStatusChanged,
+    required this.onCancellationStatusChanged,
     required this.onTypeChanged,
     required this.onDifficultyChanged,
     required this.onGuideChanged,
@@ -26,13 +26,13 @@ class RamblesFiltersPanel extends ConsumerWidget {
     required this.onClearFilters,
   });
 
-  final String? selectedStatus;
+  final bool? selectedCancellationStatus; // null = all, false = active, true = cancelled
   final String? selectedType;
   final String? selectedDifficulty;
   final int? selectedGuideId;
   final DateTime? dateFrom;
   final DateTime? dateTo;
-  final ValueChanged<String?> onStatusChanged;
+  final ValueChanged<bool?> onCancellationStatusChanged;
   final ValueChanged<String?> onTypeChanged;
   final ValueChanged<String?> onDifficultyChanged;
   final ValueChanged<int?> onGuideChanged;
@@ -72,20 +72,18 @@ class RamblesFiltersPanel extends ConsumerWidget {
           spacing: 16,
           runSpacing: 16,
           children: [
-            // Status filter
+            // Cancellation Status filter
             SizedBox(
               width: 200,
-              child: DropdownButtonFormField<String>(
-                value: selectedStatus,
+              child: DropdownButtonFormField<bool?>(
+                value: selectedCancellationStatus,
                 decoration: const InputDecoration(labelText: 'Statut', border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
                 items: const [
-                  DropdownMenuItem(value: null, child: Text('Tous les statuts')),
-                  DropdownMenuItem(value: 'published', child: Text('Publié')),
-                  DropdownMenuItem(value: 'draft', child: Text('Brouillon')),
-                  DropdownMenuItem(value: 'cancelled', child: Text('Annulé')),
-                  DropdownMenuItem(value: 'completed', child: Text('Terminé')),
+                  DropdownMenuItem(value: null, child: Text('Toutes les balades')),
+                  DropdownMenuItem(value: false, child: Text('Actives')),
+                  DropdownMenuItem(value: true, child: Text('Annulées')),
                 ],
-                onChanged: onStatusChanged,
+                onChanged: onCancellationStatusChanged,
               ),
             ),
 

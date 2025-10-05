@@ -8,6 +8,7 @@ import 'package:balade/features/admin/admin_home_page/widgets/headers/rambles_re
 import 'package:balade/features/admin/admin_home_page/widgets/states/rambles_empty_state.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
+import 'package:balade/features/ramble/rambles_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -56,9 +57,9 @@ class _RamblesListState extends ConsumerState<RamblesList> {
     ref.read(ramblesProvider.notifier).updateFilters(newFilters, authorization: auth?.token);
   }
 
-  void _onFilterChanged({String? status, String? type, String? difficulty, int? guideId, DateTime? dateFrom, DateTime? dateTo}) {
+  void _onFilterChanged({String? type, String? difficulty, int? guideId, DateTime? dateFrom, DateTime? dateTo, bool? isCancelled}) {
     final currentFilters = ref.read(ramblesProvider).filters;
-    final newFilters = currentFilters.copyWith(status: status, type: type, difficulty: difficulty, guideId: guideId, dateFrom: dateFrom, dateTo: dateTo);
+    final newFilters = currentFilters.copyWith(type: type, difficulty: difficulty, guideId: guideId, dateFrom: dateFrom, dateTo: dateTo, isCancelled: isCancelled);
     final auth = ref.read(authenticationProvider);
 
     ref.read(ramblesProvider.notifier).updateFilters(newFilters, authorization: auth?.token);
@@ -110,13 +111,13 @@ class _RamblesListState extends ConsumerState<RamblesList> {
       children: [
         // Left sidebar with filters (always visible on desktop)
         RamblesFiltersSidebar(
-          selectedStatus: state.filters.status,
+          selectedCancellationStatus: state.filters.isCancelled,
           selectedType: state.filters.type,
           selectedDifficulty: state.filters.difficulty,
           selectedGuideId: state.filters.guideId,
           dateFrom: state.filters.dateFrom,
           dateTo: state.filters.dateTo,
-          onStatusChanged: (value) => _onFilterChanged(status: value),
+          onCancellationStatusChanged: (value) => _onFilterChanged(isCancelled: value),
           onTypeChanged: (value) => _onFilterChanged(type: value),
           onDifficultyChanged: (value) => _onFilterChanged(difficulty: value),
           onGuideChanged: (value) => _onFilterChanged(guideId: value),
@@ -168,13 +169,13 @@ class _RamblesListState extends ConsumerState<RamblesList> {
         ),
         if (_showFilters)
           RamblesFiltersPanel(
-            selectedStatus: state.filters.status,
+            selectedCancellationStatus: state.filters.isCancelled,
             selectedType: state.filters.type,
             selectedDifficulty: state.filters.difficulty,
             selectedGuideId: state.filters.guideId,
             dateFrom: state.filters.dateFrom,
             dateTo: state.filters.dateTo,
-            onStatusChanged: (value) => _onFilterChanged(status: value),
+            onCancellationStatusChanged: (value) => _onFilterChanged(isCancelled: value),
             onTypeChanged: (value) => _onFilterChanged(type: value),
             onDifficultyChanged: (value) => _onFilterChanged(difficulty: value),
             onGuideChanged: (value) => _onFilterChanged(guideId: value),
@@ -209,13 +210,13 @@ class _RamblesListState extends ConsumerState<RamblesList> {
         ),
         if (_showFilters)
           RamblesFiltersPanel(
-            selectedStatus: state.filters.status,
+            selectedCancellationStatus: state.filters.isCancelled,
             selectedType: state.filters.type,
             selectedDifficulty: state.filters.difficulty,
             selectedGuideId: state.filters.guideId,
             dateFrom: state.filters.dateFrom,
             dateTo: state.filters.dateTo,
-            onStatusChanged: (value) => _onFilterChanged(status: value),
+            onCancellationStatusChanged: (value) => _onFilterChanged(isCancelled: value),
             onTypeChanged: (value) => _onFilterChanged(type: value),
             onDifficultyChanged: (value) => _onFilterChanged(difficulty: value),
             onGuideChanged: (value) => _onFilterChanged(guideId: value),
@@ -264,21 +265,21 @@ class _RamblesListState extends ConsumerState<RamblesList> {
       return RamblesGrid(
         rambles: state.rambles,
         onEdit: _handleEdit,
-        onToggleStatus: _handleToggleStatus,
+        onCancel: _handleCancel,
         viewMode: RamblesViewMode.list, // Mobile uses list view
       );
     } else if (isTablet) {
       return RamblesGrid(
         rambles: state.rambles,
         onEdit: _handleEdit,
-        onToggleStatus: _handleToggleStatus,
+        onCancel: _handleCancel,
         viewMode: RamblesViewMode.compact, // Tablet uses compact grid
         padding: const EdgeInsets.all(16),
         spacing: 16,
       );
     } else {
       // Desktop - use selected view mode
-      return RamblesGrid(rambles: state.rambles, onEdit: _handleEdit, onToggleStatus: _handleToggleStatus, viewMode: _viewMode, padding: const EdgeInsets.all(24), spacing: 24);
+      return RamblesGrid(rambles: state.rambles, onEdit: _handleEdit, onCancel: _handleCancel, viewMode: _viewMode, padding: const EdgeInsets.all(24), spacing: 24);
     }
   }
 
@@ -286,9 +287,61 @@ class _RamblesListState extends ConsumerState<RamblesList> {
     context.go("/admin/modifier-balade/${ramble.id}");
   }
 
-  void _handleToggleStatus(Ramble ramble) {
-    // TODO: Implement status toggle
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Changement de statut pour "${ramble.title}"')));
+  void _handleCancel(Ramble ramble) {
+    _showCancelDialog(ramble);
+  }
+
+  void _showCancelDialog(Ramble ramble) {
+    final reasonController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Annuler la balade "${ramble.title}"'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Êtes-vous sûr de vouloir annuler cette balade ?'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: reasonController,
+              decoration: const InputDecoration(labelText: 'Motif d\'annulation *', hintText: 'Indiquez la raison de l\'annulation', border: OutlineInputBorder()),
+              maxLines: 3,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Annuler')),
+          FilledButton(
+            onPressed: () {
+              if (reasonController.text.trim().isNotEmpty) {
+                Navigator.of(context).pop();
+                _performCancel(ramble, reasonController.text.trim());
+              }
+            },
+            style: FilledButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
+            child: const Text('Confirmer l\'annulation'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _performCancel(Ramble ramble, String reason) async {
+    try {
+      final auth = ref.read(authenticationProvider);
+      if (auth?.token != null) {
+        await RamblesService.instance.cancelRamble(ramble.id, reason, authorization: auth!.token);
+        ref.read(ramblesProvider.notifier).loadRambles(authorization: auth.token);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Balade "${ramble.title}" annulée avec succès')));
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur lors de l\'annulation: $e')));
+      }
+    }
   }
 
   void _handleExport() {

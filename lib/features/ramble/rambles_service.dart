@@ -13,23 +13,19 @@ class RamblesService {
 
   Future<List<Ramble>> fetchRambles({
     String? search,
-    String? status,
     String? type,
     String? difficulty,
     String? location,
     DateTime? dateFrom,
     DateTime? dateTo,
     int? guideId,
-    bool? isActive,
+    bool? isCancelled,
     String? authorization,
   }) async {
     Map<String, String> queryParameters = {};
 
     if (search != null && search.isNotEmpty) {
       queryParameters['search'] = search;
-    }
-    if (status != null && status.isNotEmpty) {
-      queryParameters['status'] = status;
     }
     if (type != null && type.isNotEmpty) {
       queryParameters['type'] = type;
@@ -49,8 +45,8 @@ class RamblesService {
     if (guideId != null) {
       queryParameters['guide_id'] = guideId.toString();
     }
-    if (isActive != null) {
-      queryParameters['is_active'] = isActive.toString();
+    if (isCancelled != null) {
+      queryParameters['is_cancelled'] = isCancelled.toString();
     }
 
     final Uri uri = Uri.parse(serviceBaseUrl).replace(queryParameters: queryParameters);
@@ -96,5 +92,20 @@ class RamblesService {
     if (response.statusCode != 200) {
       throw Exception('Failed to update ramble: ${response.body}');
     }
+  }
+
+  Future<Ramble> cancelRamble(int id, String reason, {required String authorization}) async {
+    final Uri uri = Uri.parse('$serviceBaseUrl/$id/cancel');
+    final http.Response response = await http.put(
+      uri,
+      headers: {'Content-Type': 'application/json', 'Authorization': "Bearer $authorization"},
+      body: jsonEncode({'reason': reason}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to cancel ramble: ${response.body}');
+    }
+
+    return Ramble.fromJson(jsonDecode(response.body) as Map<String, Object?>);
   }
 }

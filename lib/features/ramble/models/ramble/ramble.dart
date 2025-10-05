@@ -37,7 +37,9 @@ abstract class Ramble with _$Ramble {
   const factory Ramble(
     int id, {
     required String title,
-    required String status,
+    @JsonKey(name: 'is_cancelled') @Default(false) bool isCancelled,
+    @JsonKey(name: 'cancellation_date') @DateSerializer() DateTime? cancellationDate,
+    @JsonKey(name: 'cancellation_reason') String? cancellationReason,
     String? description,
     required String type,
     @DateSerializer() DateTime? date,
