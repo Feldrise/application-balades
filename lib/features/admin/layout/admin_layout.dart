@@ -48,7 +48,6 @@ class _AdminLayoutState extends ConsumerState<AdminLayout> {
 
   Widget _buildDesktopLayout(ThemeData theme, AdminNavigationItem? currentItem, AdminNavigationState navigationState, bool isDesktop) {
     return Scaffold(
-      backgroundColor: theme.colorScheme.surfaceContainerLowest,
       body: Row(
         children: [
           AdminSidebar(isDesktop: isDesktop),
@@ -67,7 +66,6 @@ class _AdminLayoutState extends ConsumerState<AdminLayout> {
 
   Widget _buildTabletLayout(ThemeData theme, AdminNavigationItem? currentItem) {
     return Scaffold(
-      backgroundColor: theme.colorScheme.surfaceContainerLowest,
       appBar: _buildAppBar(theme, currentItem, showMenuButton: true),
       drawer: Drawer(child: AdminSidebar(isDesktop: false)),
       body: widget.child,
@@ -76,7 +74,6 @@ class _AdminLayoutState extends ConsumerState<AdminLayout> {
 
   Widget _buildMobileLayout(ThemeData theme, AdminNavigationItem? currentItem) {
     return Scaffold(
-      backgroundColor: theme.colorScheme.surfaceContainerLowest,
       appBar: _buildAppBar(theme, currentItem, showMenuButton: true),
       drawer: Drawer(child: AdminSidebar(isDesktop: false)),
       body: widget.child,
