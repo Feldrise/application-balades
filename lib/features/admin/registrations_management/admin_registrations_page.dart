@@ -54,7 +54,9 @@ class _AdminRegistrationsPageState extends ConsumerState<AdminRegistrationsPage>
         children: [
           // Main scrollable content
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: ScreenHelper.instance.horizontalPadding),
+            padding: EdgeInsets.symmetric(
+              horizontal: isDesktop ? ScreenHelper.instance.horizontalPadding : 16.0, // Reduced padding on mobile/tablet for more table space
+            ),
             child: CustomScrollView(
               slivers: [
                 // Header with integrated controls
@@ -63,8 +65,9 @@ class _AdminRegistrationsPageState extends ConsumerState<AdminRegistrationsPage>
                 // Stats section (only on desktop and tablet)
                 if (isDesktop || isTablet) SliverToBoxAdapter(child: _buildStatsSection()),
 
-                // Mobile search bar
-                if (!isDesktop) ...[SliverToBoxAdapter(child: _buildMobileSearchBar())],
+                // Mobile search bar (only on mobile now)
+                if (screenWidth < ScreenHelper.breakpointTablet) 
+                  SliverToBoxAdapter(child: _buildMobileSearchBar()),
 
                 // Filters (collapsible on mobile/tablet)
                 if (showFilters || isDesktop) SliverToBoxAdapter(child: _buildFiltersSection()),
@@ -86,84 +89,142 @@ class _AdminRegistrationsPageState extends ConsumerState<AdminRegistrationsPage>
   }
 
   Widget _buildCompactHeader(ThemeData theme, bool isDesktop) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < ScreenHelper.breakpointTablet;
+    final isTablet = screenWidth >= ScreenHelper.breakpointTablet && screenWidth < ScreenHelper.breakpointPC;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Card(
         child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Row(
+          padding: EdgeInsets.all(isMobile ? 16 : 20),
+          child: Column(
             children: [
-              // Title and subtitle
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Inscriptions',
-                      style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
-                    ),
-                    const SizedBox(height: 4),
-                    Text('Gérez toutes les réservations', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-                  ],
-                ),
-              ),
-
-              // Search bar (desktop only)
-              if (isDesktop) ...[
-                const SizedBox(width: 24),
-                SizedBox(
-                  width: 300,
-                  child: TextField(
-                    controller: searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Rechercher...',
-                      prefixIcon: const Icon(Icons.search, size: 20),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: theme.colorScheme.outline),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                      suffixIcon: searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear, size: 20),
-                              onPressed: () {
-                                searchController.clear();
-                                _onSearchChanged();
-                              },
-                            )
-                          : null,
-                    ),
-                    onChanged: (_) => _onSearchChanged(),
-                  ),
-                ),
-              ],
-
-              // Action buttons
-              const SizedBox(width: 16),
+              // First row: Title and main actions
               Row(
-                mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (!isDesktop)
-                    IconButton.outlined(
-                      onPressed: () => setState(() => showFilters = !showFilters),
-                      icon: Icon(showFilters ? Icons.tune : Icons.tune),
-                      tooltip: showFilters ? 'Masquer les filtres' : 'Afficher les filtres',
+                  // Title and subtitle
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Inscriptions',
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
+                            fontSize: isMobile ? 20 : null, // Smaller title on mobile
+                          ),
+                        ),
+                        if (!isMobile) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Gérez toutes les réservations',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                  if (!isDesktop) const SizedBox(width: 8),
-                  IconButton.outlined(onPressed: _refreshData, icon: const Icon(Icons.refresh), tooltip: 'Actualiser'),
-                  const SizedBox(width: 8),
-                  OutlinedButton.icon(
-                    onPressed: _exportRegistrations,
-                    icon: const Icon(Icons.download),
-                    label: const Text('Exporter'),
-                    style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
                   ),
+
+                  // Action buttons - always on the right
+                  _buildActionButtons(theme, isDesktop, isMobile),
                 ],
               ),
+
+              // Second row: Search bar (tablet/desktop) or spacing
+              if (isTablet || isDesktop) ...[
+                const SizedBox(height: 16),
+                _buildSearchBar(theme, isDesktop),
+              ],
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildActionButtons(ThemeData theme, bool isDesktop, bool isMobile) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Filter toggle (mobile/tablet only)
+        if (!isDesktop)
+          IconButton.outlined(
+            onPressed: () => setState(() => showFilters = !showFilters),
+            icon: Icon(showFilters ? Icons.tune : Icons.tune),
+            tooltip: showFilters ? 'Masquer les filtres' : 'Afficher les filtres',
+            iconSize: isMobile ? 20 : 24,
+          ),
+        
+        if (!isDesktop) SizedBox(width: isMobile ? 6 : 8),
+        
+        // Refresh button
+        IconButton.outlined(
+          onPressed: _refreshData,
+          icon: const Icon(Icons.refresh),
+          tooltip: 'Actualiser',
+          iconSize: isMobile ? 20 : 24,
+        ),
+        
+        SizedBox(width: isMobile ? 6 : 8),
+        
+        // Export button - responsive sizing
+        if (isMobile)
+          // Mobile: Icon only
+          IconButton.outlined(
+            onPressed: _exportRegistrations,
+            icon: const Icon(Icons.download),
+            tooltip: 'Exporter',
+            iconSize: 20,
+          )
+        else
+          // Tablet/Desktop: Icon + text
+          OutlinedButton.icon(
+            onPressed: _exportRegistrations,
+            icon: const Icon(Icons.download),
+            label: const Text('Exporter'),
+            style: OutlinedButton.styleFrom(
+              padding: EdgeInsets.symmetric(
+                horizontal: isDesktop ? 16 : 12,
+                vertical: isDesktop ? 12 : 8,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildSearchBar(ThemeData theme, bool isDesktop) {
+    return Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: searchController,
+            decoration: InputDecoration(
+              hintText: isDesktop ? 'Rechercher par nom, email...' : 'Rechercher...',
+              prefixIcon: const Icon(Icons.search, size: 20),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: theme.colorScheme.outline),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              suffixIcon: searchController.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear, size: 20),
+                      onPressed: () {
+                        searchController.clear();
+                        _onSearchChanged();
+                      },
+                    )
+                  : null,
+            ),
+            onChanged: (_) => _onSearchChanged(),
+          ),
+        ),
+      ],
     );
   }
 
