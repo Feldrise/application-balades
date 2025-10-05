@@ -56,9 +56,7 @@ class _AdminLayoutState extends ConsumerState<AdminLayout> {
             child: Column(
               children: [
                 _buildTopBar(theme, currentItem, showMenuButton: false),
-                Expanded(
-                  child: Container(margin: const EdgeInsets.all(24), child: widget.child),
-                ),
+                Expanded(child: widget.child),
               ],
             ),
           ),
@@ -72,7 +70,7 @@ class _AdminLayoutState extends ConsumerState<AdminLayout> {
       backgroundColor: theme.colorScheme.surfaceContainerLowest,
       appBar: _buildAppBar(theme, currentItem, showMenuButton: true),
       drawer: Drawer(child: AdminSidebar(isDesktop: false)),
-      body: Container(margin: const EdgeInsets.all(16), child: widget.child),
+      body: widget.child,
     );
   }
 
@@ -81,7 +79,7 @@ class _AdminLayoutState extends ConsumerState<AdminLayout> {
       backgroundColor: theme.colorScheme.surfaceContainerLowest,
       appBar: _buildAppBar(theme, currentItem, showMenuButton: true),
       drawer: Drawer(child: AdminSidebar(isDesktop: false)),
-      body: Container(margin: const EdgeInsets.all(16), child: widget.child),
+      body: widget.child,
     );
   }
 

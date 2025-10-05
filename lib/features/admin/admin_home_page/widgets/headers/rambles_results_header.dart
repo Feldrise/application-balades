@@ -1,3 +1,5 @@
+import 'package:balade/features/admin/admin_home_page/widgets/grids/rambles_content.dart';
+import 'package:balade/features/admin/admin_home_page/widgets/view_mode_toggle.dart';
 import 'package:flutter/material.dart';
 
 class RamblesResultsHeader extends StatelessWidget {
@@ -8,6 +10,9 @@ class RamblesResultsHeader extends StatelessWidget {
     required this.sortAscending,
     required this.onSortChanged,
     required this.onSortDirectionChanged,
+    this.viewMode,
+    this.onViewModeChanged,
+    this.showViewToggle = false,
   });
 
   final int resultsCount;
@@ -15,6 +20,9 @@ class RamblesResultsHeader extends StatelessWidget {
   final bool sortAscending;
   final ValueChanged<String> onSortChanged;
   final VoidCallback onSortDirectionChanged;
+  final RamblesViewMode? viewMode;
+  final ValueChanged<RamblesViewMode>? onViewModeChanged;
+  final bool showViewToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +42,12 @@ class RamblesResultsHeader extends StatelessWidget {
           ),
 
           const Spacer(),
+
+          // View mode toggle (for desktop)
+          if (showViewToggle && viewMode != null && onViewModeChanged != null) ...[
+            ViewModeToggle(currentMode: viewMode!, onModeChanged: onViewModeChanged!),
+            const SizedBox(width: 16),
+          ],
 
           // Sort options
           Text('Trier par:', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),

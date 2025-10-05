@@ -22,6 +22,7 @@ class RamblesList extends ConsumerStatefulWidget {
 class _RamblesListState extends ConsumerState<RamblesList> {
   final _searchController = TextEditingController();
   bool _showFilters = false;
+  RamblesViewMode _viewMode = RamblesViewMode.compact; // Default to compact view
 
   @override
   void initState() {
@@ -81,6 +82,12 @@ class _RamblesListState extends ConsumerState<RamblesList> {
     ref.read(ramblesProvider.notifier).clearFilters(authorization: auth?.token);
   }
 
+  void _onViewModeChanged(RamblesViewMode mode) {
+    setState(() {
+      _viewMode = mode;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -135,6 +142,9 @@ class _RamblesListState extends ConsumerState<RamblesList> {
                 sortAscending: state.sort.sortAscending,
                 onSortChanged: _onSortChanged,
                 onSortDirectionChanged: _onSortDirectionChanged,
+                viewMode: _viewMode,
+                onViewModeChanged: _onViewModeChanged,
+                showViewToggle: true,
               ),
               Expanded(child: _buildContent(state, isDesktop: true)),
             ],
@@ -178,6 +188,7 @@ class _RamblesListState extends ConsumerState<RamblesList> {
           sortAscending: state.sort.sortAscending,
           onSortChanged: _onSortChanged,
           onSortDirectionChanged: _onSortDirectionChanged,
+          showViewToggle: false, // No view toggle for tablet
         ),
         Expanded(child: _buildContent(state, isTablet: true)),
       ],
@@ -218,6 +229,7 @@ class _RamblesListState extends ConsumerState<RamblesList> {
           sortAscending: state.sort.sortAscending,
           onSortChanged: _onSortChanged,
           onSortDirectionChanged: _onSortDirectionChanged,
+          showViewToggle: false, // No view toggle for mobile
         ),
         Expanded(child: _buildContent(state, isMobile: true)),
       ],
@@ -249,28 +261,24 @@ class _RamblesListState extends ConsumerState<RamblesList> {
     }
 
     if (isMobile) {
-      return RamblesListView(rambles: state.rambles, onEdit: _handleEdit, onToggleStatus: _handleToggleStatus);
+      return RamblesGrid(
+        rambles: state.rambles,
+        onEdit: _handleEdit,
+        onToggleStatus: _handleToggleStatus,
+        viewMode: RamblesViewMode.list, // Mobile uses list view
+      );
     } else if (isTablet) {
       return RamblesGrid(
         rambles: state.rambles,
         onEdit: _handleEdit,
         onToggleStatus: _handleToggleStatus,
-        crossAxisCount: 2,
-        childAspectRatio: 0.9,
+        viewMode: RamblesViewMode.compact, // Tablet uses compact grid
         padding: const EdgeInsets.all(16),
         spacing: 16,
       );
     } else {
-      // Desktop
-      return RamblesGrid(
-        rambles: state.rambles,
-        onEdit: _handleEdit,
-        onToggleStatus: _handleToggleStatus,
-        crossAxisCount: 2,
-        childAspectRatio: 1.2,
-        padding: const EdgeInsets.all(24),
-        spacing: 24,
-      );
+      // Desktop - use selected view mode
+      return RamblesGrid(rambles: state.rambles, onEdit: _handleEdit, onToggleStatus: _handleToggleStatus, viewMode: _viewMode, padding: const EdgeInsets.all(24), spacing: 24);
     }
   }
 
