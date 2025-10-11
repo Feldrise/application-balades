@@ -84,6 +84,8 @@ class PublicRamblesFilters extends ConsumerWidget {
                       ),
                       const SizedBox(height: 12),
                       _buildShowCancelledFilter(state, notifier),
+                      const SizedBox(height: 8),
+                      _buildHidePastRamblesFilter(state, notifier),
                     ],
                   );
                 } else {
@@ -96,6 +98,8 @@ class PublicRamblesFilters extends ConsumerWidget {
                       _buildSortFilter(state, notifier),
                       const SizedBox(height: 12),
                       _buildShowCancelledFilter(state, notifier),
+                      const SizedBox(height: 8),
+                      _buildHidePastRamblesFilter(state, notifier),
                     ],
                   );
                 }
@@ -193,6 +197,25 @@ class PublicRamblesFilters extends ConsumerWidget {
               Icon(Icons.cancel, size: 16, color: Colors.red),
               const SizedBox(width: 4),
               const Text('Inclure les balades annulées'),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHidePastRamblesFilter(PublicRamblesState state, PublicRamblesNotifier notifier) {
+    return Row(
+      children: [
+        Checkbox(value: state.filterState.hidePastRambles, onChanged: (value) => notifier.updateHidePastRambles(value ?? true)),
+        const SizedBox(width: 8),
+        GestureDetector(
+          onTap: () => notifier.updateHidePastRambles(!state.filterState.hidePastRambles),
+          child: Row(
+            children: [
+              Icon(Icons.history, size: 16, color: Colors.grey),
+              const SizedBox(width: 4),
+              const Text('Masquer les balades passées'),
             ],
           ),
         ),

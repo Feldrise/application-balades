@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Filter state for public rambles (simplified)
 class PublicRamblesFilterState {
-  const PublicRamblesFilterState({this.search, this.type, this.difficulty, this.location, this.dateFrom, this.dateTo, this.showCancelled = false});
+  const PublicRamblesFilterState({this.search, this.type, this.difficulty, this.location, this.dateFrom, this.dateTo, this.showCancelled = false, this.hidePastRambles = true});
 
   final String? search;
   final String? type;
@@ -15,8 +15,18 @@ class PublicRamblesFilterState {
   final DateTime? dateFrom;
   final DateTime? dateTo;
   final bool showCancelled;
+  final bool hidePastRambles;
 
-  PublicRamblesFilterState copyWith({String? search, String? type, String? difficulty, String? location, DateTime? dateFrom, DateTime? dateTo, bool? showCancelled}) {
+  PublicRamblesFilterState copyWith({
+    String? search,
+    String? type,
+    String? difficulty,
+    String? location,
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    bool? showCancelled,
+    bool? hidePastRambles,
+  }) {
     return PublicRamblesFilterState(
       search: search ?? this.search,
       type: type ?? this.type,
@@ -25,6 +35,7 @@ class PublicRamblesFilterState {
       dateFrom: dateFrom ?? this.dateFrom,
       dateTo: dateTo ?? this.dateTo,
       showCancelled: showCancelled ?? this.showCancelled,
+      hidePastRambles: hidePastRambles ?? this.hidePastRambles,
     );
   }
 
@@ -39,7 +50,8 @@ class PublicRamblesFilterState {
         location?.isNotEmpty == true ||
         dateFrom != null ||
         dateTo != null ||
-        showCancelled;
+        showCancelled ||
+        !hidePastRambles;
   }
 }
 
@@ -109,8 +121,16 @@ class PublicRamblesNotifier extends StateNotifier<PublicRamblesState> {
         isCancelled: state.filterState.showCancelled ? null : false, // Include cancelled if showCancelled is true
       );
 
+      // Filter out past rambles if hidePastRambles is true
+      final filteredRambles = state.filterState.hidePastRambles
+          ? rambles.where((ramble) {
+              if (ramble.date == null) return true;
+              return ramble.date!.isAfter(DateTime.now());
+            }).toList()
+          : rambles;
+
       // Sort the rambles locally since the service doesn't support sorting
-      final sortedRambles = _sortRambles(rambles);
+      final sortedRambles = _sortRambles(filteredRambles);
 
       state = state.copyWith(rambles: sortedRambles, isLoading: false);
     } catch (e) {
@@ -149,6 +169,11 @@ class PublicRamblesNotifier extends StateNotifier<PublicRamblesState> {
 
   void updateShowCancelled(bool showCancelled) {
     state = state.copyWith(filterState: state.filterState.copyWith(showCancelled: showCancelled));
+    fetchRambles();
+  }
+
+  void updateHidePastRambles(bool hidePastRambles) {
+    state = state.copyWith(filterState: state.filterState.copyWith(hidePastRambles: hidePastRambles));
     fetchRambles();
   }
 

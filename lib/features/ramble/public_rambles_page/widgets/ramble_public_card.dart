@@ -9,175 +9,183 @@ class RamblePublicCard extends StatelessWidget {
   final Ramble ramble;
   final VoidCallback? onTap;
 
+  bool get _isPastRamble {
+    if (ramble.date == null) return false;
+    return ramble.date!.isBefore(DateTime.now());
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Cover image or type icon
-            _buildHeader(context),
+    return Opacity(
+      opacity: _isPastRamble ? 0.5 : 1.0,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Cover image or type icon
+              _buildHeader(context),
 
-            // Content
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title and status
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            ramble.title,
-                            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+              // Content
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title and status
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              ramble.title,
+                              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        if (ramble.isCancelled) _buildCancelledChip(context) else _buildDifficultyChip(context),
-                      ],
-                    ),
+                          const SizedBox(width: 8),
+                          if (ramble.isCancelled) _buildCancelledChip(context) else _buildDifficultyChip(context),
+                        ],
+                      ),
 
-                    const SizedBox(height: 8),
+                      const SizedBox(height: 8),
 
-                    // Cancellation notice or type and guides
-                    if (ramble.isCancelled) ...[
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(Icons.cancel, size: 16, color: Colors.red),
-                                const SizedBox(width: 4),
+                      // Cancellation notice or type and guides
+                      if (ramble.isCancelled) ...[
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.cancel, size: 16, color: Colors.red),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Balade annulée',
+                                    style: theme.textTheme.bodySmall?.copyWith(color: Colors.red, fontWeight: FontWeight.w600),
+                                  ),
+                                ],
+                              ),
+                              if (ramble.cancellationReason != null && ramble.cancellationReason!.isNotEmpty) ...[
+                                const SizedBox(height: 4),
                                 Text(
-                                  'Balade annulée',
-                                  style: theme.textTheme.bodySmall?.copyWith(color: Colors.red, fontWeight: FontWeight.w600),
+                                  ramble.cancellationReason!,
+                                  style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
+                            ],
+                          ),
+                        ),
+                      ] else ...[
+                        // Type and guides
+                        Row(
+                          children: [
+                            Icon(rambleTypeIcons[ramble.type] ?? Icons.explore, size: 16, color: colorScheme.primary),
+                            const SizedBox(width: 4),
+                            Text(
+                              rambleTypeLabels[ramble.type] ?? ramble.type,
+                              style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.primary, fontWeight: FontWeight.w500),
                             ),
-                            if (ramble.cancellationReason != null && ramble.cancellationReason!.isNotEmpty) ...[
-                              const SizedBox(height: 4),
+                          ],
+                        ),
+
+                        if (ramble.guides.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Avec ${ramble.guides.map((g) => '${g.firstName} ${g.lastName}').join(', ')}',
+                            style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ],
+
+                      const Spacer(),
+
+                      // Date and location
+                      if (ramble.date != null) ...[
+                        Row(
+                          children: [
+                            Icon(Icons.calendar_today, size: 16, color: colorScheme.onSurfaceVariant),
+                            const SizedBox(width: 4),
+                            Text(DateFormat('dd/MM/yyyy').format(ramble.date!), style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
+                            if (ramble.date != null) ...[
+                              const SizedBox(width: 8),
                               Text(
-                                ramble.cancellationReason!,
-                                style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
+                                DateFormat('HH:mm').format(ramble.date!),
+                                style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
                               ),
                             ],
                           ],
                         ),
-                      ),
-                    ] else ...[
-                      // Type and guides
-                      Row(
-                        children: [
-                          Icon(rambleTypeIcons[ramble.type] ?? Icons.explore, size: 16, color: colorScheme.primary),
-                          const SizedBox(width: 4),
-                          Text(
-                            rambleTypeLabels[ramble.type] ?? ramble.type,
-                            style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.primary, fontWeight: FontWeight.w500),
-                          ),
-                        ],
-                      ),
-
-                      if (ramble.guides.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          'Avec ${ramble.guides.map((g) => '${g.firstName} ${g.lastName}').join(', ')}',
-                          style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
                       ],
-                    ],
 
-                    const Spacer(),
-
-                    // Date and location
-                    if (ramble.date != null) ...[
-                      Row(
-                        children: [
-                          Icon(Icons.calendar_today, size: 16, color: colorScheme.onSurfaceVariant),
-                          const SizedBox(width: 4),
-                          Text(DateFormat('dd/MM/yyyy').format(ramble.date!), style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
-                          if (ramble.date != null) ...[
-                            const SizedBox(width: 8),
-                            Text(
-                              DateFormat('HH:mm').format(ramble.date!),
-                              style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+                      if (ramble.location != null) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.location_on, size: 16, color: colorScheme.onSurfaceVariant),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                ramble.location!,
+                                style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ],
-                        ],
-                      ),
-                    ],
+                        ),
+                      ],
 
-                    if (ramble.location != null) ...[
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 12),
+
+                      // Price and button
                       Row(
                         children: [
-                          Icon(Icons.location_on, size: 16, color: colorScheme.onSurfaceVariant),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              ramble.location!,
-                              style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                          if (ramble.prices.isNotEmpty && !ramble.isCancelled) ...[
+                            Text(
+                              _formatPrice(),
+                              style: theme.textTheme.titleSmall?.copyWith(color: colorScheme.primary, fontWeight: FontWeight.bold),
+                            ),
+                            const Spacer(),
+                          ] else ...[
+                            const Spacer(),
+                          ],
+
+                          FilledButton.icon(
+                            onPressed: onTap,
+                            icon: Icon(ramble.isCancelled ? Icons.info_outline : Icons.info_outline, size: 16),
+                            label: Text(ramble.isCancelled ? 'Détails' : 'Détails'),
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              textStyle: theme.textTheme.bodySmall,
+                              backgroundColor: ramble.isCancelled ? colorScheme.surfaceContainerHighest : null,
+                              foregroundColor: ramble.isCancelled ? colorScheme.onSurface : null,
                             ),
                           ),
                         ],
                       ),
                     ],
-
-                    const SizedBox(height: 12),
-
-                    // Price and button
-                    Row(
-                      children: [
-                        if (ramble.prices.isNotEmpty && !ramble.isCancelled) ...[
-                          Text(
-                            _formatPrice(),
-                            style: theme.textTheme.titleSmall?.copyWith(color: colorScheme.primary, fontWeight: FontWeight.bold),
-                          ),
-                          const Spacer(),
-                        ] else ...[
-                          const Spacer(),
-                        ],
-
-                        FilledButton.icon(
-                          onPressed: onTap,
-                          icon: Icon(ramble.isCancelled ? Icons.info_outline : Icons.info_outline, size: 16),
-                          label: Text(ramble.isCancelled ? 'Détails' : 'Détails'),
-                          style: FilledButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            textStyle: theme.textTheme.bodySmall,
-                            backgroundColor: ramble.isCancelled ? colorScheme.surfaceContainerHighest : null,
-                            foregroundColor: ramble.isCancelled ? colorScheme.onSurface : null,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
