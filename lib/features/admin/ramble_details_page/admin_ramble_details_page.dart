@@ -111,7 +111,7 @@ class _AdminRambleDetailsPageState extends ConsumerState<AdminRambleDetailsPage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            flex: 2,
+            flex: 60,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -123,7 +123,7 @@ class _AdminRambleDetailsPageState extends ConsumerState<AdminRambleDetailsPage>
           ),
           const SizedBox(width: 32),
           Expanded(
-            flex: 1,
+            flex: 40,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

@@ -422,7 +422,7 @@ class RegistrationCard extends ConsumerWidget {
                           style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.primary),
                         ),
                         Text(
-                          ramble.paymentRequired ? 'Paiement requis pour finaliser votre inscription' : 'Paiement optionnel disponible',
+                          ramble.paymentRequired ? 'Paiement requis pour finaliser votre inscription' : 'Paiement en ligne optionnel disponible',
                           style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onPrimaryContainer),
                         ),
                       ],
@@ -502,7 +502,7 @@ class RegistrationCard extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Le paiement est optionnel pour cette balade',
+                    'Le paiement en ligne est optionnel pour cette balade',
                     style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.w500),
                   ),
                 ),
