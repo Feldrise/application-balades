@@ -55,6 +55,11 @@ abstract class Ramble with _$Ramble {
     @JsonKey(name: 'additional_documents_url') String? additionalDocumentsUrl,
     @Default(<Guide>[]) List<Guide> guides,
     @JsonKey(name: 'places_left') int? placesLeft,
+    // NEW PAYMENT FIELDS
+    @JsonKey(name: 'payment_guide_id') int? paymentGuideId,
+    @JsonKey(name: 'payment_enabled') @Default(false) bool paymentEnabled,
+    @JsonKey(name: 'payment_required') @Default(false) bool paymentRequired,
+    @JsonKey(name: 'payment_guide') Guide? paymentGuide,
   }) = _Ramble;
 
   factory Ramble.fromJson(Map<String, Object?> json) => _$RambleFromJson(json);

@@ -38,6 +38,10 @@ abstract class Guide with _$Guide {
     @JsonKey(name: "is_active") required bool isActive,
     @JsonKey(name: "emergency_contact_name") String? emergencyContactName,
     @JsonKey(name: "emergency_contact_phone") String? emergencyContactPhone,
+    // NEW PAYMENT FIELDS
+    @JsonKey(name: "stripe_account_id") String? stripeAccountId,
+    @JsonKey(name: "stripe_public_key") String? stripePublicKey,
+    @JsonKey(name: "payment_enabled") @Default(false) bool paymentEnabled,
   }) = _Guide;
 
   factory Guide.fromJson(Map<String, Object?> json) => _$GuideFromJson(json);

@@ -1,5 +1,8 @@
 import 'package:balade/core/constants.dart';
 import 'package:balade/features/guides/models/guide/guide.dart';
+import 'package:balade/features/payments/models/payment.dart';
+import 'package:balade/features/payments/providers/payment_providers.dart';
+import 'package:balade/features/payments/widgets/payment_status_chip.dart';
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
 import 'package:balade/features/registrations/models/registration/registration.dart';
 import 'package:balade/features/registrations/providers/registration_providers.dart';
@@ -46,6 +49,24 @@ class RegistrationCard extends ConsumerWidget {
                   if (_hasAvailableActions() && !_shouldShowConfirmation()) ...[
                     const SizedBox(height: 12),
                     RegistrationActions(registration: registration, onConfirm: onConfirm, onCancel: onCancel),
+                  ],
+                  // Payment section - show if registration is confirmed and ramble has payment enabled
+                  if (registration.status == 'confirmed') ...[
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final rambleAsync = ref.watch(rambleDetailsProvider(registration.rambleId));
+                        return rambleAsync.when(
+                          loading: () => const SizedBox.shrink(),
+                          error: (_, __) => const SizedBox.shrink(),
+                          data: (ramble) {
+                            if (!ramble.paymentEnabled || ramble.paymentGuide == null) {
+                              return const SizedBox.shrink();
+                            }
+                            return _buildPaymentSection(context, ramble);
+                          },
+                        );
+                      },
+                    ),
                   ],
                 ],
               ),
@@ -367,6 +388,221 @@ class RegistrationCard extends ConsumerWidget {
 
   bool _canCancel() {
     return registration.status != 'cancelled';
+  }
+
+  Widget _buildPaymentSection(BuildContext context, Ramble ramble) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Consumer(
+      builder: (context, ref, child) {
+        // Use the appropriate provider based on whether this is a group registration
+        final paymentsAsync = registration.groupId != null ? ref.watch(groupPaymentsProvider(registration.groupId!)) : ref.watch(registrationPaymentsProvider(registration.id));
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            Divider(color: colorScheme.outline.withOpacity(0.3)),
+            const SizedBox(height: 16),
+
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: colorScheme.primaryContainer.withOpacity(0.3), borderRadius: BorderRadius.circular(8)),
+              child: Row(
+                children: [
+                  Icon(Icons.payment, color: colorScheme.primary, size: 24),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          registration.groupId != null ? 'Paiement de groupe' : 'Paiement en ligne',
+                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.primary),
+                        ),
+                        Text(
+                          ramble.paymentRequired ? 'Paiement requis pour finaliser votre inscription' : 'Paiement optionnel disponible',
+                          style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onPrimaryContainer),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            paymentsAsync.when(
+              loading: () => const Row(
+                children: [
+                  SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                  SizedBox(width: 8),
+                  Text('Vérification du statut...'),
+                ],
+              ),
+              error: (error, _) => _buildPaymentError(context, ramble),
+              data: (payments) {
+                if (payments.isEmpty) {
+                  return _buildNoPayment(context, ramble);
+                } else {
+                  final payment = payments.first;
+                  return _buildPaymentStatus(context, payment, ramble);
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildNoPayment(BuildContext context, Ramble ramble) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    // Determine the correct payment route based on whether this is a group registration
+    final paymentRoute = registration.groupId != null ? '/paiement/groupe/${registration.groupId}' : '/paiement/${registration.id}';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (ramble.paymentRequired) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colorScheme.errorContainer.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: colorScheme.error.withOpacity(0.3)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.warning, color: colorScheme.error, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Paiement requis pour finaliser votre inscription',
+                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onErrorContainer, fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ] else ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colorScheme.primaryContainer.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: colorScheme.primary.withOpacity(0.3)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info, color: colorScheme.primary, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Le paiement est optionnel pour cette balade',
+                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () => context.go(paymentRoute),
+            icon: const Icon(Icons.payment),
+            label: Text(ramble.paymentRequired ? 'Payer maintenant' : 'Procéder au paiement'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ramble.paymentRequired ? theme.colorScheme.primary : theme.colorScheme.secondary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPaymentStatus(BuildContext context, Payment payment, Ramble ramble) {
+    final theme = Theme.of(context);
+
+    // Determine the correct payment route based on whether this is a group registration
+    final paymentRoute = registration.groupId != null ? '/paiement/groupe/${registration.groupId}' : '/paiement/${registration.id}';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text('Statut: ', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
+            PaymentStatusChip(status: payment.status),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text('Montant: ${(payment.amount / 100).toStringAsFixed(2)} €', style: theme.textTheme.bodyMedium),
+        if (payment.paidAt != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            'Payé le: ${DateFormat('dd/MM/yyyy à HH:mm', 'fr').format(payment.paidAt!.toLocal())}',
+            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          ),
+        ],
+        if (payment.status.isPending) ...[
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => context.go(paymentRoute),
+              icon: const Icon(Icons.payment),
+              label: const Text('Finaliser le paiement'),
+              style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12)),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildPaymentError(BuildContext context, Ramble ramble) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    // Determine the correct payment route based on whether this is a group registration
+    final paymentRoute = registration.groupId != null ? '/paiement/groupe/${registration.groupId}' : '/paiement/${registration.id}';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(color: colorScheme.errorContainer.withOpacity(0.5), borderRadius: BorderRadius.circular(8)),
+          child: Row(
+            children: [
+              Icon(Icons.error, color: colorScheme.error, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text('Impossible de charger les informations de paiement', style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onErrorContainer)),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () => context.go(paymentRoute),
+            icon: const Icon(Icons.payment),
+            label: const Text('Réessayer le paiement'),
+            style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.error, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12)),
+          ),
+        ),
+      ],
+    );
   }
 }
 

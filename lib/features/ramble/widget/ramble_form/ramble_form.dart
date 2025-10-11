@@ -57,6 +57,12 @@ class RambleFormState extends ConsumerState<RambleForm> {
 
   final List<int> _selectedGuides = [];
 
+  // Payment configuration
+  bool _paymentEnabled = false;
+  bool _paymentRequired = false;
+  int? _paymentGuideId;
+  List<Guide> _availablePaymentGuides = [];
+
   @override
   void initState() {
     super.initState();
@@ -76,11 +82,36 @@ class RambleFormState extends ConsumerState<RambleForm> {
 
     _selectedGuides.addAll(widget.initialRamble?.guides.map((g) => g.id) ?? []);
 
+    // Initialize payment fields
+    _paymentEnabled = widget.initialRamble?.paymentEnabled ?? false;
+    _paymentRequired = widget.initialRamble?.paymentRequired ?? false;
+    _paymentGuideId = widget.initialRamble?.paymentGuideId;
+
     if ((widget.initialRamble?.prices ?? []).isNotEmpty) {
       _prices.clear();
       for (final price in widget.initialRamble!.prices) {
         _prices.add((TextEditingController(text: price.label), TextEditingController(text: price.amount.toString())));
       }
+    }
+
+    // Load available payment guides
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadAvailablePaymentGuides();
+    });
+  }
+
+  Future<void> _loadAvailablePaymentGuides() async {
+    try {
+      final authToken = ref.read(authenticationProvider)?.token;
+      if (authToken == null) return;
+
+      final allGuides = await GuidesService.instance.fetchGuides('', authorization: authToken);
+      _availablePaymentGuides = allGuides.where((guide) => guide.paymentEnabled == true).toList();
+
+      if (mounted) setState(() {});
+    } catch (e) {
+      // Handle error silently or show a message
+      debugPrint('Error loading payment guides: $e');
     }
   }
 
@@ -370,6 +401,97 @@ class RambleFormState extends ConsumerState<RambleForm> {
               ],
             ),
 
+            const SizedBox(height: 24),
+
+            // Configuration des paiements
+            FormSection(
+              title: 'Configuration des paiements',
+              children: [
+                SwitchListTile(
+                  title: const Text('Activer les paiements'),
+                  subtitle: const Text('Permettre aux participants de payer en ligne'),
+                  value: _paymentEnabled,
+                  onChanged: (value) {
+                    setState(() {
+                      _paymentEnabled = value;
+                      if (!value) {
+                        _paymentRequired = false;
+                        _paymentGuideId = null;
+                      }
+                    });
+                  },
+                ),
+
+                if (_paymentEnabled) ...[
+                  const SizedBox(height: 16),
+
+                  SwitchListTile(
+                    title: const Text('Paiement obligatoire'),
+                    subtitle: const Text('Rendre le paiement obligatoire pour finaliser l\'inscription'),
+                    value: _paymentRequired,
+                    onChanged: (value) {
+                      setState(() {
+                        _paymentRequired = value;
+                      });
+                    },
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  DropdownButtonFormField<int>(
+                    value: _paymentGuideId,
+                    decoration: InputDecoration(
+                      labelText: 'Guide recevant les paiements *',
+                      helperText: 'Seuls les guides avec Stripe configuré apparaissent',
+                      suffixIcon: IconButton(icon: const Icon(Icons.refresh), tooltip: 'Actualiser la liste des guides', onPressed: _loadAvailablePaymentGuides),
+                    ),
+                    items: _availablePaymentGuides.map((guide) {
+                      return DropdownMenuItem<int>(
+                        value: guide.id,
+                        child: Row(
+                          children: [
+                            Icon(Icons.person, size: 20),
+                            const SizedBox(width: 8),
+                            Text('${guide.firstName} ${guide.lastName}'),
+                            if (guide.paymentEnabled == true) ...[const SizedBox(width: 8), Icon(Icons.verified, size: 16, color: Colors.green)],
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _paymentGuideId = value;
+                      });
+                    },
+                    validator: _paymentEnabled ? (value) => value == null ? 'Veuillez sélectionner un guide pour les paiements' : null : null,
+                  ),
+
+                  if (_availablePaymentGuides.isEmpty)
+                    Container(
+                      margin: const EdgeInsets.only(top: 8),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.warning, color: Colors.orange, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Aucun guide n\'a configuré Stripe pour recevoir des paiements. Ajoutez la configuration de paiement aux guides d\'abord.',
+                              style: TextStyle(color: Colors.orange.shade700),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ],
+            ),
+
             const SizedBox(height: 40),
           ],
         ),
@@ -379,6 +501,14 @@ class RambleFormState extends ConsumerState<RambleForm> {
 
   Future<void> save() async {
     if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    // Additional validation for payment configuration
+    if (_paymentEnabled && _paymentGuideId == null) {
+      if (mounted) {
+        ErrorSnackbar.show(context, 'Veuillez sélectionner un guide pour recevoir les paiements');
+      }
       return;
     }
 
@@ -402,6 +532,10 @@ class RambleFormState extends ConsumerState<RambleForm> {
         'prices': [
           for (final price in _prices) {'label': price.$1.text, 'amount': double.tryParse(price.$2.text) ?? 0.0},
         ],
+        // Payment configuration fields
+        'payment_enabled': _paymentEnabled,
+        'payment_required': _paymentRequired,
+        'payment_guide_id': _paymentGuideId,
       };
 
       if (widget.initialRamble != null) {

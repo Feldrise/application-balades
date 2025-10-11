@@ -21,6 +21,9 @@ _Guide _$GuideFromJson(Map<String, dynamic> json) => _Guide(
   isActive: json['is_active'] as bool,
   emergencyContactName: json['emergency_contact_name'] as String?,
   emergencyContactPhone: json['emergency_contact_phone'] as String?,
+  stripeAccountId: json['stripe_account_id'] as String?,
+  stripePublicKey: json['stripe_public_key'] as String?,
+  paymentEnabled: json['payment_enabled'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$GuideToJson(_Guide instance) => <String, dynamic>{
@@ -38,4 +41,7 @@ Map<String, dynamic> _$GuideToJson(_Guide instance) => <String, dynamic>{
   'is_active': instance.isActive,
   'emergency_contact_name': instance.emergencyContactName,
   'emergency_contact_phone': instance.emergencyContactPhone,
+  'stripe_account_id': instance.stripeAccountId,
+  'stripe_public_key': instance.stripePublicKey,
+  'payment_enabled': instance.paymentEnabled,
 };

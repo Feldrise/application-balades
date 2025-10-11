@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Guide {
 
- int get id;@JsonKey(name: "first_name") String get firstName;@JsonKey(name: "last_name") String get lastName; String get email; String? get phone; String? get bio; String? get experience; String? get specialties; String? get languages;@JsonKey(name: "certification_level") String? get certificationLevel; String? get avatar;@JsonKey(name: "is_active") bool get isActive;@JsonKey(name: "emergency_contact_name") String? get emergencyContactName;@JsonKey(name: "emergency_contact_phone") String? get emergencyContactPhone;
+ int get id;@JsonKey(name: "first_name") String get firstName;@JsonKey(name: "last_name") String get lastName; String get email; String? get phone; String? get bio; String? get experience; String? get specialties; String? get languages;@JsonKey(name: "certification_level") String? get certificationLevel; String? get avatar;@JsonKey(name: "is_active") bool get isActive;@JsonKey(name: "emergency_contact_name") String? get emergencyContactName;@JsonKey(name: "emergency_contact_phone") String? get emergencyContactPhone;// NEW PAYMENT FIELDS
+@JsonKey(name: "stripe_account_id") String? get stripeAccountId;@JsonKey(name: "stripe_public_key") String? get stripePublicKey;@JsonKey(name: "payment_enabled") bool get paymentEnabled;
 /// Create a copy of Guide
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +29,16 @@ $GuideCopyWith<Guide> get copyWith => _$GuideCopyWithImpl<Guide>(this as Guide, 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Guide&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.specialties, specialties) || other.specialties == specialties)&&(identical(other.languages, languages) || other.languages == languages)&&(identical(other.certificationLevel, certificationLevel) || other.certificationLevel == certificationLevel)&&(identical(other.avatar, avatar) || other.avatar == avatar)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.emergencyContactName, emergencyContactName) || other.emergencyContactName == emergencyContactName)&&(identical(other.emergencyContactPhone, emergencyContactPhone) || other.emergencyContactPhone == emergencyContactPhone));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Guide&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.specialties, specialties) || other.specialties == specialties)&&(identical(other.languages, languages) || other.languages == languages)&&(identical(other.certificationLevel, certificationLevel) || other.certificationLevel == certificationLevel)&&(identical(other.avatar, avatar) || other.avatar == avatar)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.emergencyContactName, emergencyContactName) || other.emergencyContactName == emergencyContactName)&&(identical(other.emergencyContactPhone, emergencyContactPhone) || other.emergencyContactPhone == emergencyContactPhone)&&(identical(other.stripeAccountId, stripeAccountId) || other.stripeAccountId == stripeAccountId)&&(identical(other.stripePublicKey, stripePublicKey) || other.stripePublicKey == stripePublicKey)&&(identical(other.paymentEnabled, paymentEnabled) || other.paymentEnabled == paymentEnabled));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,firstName,lastName,email,phone,bio,experience,specialties,languages,certificationLevel,avatar,isActive,emergencyContactName,emergencyContactPhone);
+int get hashCode => Object.hash(runtimeType,id,firstName,lastName,email,phone,bio,experience,specialties,languages,certificationLevel,avatar,isActive,emergencyContactName,emergencyContactPhone,stripeAccountId,stripePublicKey,paymentEnabled);
 
 @override
 String toString() {
-  return 'Guide(id: $id, firstName: $firstName, lastName: $lastName, email: $email, phone: $phone, bio: $bio, experience: $experience, specialties: $specialties, languages: $languages, certificationLevel: $certificationLevel, avatar: $avatar, isActive: $isActive, emergencyContactName: $emergencyContactName, emergencyContactPhone: $emergencyContactPhone)';
+  return 'Guide(id: $id, firstName: $firstName, lastName: $lastName, email: $email, phone: $phone, bio: $bio, experience: $experience, specialties: $specialties, languages: $languages, certificationLevel: $certificationLevel, avatar: $avatar, isActive: $isActive, emergencyContactName: $emergencyContactName, emergencyContactPhone: $emergencyContactPhone, stripeAccountId: $stripeAccountId, stripePublicKey: $stripePublicKey, paymentEnabled: $paymentEnabled)';
 }
 
 
@@ -48,7 +49,7 @@ abstract mixin class $GuideCopyWith<$Res>  {
   factory $GuideCopyWith(Guide value, $Res Function(Guide) _then) = _$GuideCopyWithImpl;
 @useResult
 $Res call({
- int id,@JsonKey(name: "first_name") String firstName,@JsonKey(name: "last_name") String lastName, String email, String? phone, String? bio, String? experience, String? specialties, String? languages,@JsonKey(name: "certification_level") String? certificationLevel, String? avatar,@JsonKey(name: "is_active") bool isActive,@JsonKey(name: "emergency_contact_name") String? emergencyContactName,@JsonKey(name: "emergency_contact_phone") String? emergencyContactPhone
+ int id,@JsonKey(name: "first_name") String firstName,@JsonKey(name: "last_name") String lastName, String email, String? phone, String? bio, String? experience, String? specialties, String? languages,@JsonKey(name: "certification_level") String? certificationLevel, String? avatar,@JsonKey(name: "is_active") bool isActive,@JsonKey(name: "emergency_contact_name") String? emergencyContactName,@JsonKey(name: "emergency_contact_phone") String? emergencyContactPhone,@JsonKey(name: "stripe_account_id") String? stripeAccountId,@JsonKey(name: "stripe_public_key") String? stripePublicKey,@JsonKey(name: "payment_enabled") bool paymentEnabled
 });
 
 
@@ -65,7 +66,7 @@ class _$GuideCopyWithImpl<$Res>
 
 /// Create a copy of Guide
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? firstName = null,Object? lastName = null,Object? email = null,Object? phone = freezed,Object? bio = freezed,Object? experience = freezed,Object? specialties = freezed,Object? languages = freezed,Object? certificationLevel = freezed,Object? avatar = freezed,Object? isActive = null,Object? emergencyContactName = freezed,Object? emergencyContactPhone = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? firstName = null,Object? lastName = null,Object? email = null,Object? phone = freezed,Object? bio = freezed,Object? experience = freezed,Object? specialties = freezed,Object? languages = freezed,Object? certificationLevel = freezed,Object? avatar = freezed,Object? isActive = null,Object? emergencyContactName = freezed,Object? emergencyContactPhone = freezed,Object? stripeAccountId = freezed,Object? stripePublicKey = freezed,Object? paymentEnabled = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,firstName: null == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
@@ -81,7 +82,10 @@ as String?,avatar: freezed == avatar ? _self.avatar : avatar // ignore: cast_nul
 as String?,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,emergencyContactName: freezed == emergencyContactName ? _self.emergencyContactName : emergencyContactName // ignore: cast_nullable_to_non_nullable
 as String?,emergencyContactPhone: freezed == emergencyContactPhone ? _self.emergencyContactPhone : emergencyContactPhone // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,stripeAccountId: freezed == stripeAccountId ? _self.stripeAccountId : stripeAccountId // ignore: cast_nullable_to_non_nullable
+as String?,stripePublicKey: freezed == stripePublicKey ? _self.stripePublicKey : stripePublicKey // ignore: cast_nullable_to_non_nullable
+as String?,paymentEnabled: null == paymentEnabled ? _self.paymentEnabled : paymentEnabled // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -166,10 +170,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id, @JsonKey(name: "first_name")  String firstName, @JsonKey(name: "last_name")  String lastName,  String email,  String? phone,  String? bio,  String? experience,  String? specialties,  String? languages, @JsonKey(name: "certification_level")  String? certificationLevel,  String? avatar, @JsonKey(name: "is_active")  bool isActive, @JsonKey(name: "emergency_contact_name")  String? emergencyContactName, @JsonKey(name: "emergency_contact_phone")  String? emergencyContactPhone)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id, @JsonKey(name: "first_name")  String firstName, @JsonKey(name: "last_name")  String lastName,  String email,  String? phone,  String? bio,  String? experience,  String? specialties,  String? languages, @JsonKey(name: "certification_level")  String? certificationLevel,  String? avatar, @JsonKey(name: "is_active")  bool isActive, @JsonKey(name: "emergency_contact_name")  String? emergencyContactName, @JsonKey(name: "emergency_contact_phone")  String? emergencyContactPhone, @JsonKey(name: "stripe_account_id")  String? stripeAccountId, @JsonKey(name: "stripe_public_key")  String? stripePublicKey, @JsonKey(name: "payment_enabled")  bool paymentEnabled)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Guide() when $default != null:
-return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.phone,_that.bio,_that.experience,_that.specialties,_that.languages,_that.certificationLevel,_that.avatar,_that.isActive,_that.emergencyContactName,_that.emergencyContactPhone);case _:
+return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.phone,_that.bio,_that.experience,_that.specialties,_that.languages,_that.certificationLevel,_that.avatar,_that.isActive,_that.emergencyContactName,_that.emergencyContactPhone,_that.stripeAccountId,_that.stripePublicKey,_that.paymentEnabled);case _:
   return orElse();
 
 }
@@ -187,10 +191,10 @@ return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.phone,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id, @JsonKey(name: "first_name")  String firstName, @JsonKey(name: "last_name")  String lastName,  String email,  String? phone,  String? bio,  String? experience,  String? specialties,  String? languages, @JsonKey(name: "certification_level")  String? certificationLevel,  String? avatar, @JsonKey(name: "is_active")  bool isActive, @JsonKey(name: "emergency_contact_name")  String? emergencyContactName, @JsonKey(name: "emergency_contact_phone")  String? emergencyContactPhone)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id, @JsonKey(name: "first_name")  String firstName, @JsonKey(name: "last_name")  String lastName,  String email,  String? phone,  String? bio,  String? experience,  String? specialties,  String? languages, @JsonKey(name: "certification_level")  String? certificationLevel,  String? avatar, @JsonKey(name: "is_active")  bool isActive, @JsonKey(name: "emergency_contact_name")  String? emergencyContactName, @JsonKey(name: "emergency_contact_phone")  String? emergencyContactPhone, @JsonKey(name: "stripe_account_id")  String? stripeAccountId, @JsonKey(name: "stripe_public_key")  String? stripePublicKey, @JsonKey(name: "payment_enabled")  bool paymentEnabled)  $default,) {final _that = this;
 switch (_that) {
 case _Guide():
-return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.phone,_that.bio,_that.experience,_that.specialties,_that.languages,_that.certificationLevel,_that.avatar,_that.isActive,_that.emergencyContactName,_that.emergencyContactPhone);case _:
+return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.phone,_that.bio,_that.experience,_that.specialties,_that.languages,_that.certificationLevel,_that.avatar,_that.isActive,_that.emergencyContactName,_that.emergencyContactPhone,_that.stripeAccountId,_that.stripePublicKey,_that.paymentEnabled);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -207,10 +211,10 @@ return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.phone,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id, @JsonKey(name: "first_name")  String firstName, @JsonKey(name: "last_name")  String lastName,  String email,  String? phone,  String? bio,  String? experience,  String? specialties,  String? languages, @JsonKey(name: "certification_level")  String? certificationLevel,  String? avatar, @JsonKey(name: "is_active")  bool isActive, @JsonKey(name: "emergency_contact_name")  String? emergencyContactName, @JsonKey(name: "emergency_contact_phone")  String? emergencyContactPhone)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id, @JsonKey(name: "first_name")  String firstName, @JsonKey(name: "last_name")  String lastName,  String email,  String? phone,  String? bio,  String? experience,  String? specialties,  String? languages, @JsonKey(name: "certification_level")  String? certificationLevel,  String? avatar, @JsonKey(name: "is_active")  bool isActive, @JsonKey(name: "emergency_contact_name")  String? emergencyContactName, @JsonKey(name: "emergency_contact_phone")  String? emergencyContactPhone, @JsonKey(name: "stripe_account_id")  String? stripeAccountId, @JsonKey(name: "stripe_public_key")  String? stripePublicKey, @JsonKey(name: "payment_enabled")  bool paymentEnabled)?  $default,) {final _that = this;
 switch (_that) {
 case _Guide() when $default != null:
-return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.phone,_that.bio,_that.experience,_that.specialties,_that.languages,_that.certificationLevel,_that.avatar,_that.isActive,_that.emergencyContactName,_that.emergencyContactPhone);case _:
+return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.phone,_that.bio,_that.experience,_that.specialties,_that.languages,_that.certificationLevel,_that.avatar,_that.isActive,_that.emergencyContactName,_that.emergencyContactPhone,_that.stripeAccountId,_that.stripePublicKey,_that.paymentEnabled);case _:
   return null;
 
 }
@@ -222,7 +226,7 @@ return $default(_that.id,_that.firstName,_that.lastName,_that.email,_that.phone,
 @JsonSerializable()
 
 class _Guide implements Guide {
-  const _Guide(this.id, {@JsonKey(name: "first_name") required this.firstName, @JsonKey(name: "last_name") required this.lastName, required this.email, this.phone, this.bio, this.experience, this.specialties, this.languages, @JsonKey(name: "certification_level") this.certificationLevel, this.avatar, @JsonKey(name: "is_active") required this.isActive, @JsonKey(name: "emergency_contact_name") this.emergencyContactName, @JsonKey(name: "emergency_contact_phone") this.emergencyContactPhone});
+  const _Guide(this.id, {@JsonKey(name: "first_name") required this.firstName, @JsonKey(name: "last_name") required this.lastName, required this.email, this.phone, this.bio, this.experience, this.specialties, this.languages, @JsonKey(name: "certification_level") this.certificationLevel, this.avatar, @JsonKey(name: "is_active") required this.isActive, @JsonKey(name: "emergency_contact_name") this.emergencyContactName, @JsonKey(name: "emergency_contact_phone") this.emergencyContactPhone, @JsonKey(name: "stripe_account_id") this.stripeAccountId, @JsonKey(name: "stripe_public_key") this.stripePublicKey, @JsonKey(name: "payment_enabled") this.paymentEnabled = false});
   factory _Guide.fromJson(Map<String, dynamic> json) => _$GuideFromJson(json);
 
 @override final  int id;
@@ -239,6 +243,10 @@ class _Guide implements Guide {
 @override@JsonKey(name: "is_active") final  bool isActive;
 @override@JsonKey(name: "emergency_contact_name") final  String? emergencyContactName;
 @override@JsonKey(name: "emergency_contact_phone") final  String? emergencyContactPhone;
+// NEW PAYMENT FIELDS
+@override@JsonKey(name: "stripe_account_id") final  String? stripeAccountId;
+@override@JsonKey(name: "stripe_public_key") final  String? stripePublicKey;
+@override@JsonKey(name: "payment_enabled") final  bool paymentEnabled;
 
 /// Create a copy of Guide
 /// with the given fields replaced by the non-null parameter values.
@@ -253,16 +261,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Guide&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.specialties, specialties) || other.specialties == specialties)&&(identical(other.languages, languages) || other.languages == languages)&&(identical(other.certificationLevel, certificationLevel) || other.certificationLevel == certificationLevel)&&(identical(other.avatar, avatar) || other.avatar == avatar)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.emergencyContactName, emergencyContactName) || other.emergencyContactName == emergencyContactName)&&(identical(other.emergencyContactPhone, emergencyContactPhone) || other.emergencyContactPhone == emergencyContactPhone));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Guide&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.specialties, specialties) || other.specialties == specialties)&&(identical(other.languages, languages) || other.languages == languages)&&(identical(other.certificationLevel, certificationLevel) || other.certificationLevel == certificationLevel)&&(identical(other.avatar, avatar) || other.avatar == avatar)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.emergencyContactName, emergencyContactName) || other.emergencyContactName == emergencyContactName)&&(identical(other.emergencyContactPhone, emergencyContactPhone) || other.emergencyContactPhone == emergencyContactPhone)&&(identical(other.stripeAccountId, stripeAccountId) || other.stripeAccountId == stripeAccountId)&&(identical(other.stripePublicKey, stripePublicKey) || other.stripePublicKey == stripePublicKey)&&(identical(other.paymentEnabled, paymentEnabled) || other.paymentEnabled == paymentEnabled));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,firstName,lastName,email,phone,bio,experience,specialties,languages,certificationLevel,avatar,isActive,emergencyContactName,emergencyContactPhone);
+int get hashCode => Object.hash(runtimeType,id,firstName,lastName,email,phone,bio,experience,specialties,languages,certificationLevel,avatar,isActive,emergencyContactName,emergencyContactPhone,stripeAccountId,stripePublicKey,paymentEnabled);
 
 @override
 String toString() {
-  return 'Guide(id: $id, firstName: $firstName, lastName: $lastName, email: $email, phone: $phone, bio: $bio, experience: $experience, specialties: $specialties, languages: $languages, certificationLevel: $certificationLevel, avatar: $avatar, isActive: $isActive, emergencyContactName: $emergencyContactName, emergencyContactPhone: $emergencyContactPhone)';
+  return 'Guide(id: $id, firstName: $firstName, lastName: $lastName, email: $email, phone: $phone, bio: $bio, experience: $experience, specialties: $specialties, languages: $languages, certificationLevel: $certificationLevel, avatar: $avatar, isActive: $isActive, emergencyContactName: $emergencyContactName, emergencyContactPhone: $emergencyContactPhone, stripeAccountId: $stripeAccountId, stripePublicKey: $stripePublicKey, paymentEnabled: $paymentEnabled)';
 }
 
 
@@ -273,7 +281,7 @@ abstract mixin class _$GuideCopyWith<$Res> implements $GuideCopyWith<$Res> {
   factory _$GuideCopyWith(_Guide value, $Res Function(_Guide) _then) = __$GuideCopyWithImpl;
 @override @useResult
 $Res call({
- int id,@JsonKey(name: "first_name") String firstName,@JsonKey(name: "last_name") String lastName, String email, String? phone, String? bio, String? experience, String? specialties, String? languages,@JsonKey(name: "certification_level") String? certificationLevel, String? avatar,@JsonKey(name: "is_active") bool isActive,@JsonKey(name: "emergency_contact_name") String? emergencyContactName,@JsonKey(name: "emergency_contact_phone") String? emergencyContactPhone
+ int id,@JsonKey(name: "first_name") String firstName,@JsonKey(name: "last_name") String lastName, String email, String? phone, String? bio, String? experience, String? specialties, String? languages,@JsonKey(name: "certification_level") String? certificationLevel, String? avatar,@JsonKey(name: "is_active") bool isActive,@JsonKey(name: "emergency_contact_name") String? emergencyContactName,@JsonKey(name: "emergency_contact_phone") String? emergencyContactPhone,@JsonKey(name: "stripe_account_id") String? stripeAccountId,@JsonKey(name: "stripe_public_key") String? stripePublicKey,@JsonKey(name: "payment_enabled") bool paymentEnabled
 });
 
 
@@ -290,7 +298,7 @@ class __$GuideCopyWithImpl<$Res>
 
 /// Create a copy of Guide
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? firstName = null,Object? lastName = null,Object? email = null,Object? phone = freezed,Object? bio = freezed,Object? experience = freezed,Object? specialties = freezed,Object? languages = freezed,Object? certificationLevel = freezed,Object? avatar = freezed,Object? isActive = null,Object? emergencyContactName = freezed,Object? emergencyContactPhone = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? firstName = null,Object? lastName = null,Object? email = null,Object? phone = freezed,Object? bio = freezed,Object? experience = freezed,Object? specialties = freezed,Object? languages = freezed,Object? certificationLevel = freezed,Object? avatar = freezed,Object? isActive = null,Object? emergencyContactName = freezed,Object? emergencyContactPhone = freezed,Object? stripeAccountId = freezed,Object? stripePublicKey = freezed,Object? paymentEnabled = null,}) {
   return _then(_Guide(
 null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,firstName: null == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
@@ -306,7 +314,10 @@ as String?,avatar: freezed == avatar ? _self.avatar : avatar // ignore: cast_nul
 as String?,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,emergencyContactName: freezed == emergencyContactName ? _self.emergencyContactName : emergencyContactName // ignore: cast_nullable_to_non_nullable
 as String?,emergencyContactPhone: freezed == emergencyContactPhone ? _self.emergencyContactPhone : emergencyContactPhone // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,stripeAccountId: freezed == stripeAccountId ? _self.stripeAccountId : stripeAccountId // ignore: cast_nullable_to_non_nullable
+as String?,stripePublicKey: freezed == stripePublicKey ? _self.stripePublicKey : stripePublicKey // ignore: cast_nullable_to_non_nullable
+as String?,paymentEnabled: null == paymentEnabled ? _self.paymentEnabled : paymentEnabled // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

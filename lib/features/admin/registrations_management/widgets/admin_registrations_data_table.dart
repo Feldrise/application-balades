@@ -2,6 +2,8 @@ import 'package:balade/features/admin/registrations_management/providers/admin_r
 import 'package:balade/features/admin/registrations_management/providers/bulk_actions_provider.dart';
 import 'package:balade/features/admin/registrations_management/widgets/registration_edit_dialog.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
+import 'package:balade/features/payments/providers/payment_providers.dart';
+import 'package:balade/features/payments/widgets/payment_status_chip.dart';
 import 'package:balade/features/registrations/models/registration/registration.dart';
 import 'package:balade/features/registrations/registrations_service.dart';
 import 'package:balade/features/registrations/widgets/registration_status_chip.dart';
@@ -102,6 +104,8 @@ class _AdminRegistrationsDataTableState extends ConsumerState<AdminRegistrations
       if (isTablet) // Hide phone on mobile
         const DataColumn(label: Text('Téléphone')),
       DataColumn(label: const Text('Statut'), onSort: (_, __) => widget.onSort('status')),
+      if (isTablet) // Show payment status on tablet and desktop
+        const DataColumn(label: Text('Paiement')),
       if (isDesktop) // Hide ramble on mobile/tablet
         const DataColumn(label: Text('Balade')),
       DataColumn(label: const Text('Date d\'inscription'), onSort: (_, __) => widget.onSort('registration_date')),
@@ -197,6 +201,29 @@ class _AdminRegistrationsDataTableState extends ConsumerState<AdminRegistrations
 
       // Status (always visible)
       DataCell(RegistrationStatusChip(status: registration.status)),
+
+      // Payment Status (tablet and desktop only)
+      if (isTablet)
+        DataCell(
+          Consumer(
+            builder: (context, ref, child) {
+              final paymentsAsync = ref.watch(registrationPaymentsProvider(registration.id));
+
+              return paymentsAsync.when(
+                loading: () => const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                error: (error, stack) => Icon(Icons.error_outline, size: 16, color: theme.colorScheme.error),
+                data: (payments) {
+                  if (payments.isEmpty) {
+                    return Text('-', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant));
+                  } else {
+                    final payment = payments.first;
+                    return PaymentStatusChip(status: payment.status);
+                  }
+                },
+              );
+            },
+          ),
+        ),
 
       // Ramble (desktop only)
       if (isDesktop)

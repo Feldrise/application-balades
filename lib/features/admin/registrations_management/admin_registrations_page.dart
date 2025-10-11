@@ -66,8 +66,7 @@ class _AdminRegistrationsPageState extends ConsumerState<AdminRegistrationsPage>
                 if (isDesktop || isTablet) SliverToBoxAdapter(child: _buildStatsSection()),
 
                 // Mobile search bar (only on mobile now)
-                if (screenWidth < ScreenHelper.breakpointTablet) 
-                  SliverToBoxAdapter(child: _buildMobileSearchBar()),
+                if (screenWidth < ScreenHelper.breakpointTablet) SliverToBoxAdapter(child: _buildMobileSearchBar()),
 
                 // Filters (collapsible on mobile/tablet)
                 if (showFilters || isDesktop) SliverToBoxAdapter(child: _buildFiltersSection()),
@@ -118,12 +117,7 @@ class _AdminRegistrationsPageState extends ConsumerState<AdminRegistrationsPage>
                         ),
                         if (!isMobile) ...[
                           const SizedBox(height: 4),
-                          Text(
-                            'Gérez toutes les réservations',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
+                          Text('Gérez toutes les réservations', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
                         ],
                       ],
                     ),
@@ -135,10 +129,7 @@ class _AdminRegistrationsPageState extends ConsumerState<AdminRegistrationsPage>
               ),
 
               // Second row: Search bar (tablet/desktop) or spacing
-              if (isTablet || isDesktop) ...[
-                const SizedBox(height: 16),
-                _buildSearchBar(theme, isDesktop),
-              ],
+              if (isTablet || isDesktop) ...[const SizedBox(height: 16), _buildSearchBar(theme, isDesktop)],
             ],
           ),
         ),
@@ -158,28 +149,18 @@ class _AdminRegistrationsPageState extends ConsumerState<AdminRegistrationsPage>
             tooltip: showFilters ? 'Masquer les filtres' : 'Afficher les filtres',
             iconSize: isMobile ? 20 : 24,
           ),
-        
+
         if (!isDesktop) SizedBox(width: isMobile ? 6 : 8),
-        
+
         // Refresh button
-        IconButton.outlined(
-          onPressed: _refreshData,
-          icon: const Icon(Icons.refresh),
-          tooltip: 'Actualiser',
-          iconSize: isMobile ? 20 : 24,
-        ),
-        
+        IconButton.outlined(onPressed: _refreshData, icon: const Icon(Icons.refresh), tooltip: 'Actualiser', iconSize: isMobile ? 20 : 24),
+
         SizedBox(width: isMobile ? 6 : 8),
-        
+
         // Export button - responsive sizing
         if (isMobile)
           // Mobile: Icon only
-          IconButton.outlined(
-            onPressed: _exportRegistrations,
-            icon: const Icon(Icons.download),
-            tooltip: 'Exporter',
-            iconSize: 20,
-          )
+          IconButton.outlined(onPressed: _exportRegistrations, icon: const Icon(Icons.download), tooltip: 'Exporter', iconSize: 20)
         else
           // Tablet/Desktop: Icon + text
           OutlinedButton.icon(
@@ -187,10 +168,7 @@ class _AdminRegistrationsPageState extends ConsumerState<AdminRegistrationsPage>
             icon: const Icon(Icons.download),
             label: const Text('Exporter'),
             style: OutlinedButton.styleFrom(
-              padding: EdgeInsets.symmetric(
-                horizontal: isDesktop ? 16 : 12,
-                vertical: isDesktop ? 12 : 8,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: isDesktop ? 16 : 12, vertical: isDesktop ? 12 : 8),
             ),
           ),
       ],

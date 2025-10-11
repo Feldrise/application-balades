@@ -7,6 +7,7 @@ import 'package:balade/features/admin/settings/admin_settings_page.dart';
 import 'package:balade/features/authentication/admin_login_page.dart';
 import 'package:balade/features/authentication/data/models/authed_user/authed_user.dart';
 import 'package:balade/features/navigation/main_page/main_page.dart';
+import 'package:balade/features/payments/payment_page.dart';
 import 'package:balade/features/ramble/add_ramble_page/add_ramble_page.dart';
 import 'package:balade/features/authentication/login_page.dart';
 import 'package:balade/features/ramble/edit_ramble_page/edit_ramble_page.dart';
@@ -71,6 +72,42 @@ GoRouter router(AuthedUser? loggedUser) => GoRouter(
         GoRoute(
           path: "/mes-reservations",
           pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const UserRegistrationsPage()),
+        ),
+        GoRoute(
+          path: "/paiement/:registrationId",
+          pageBuilder: (context, state) {
+            final registrationId = int.tryParse(state.pathParameters['registrationId'] ?? '');
+            if (registrationId == null) {
+              return _buildPageWithDefaultTransition(
+                context: context,
+                state: state,
+                child: const Scaffold(body: Center(child: Text('ID d\'inscription invalide'))),
+              );
+            }
+            return _buildPageWithDefaultTransition(
+              context: context,
+              state: state,
+              child: PaymentPage(registrationId: registrationId),
+            );
+          },
+        ),
+        GoRoute(
+          path: "/paiement/groupe/:groupId",
+          pageBuilder: (context, state) {
+            final groupId = int.tryParse(state.pathParameters['groupId'] ?? '');
+            if (groupId == null) {
+              return _buildPageWithDefaultTransition(
+                context: context,
+                state: state,
+                child: const Scaffold(body: Center(child: Text('ID de groupe invalide'))),
+              );
+            }
+            return _buildPageWithDefaultTransition(
+              context: context,
+              state: state,
+              child: PaymentPage(groupId: groupId),
+            );
+          },
         ),
         GoRoute(
           path: "/connexion",
