@@ -147,12 +147,7 @@ class SideNavigation extends ConsumerWidget {
   }
 
   Widget _buildLoginButton(BuildContext context, ThemeData theme) {
-    return FilledButton.icon(
-      onPressed: () => context.go('/connexion'),
-      icon: const Icon(Icons.login, size: 18),
-      label: const Text('Se connecter'),
-      style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 12), backgroundColor: theme.colorScheme.primary),
-    );
+    return FilledButton.icon(onPressed: () => context.go('/connexion'), icon: const Icon(Icons.login, size: 18), label: const Text('Se connecter'));
   }
 }
 
