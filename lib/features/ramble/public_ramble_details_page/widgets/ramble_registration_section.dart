@@ -246,6 +246,7 @@ class RambleRegistrationSection extends StatelessWidget {
     if (isLoading) return false;
     if (isRegistered) return false;
     if (ramble.isCancelled) return false;
+    if (!ramble.isPublished) return false;
     if (ramble.date != null && ramble.date!.isBefore(DateTime.now())) return false;
     // Allow registration even when full (for waitlist)
     return true;
@@ -254,6 +255,7 @@ class RambleRegistrationSection extends StatelessWidget {
   IconData _getButtonIcon() {
     if (isRegistered) return Icons.check;
     if (ramble.isCancelled) return Icons.block;
+    if (!ramble.isPublished) return Icons.visibility_off;
     if (ramble.date != null && ramble.date!.isBefore(DateTime.now())) return Icons.schedule;
 
     // Check if it's waitlist (no places left)
@@ -267,6 +269,10 @@ class RambleRegistrationSection extends StatelessWidget {
   String _getButtonText() {
     if (isRegistered) return 'Inscrit';
     if (ramble.isCancelled) return 'Annulée';
+    if (!ramble.isPublished) {
+      if (ramble.isDraft) return 'Brouillon';
+      return 'Publication planifiée';
+    }
     if (ramble.date != null && ramble.date!.isBefore(DateTime.now())) return 'Passée';
 
     // Check places left for more specific messaging
@@ -288,6 +294,7 @@ class RambleRegistrationSection extends StatelessWidget {
 
   IconData _getStatusIcon() {
     if (ramble.isCancelled) return Icons.cancel;
+    if (!ramble.isPublished) return Icons.visibility_off;
 
     // Check places left for more accurate icon
     if (ramble.placesLeft != null && ramble.placesLeft! <= 0) {
@@ -301,6 +308,11 @@ class RambleRegistrationSection extends StatelessWidget {
       return 'Balade annulée';
     }
 
+    if (!ramble.isPublished) {
+      if (ramble.isDraft) return 'Balade en brouillon — inscriptions fermées';
+      return 'Publication planifiée — inscriptions fermées';
+    }
+
     if (ramble.placesLeft != null && ramble.placesLeft! <= 0) {
       return 'Complet - Liste d\'attente disponible';
     }
@@ -312,6 +324,10 @@ class RambleRegistrationSection extends StatelessWidget {
 
     if (ramble.isCancelled) {
       return colorScheme.error;
+    }
+
+    if (!ramble.isPublished) {
+      return Colors.grey;
     }
 
     // Check places left for more accurate color

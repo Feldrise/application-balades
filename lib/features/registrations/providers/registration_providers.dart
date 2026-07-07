@@ -1,5 +1,6 @@
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/authentication/data/models/authed_user/authed_user.dart';
+import 'package:balade/core/api_error_message.dart';
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
 import 'package:balade/features/ramble/rambles_service.dart';
 import 'package:balade/features/registrations/models/registration/registration.dart';
@@ -205,7 +206,7 @@ class RegistrationFormNotifier extends StateNotifier<RegistrationFormState> {
       final result = await _service.createRegistration(request);
       state = state.copyWith(isLoading: false, result: result);
     } catch (error) {
-      state = state.copyWith(isLoading: false, error: error.toString());
+      state = state.copyWith(isLoading: false, error: parseApiErrorMessage(error));
     }
   }
 

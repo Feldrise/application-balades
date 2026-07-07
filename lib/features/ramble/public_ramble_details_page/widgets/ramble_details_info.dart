@@ -1,6 +1,7 @@
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class RambleDetailsInfo extends StatelessWidget {
   const RambleDetailsInfo({super.key, required this.ramble});
@@ -100,11 +101,12 @@ class RambleDetailsInfo extends StatelessWidget {
                 // Meeting point
                 if (ramble.meetingPoint != null && ramble.meetingPoint!.isNotEmpty) _buildInfoRow(context, Icons.place, 'Point de rendez-vous', ramble.meetingPoint!),
 
-                // Equipment needed
-                if (ramble.equipmentNeeded != null && ramble.equipmentNeeded!.isNotEmpty) _buildInfoRow(context, Icons.backpack, 'Équipement nécessaire', ramble.equipmentNeeded!),
+                if (ramble.meetingLatitude != null && ramble.meetingLongitude != null) _buildMapsLink(context, ramble.meetingLatitude!, ramble.meetingLongitude!),
 
-                // Prerequisites
-                if (ramble.prerequisites != null && ramble.prerequisites!.isNotEmpty) _buildInfoRow(context, Icons.checklist, 'Prérequis', ramble.prerequisites!),
+                // Equipment needed
+                if (ramble.equipmentNeeded != null && ramble.equipmentNeeded!.isNotEmpty) _buildInfoRow(context, Icons.backpack, 'Équipements nécessaires et prérequis', ramble.equipmentNeeded!),
+
+                if (ramble.prerequisites != null && ramble.prerequisites!.isNotEmpty) _buildInfoRow(context, Icons.checklist, 'Conditions particulières', ramble.prerequisites!),
               ],
             ),
           ),
@@ -178,6 +180,33 @@ class RambleDetailsInfo extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildMapsLink(BuildContext context, double lat, double lng) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        onTap: () => _openMaps(lat, lng),
+        borderRadius: BorderRadius.circular(8),
+        child: Row(
+          children: [
+            Icon(Icons.map, size: 18, color: colorScheme.primary),
+            const SizedBox(width: 12),
+            Text('Voir sur Google Maps', style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.primary, fontWeight: FontWeight.w500)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openMaps(double lat, double lng) async {
+    final uri = Uri.parse('https://www.google.com/maps?q=$lat,$lng');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   String _formatDuration(Duration duration) {

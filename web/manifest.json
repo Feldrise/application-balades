@@ -1,11 +1,11 @@
 {
-    "name": "balade",
-    "short_name": "balade",
+    "name": "Balade EcoLogique",
+    "short_name": "Balade Eco",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#006d41",
+    "theme_color": "#006d41",
+    "description": "Découvrez la nature à travers nos balades guidées.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -33,10 +33,6 @@ class _PublicRambleDetailsPageState extends State<PublicRambleDetailsPage> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(isFavorite ? 'Ajouté aux favoris' : 'Retiré des favoris')));
   }
 
-  void _handleContactGuide(int guideId) {
-    // TODO: Implement contact guide functionality
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Contacter le guide $guideId (à implémenter)')));
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +133,7 @@ class _PublicRambleDetailsPageState extends State<PublicRambleDetailsPage> {
                 const SizedBox(height: 24),
 
                 // Guides section
-                RambleGuidesSection(ramble: ramble, onContactGuide: _handleContactGuide),
+                RambleGuidesSection(ramble: ramble),
               ],
             ),
           ),
@@ -163,7 +159,7 @@ class _PublicRambleDetailsPageState extends State<PublicRambleDetailsPage> {
           const SizedBox(height: 24),
 
           // Guides section
-          RambleGuidesSection(ramble: ramble, onContactGuide: _handleContactGuide),
+          RambleGuidesSection(ramble: ramble),
 
           const SizedBox(height: 24),
         ],
@@ -186,7 +182,7 @@ class _PublicRambleDetailsPageState extends State<PublicRambleDetailsPage> {
         const SizedBox(height: 24),
 
         // Guides section
-        RambleGuidesSection(ramble: ramble, onContactGuide: _handleContactGuide),
+        RambleGuidesSection(ramble: ramble),
 
         const SizedBox(height: 24),
 

@@ -1,3 +1,4 @@
+import 'package:balade/core/widgets/app_logo.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/authentication/data/models/authed_user/authed_user.dart';
 import 'package:balade/features/authentication/permission_provider.dart';
@@ -36,11 +37,7 @@ class SideNavigation extends ConsumerWidget {
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                CircleAvatar(
-                  radius: 32,
-                  backgroundColor: theme.colorScheme.primary.withAlpha(25),
-                  child: Icon(Icons.eco, size: 32, color: theme.colorScheme.primary),
-                ),
+                const AppLogo(height: 64),
                 const SizedBox(height: 16),
                 Text(
                   'Navigation',

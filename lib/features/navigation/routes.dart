@@ -1,3 +1,4 @@
+import 'package:balade/core/widgets/app_logo.dart';
 import 'package:balade/core/widgets/loading_overlay.dart';
 import 'package:balade/features/admin/guide_profile/guide_profile_page.dart';
 import 'package:balade/features/admin/guides_management/admin_guides_page.dart';
@@ -187,7 +188,7 @@ class _HomePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.eco, size: 64, color: theme.colorScheme.primary),
+            const AppLogo(height: 80),
             const SizedBox(height: 16),
             Text(
               'Bienvenue sur Balade EcoLogique',

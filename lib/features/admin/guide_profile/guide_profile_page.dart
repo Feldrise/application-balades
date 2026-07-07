@@ -3,6 +3,7 @@ import 'package:balade/core/widgets/loading_overlay.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/authentication/permission_provider.dart';
 import 'package:balade/features/guides/guides_service.dart';
+import 'package:balade/core/phone_utils.dart';
 import 'package:balade/features/guides/models/guide/guide.dart';
 import 'package:balade/features/guides/providers/current_guide_provider.dart';
 import 'package:balade/features/guides/widgets/guide_form.dart';
@@ -144,6 +145,16 @@ class _GuideProfilePageState extends ConsumerState<GuideProfilePage> {
                           Text('Mon profil guide', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
                           const SizedBox(height: 4),
                           Text('Gérez vos informations et votre configuration de paiement', style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                          if (hasStoredPhone(guide.phone)) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Icon(Icons.phone, size: 16, color: theme.colorScheme.onSurfaceVariant),
+                                const SizedBox(width: 6),
+                                Text(formatStoredPhone(guide.phone)!, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ),

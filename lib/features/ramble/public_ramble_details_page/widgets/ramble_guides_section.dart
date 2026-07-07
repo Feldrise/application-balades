@@ -3,10 +3,9 @@ import 'package:balade/features/ramble/public_ramble_details_page/widgets/guide_
 import 'package:flutter/material.dart';
 
 class RambleGuidesSection extends StatelessWidget {
-  const RambleGuidesSection({super.key, required this.ramble, this.onContactGuide});
+  const RambleGuidesSection({super.key, required this.ramble});
 
   final Ramble ramble;
-  final Function(int guideId)? onContactGuide;
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +38,7 @@ class RambleGuidesSection extends StatelessWidget {
             children: ramble.guides.map((guide) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16),
-                child: GuideBigCard(guide: guide, onContactGuide: onContactGuide != null ? () => onContactGuide!(guide.id) : null),
+                child: GuideBigCard(guide: guide),
               );
             }).toList(),
           ),

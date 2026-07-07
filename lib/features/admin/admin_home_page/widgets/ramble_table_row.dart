@@ -1,14 +1,16 @@
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
+import 'package:balade/features/ramble/widgets/ramble_publication_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 
 class RambleTableRow extends StatelessWidget {
-  const RambleTableRow({super.key, required this.ramble, this.onEdit, this.onCancel, this.isHeader = false});
+  const RambleTableRow({super.key, required this.ramble, this.onEdit, this.onCancel, this.onDuplicate, this.isHeader = false});
 
   final Ramble? ramble;
   final VoidCallback? onEdit;
   final VoidCallback? onCancel;
+  final VoidCallback? onDuplicate;
   final bool isHeader;
 
   @override
@@ -200,7 +202,19 @@ class RambleTableRow extends StatelessWidget {
             ),
 
             // Status
-            Expanded(flex: 1, child: _buildStatusChip(context, theme)),
+            Expanded(
+              flex: 1,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildStatusChip(context, theme),
+                  if (ramble != null && !ramble!.isPublished) ...[
+                    const SizedBox(height: 4),
+                    RamblePublicationBadge(ramble: ramble!, compact: true),
+                  ],
+                ],
+              ),
+            ),
 
             // Actions
             SizedBox(
@@ -213,6 +227,14 @@ class RambleTableRow extends StatelessWidget {
                       onPressed: onEdit,
                       icon: const Icon(Icons.edit, size: 16),
                       tooltip: 'Modifier',
+                      style: IconButton.styleFrom(minimumSize: const Size(32, 32)),
+                    ),
+                  ],
+                  if (onDuplicate != null) ...[
+                    IconButton(
+                      onPressed: onDuplicate,
+                      icon: const Icon(Icons.copy, size: 16),
+                      tooltip: 'Dupliquer',
                       style: IconButton.styleFrom(minimumSize: const Size(32, 32)),
                     ),
                   ],

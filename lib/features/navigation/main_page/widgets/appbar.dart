@@ -1,3 +1,4 @@
+import 'package:balade/core/widgets/app_logo.dart';
 import 'package:balade/themes/screen_helper.dart';
 import 'package:flutter/material.dart';
 
@@ -21,11 +22,10 @@ class BeAppbar extends StatelessWidget implements PreferredSizeWidget {
       foregroundColor: theme.colorScheme.onPrimary,
       title: Row(
         children: [
-          // Logo/Icon
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(color: theme.colorScheme.onPrimary.withAlpha(25), borderRadius: BorderRadius.circular(12)),
-            child: Icon(Icons.eco, color: theme.colorScheme.onPrimary, size: 24),
+            child: const AppLogo(height: 32),
           ),
           const SizedBox(width: 12),
           // App title

@@ -41,6 +41,7 @@ class _AdminRegistrationsFiltersState extends ConsumerState<AdminRegistrationsFi
       final rambles = await RamblesService.instance.fetchRambles(
         authorization: auth?.token,
         guideId: isGuideOnly ? guideId : null,
+        includeUnpublished: true,
       );
       setState(() {
         availableRambles = rambles;

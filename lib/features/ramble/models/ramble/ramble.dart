@@ -32,8 +32,12 @@ Map<String, Color> rambleDifficultyColors = {'facile': Colors.green, 'modere': C
 
 Map<String, String> rambleDifficultyLabels = {'facile': 'Facile', 'modere': 'Modéré', 'difficile': 'Difficile'};
 
+enum PublicationMode { publishNow, draft, scheduled }
+
 @freezed
 abstract class Ramble with _$Ramble {
+  const Ramble._();
+
   const factory Ramble(
     int id, {
     required String title,
@@ -45,6 +49,8 @@ abstract class Ramble with _$Ramble {
     @DateSerializer() DateTime? date,
     String? location,
     @JsonKey(name: 'meeting_point') String? meetingPoint,
+    @JsonKey(name: 'meeting_latitude') double? meetingLatitude,
+    @JsonKey(name: 'meeting_longitude') double? meetingLongitude,
     @JsonKey(name: 'max_participants') int? maxParticipants,
     @Default(<RamblePrice>[]) List<RamblePrice> prices,
     required String difficulty,
@@ -60,9 +66,16 @@ abstract class Ramble with _$Ramble {
     @JsonKey(name: 'payment_enabled') @Default(false) bool paymentEnabled,
     @JsonKey(name: 'payment_required') @Default(false) bool paymentRequired,
     @JsonKey(name: 'payment_guide') Guide? paymentGuide,
+    @JsonKey(name: 'published_at') @DateSerializer() DateTime? publishedAt,
   }) = _Ramble;
 
   factory Ramble.fromJson(Map<String, Object?> json) => _$RambleFromJson(json);
+
+  bool get isPublished => publishedAt != null && !publishedAt!.isAfter(DateTime.now());
+
+  bool get isDraft => publishedAt == null;
+
+  bool get isScheduled => publishedAt != null && publishedAt!.isAfter(DateTime.now());
 }
 
 @freezed

@@ -1,17 +1,19 @@
 import 'package:balade/core/constants.dart';
 import 'package:balade/features/guides/widgets/guide_small_card.dart';
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
+import 'package:balade/features/ramble/widgets/ramble_publication_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 
 class RambleAdminCard extends StatelessWidget {
-  const RambleAdminCard({super.key, required this.ramble, this.onEdit, this.onDelete, this.onCancel});
+  const RambleAdminCard({super.key, required this.ramble, this.onEdit, this.onDelete, this.onCancel, this.onDuplicate});
 
   final Ramble ramble;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final VoidCallback? onCancel;
+  final VoidCallback? onDuplicate;
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +45,8 @@ class RambleAdminCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    if (!ramble.isPublished) RamblePublicationBadge(ramble: ramble),
+                    if (!ramble.isPublished) const SizedBox(width: 8),
                     _buildStatusChip(context),
                   ],
                 ),
@@ -143,6 +147,16 @@ class RambleAdminCard extends StatelessWidget {
                 // Action buttons
                 Row(
                   children: [
+                    if (onDuplicate != null)
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: onDuplicate,
+                          icon: const Icon(Icons.copy, size: 16),
+                          label: const Text('Dupliquer'),
+                          style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 8)),
+                        ),
+                      ),
+                    if (onDuplicate != null && onEdit != null) const SizedBox(width: 8),
                     if (onEdit != null)
                       Expanded(
                         child: OutlinedButton.icon(

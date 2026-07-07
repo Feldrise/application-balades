@@ -19,6 +19,8 @@ _Ramble _$RambleFromJson(Map<String, dynamic> json) => _Ramble(
   date: const DateSerializer().fromJson(json['date'] as String?),
   location: json['location'] as String?,
   meetingPoint: json['meeting_point'] as String?,
+  meetingLatitude: (json['meeting_latitude'] as num?)?.toDouble(),
+  meetingLongitude: (json['meeting_longitude'] as num?)?.toDouble(),
   maxParticipants: (json['max_participants'] as num?)?.toInt(),
   prices:
       (json['prices'] as List<dynamic>?)
@@ -45,6 +47,7 @@ _Ramble _$RambleFromJson(Map<String, dynamic> json) => _Ramble(
   paymentGuide: json['payment_guide'] == null
       ? null
       : Guide.fromJson(json['payment_guide'] as Map<String, dynamic>),
+  publishedAt: const DateSerializer().fromJson(json['published_at'] as String?),
 );
 
 Map<String, dynamic> _$RambleToJson(_Ramble instance) => <String, dynamic>{
@@ -58,6 +61,8 @@ Map<String, dynamic> _$RambleToJson(_Ramble instance) => <String, dynamic>{
   'date': const DateSerializer().toJson(instance.date),
   'location': instance.location,
   'meeting_point': instance.meetingPoint,
+  'meeting_latitude': instance.meetingLatitude,
+  'meeting_longitude': instance.meetingLongitude,
   'max_participants': instance.maxParticipants,
   'prices': instance.prices,
   'difficulty': instance.difficulty,
@@ -74,6 +79,7 @@ Map<String, dynamic> _$RambleToJson(_Ramble instance) => <String, dynamic>{
   'payment_enabled': instance.paymentEnabled,
   'payment_required': instance.paymentRequired,
   'payment_guide': instance.paymentGuide,
+  'published_at': const DateSerializer().toJson(instance.publishedAt),
 };
 
 _RamblePrice _$RamblePriceFromJson(Map<String, dynamic> json) => _RamblePrice(

@@ -34,7 +34,7 @@ class _AdminRambleDetailsPageState extends ConsumerState<AdminRambleDetailsPage>
     final token = auth?.token;
 
     try {
-      final rambleFuture = RamblesService.instance.fetchRamble(widget.rambleId, authorization: token);
+      final rambleFuture = RamblesService.instance.fetchRamble(widget.rambleId, includeUnpublished: true, authorization: token);
       final registrationsFuture = token == null
           ? Future.value(<Registration>[]) // no token: avoid 401 spam; page will show warning
           : RegistrationsService.instance.fetchRambleRegistrations(widget.rambleId, authorization: token);

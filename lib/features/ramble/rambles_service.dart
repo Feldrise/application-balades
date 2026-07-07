@@ -20,6 +20,7 @@ class RamblesService {
     DateTime? dateTo,
     int? guideId,
     bool? isCancelled,
+    bool includeUnpublished = false,
     String? authorization,
   }) async {
     Map<String, String> queryParameters = {};
@@ -48,6 +49,9 @@ class RamblesService {
     if (isCancelled != null) {
       queryParameters['is_cancelled'] = isCancelled.toString();
     }
+    if (includeUnpublished) {
+      queryParameters['include_unpublished'] = 'true';
+    }
 
     final Uri uri = Uri.parse(serviceBaseUrl).replace(queryParameters: queryParameters);
     final http.Response response = await http.get(uri, headers: {'Content-Type': 'application/json', if (authorization != null) 'Authorization': "Bearer $authorization"});
@@ -60,8 +64,13 @@ class RamblesService {
     return jsonList.map((json) => Ramble.fromJson(json as Map<String, Object?>)).toList();
   }
 
-  Future<Ramble> fetchRamble(int id, {String? authorization}) async {
-    final Uri uri = Uri.parse('$serviceBaseUrl/$id');
+  Future<Ramble> fetchRamble(int id, {bool includeUnpublished = false, String? authorization}) async {
+    final queryParameters = <String, String>{};
+    if (includeUnpublished) {
+      queryParameters['include_unpublished'] = 'true';
+    }
+
+    final Uri uri = Uri.parse('$serviceBaseUrl/$id').replace(queryParameters: queryParameters);
     final http.Response response = await http.get(uri, headers: {'Content-Type': 'application/json', if (authorization != null) 'Authorization': "Bearer $authorization"});
 
     if (response.statusCode != 200) {
@@ -104,6 +113,32 @@ class RamblesService {
 
     if (response.statusCode != 200) {
       throw Exception('Failed to cancel ramble: ${response.body}');
+    }
+
+    return Ramble.fromJson(jsonDecode(response.body) as Map<String, Object?>);
+  }
+
+  Future<Ramble> duplicateRamble(
+    int id, {
+    DateTime? date,
+    String? title,
+    required String authorization,
+  }) async {
+    final body = <String, dynamic>{};
+    if (date != null) body['date'] = date.toUtc().toIso8601String();
+    if (title != null) body['title'] = title;
+
+    final response = await http.post(
+      Uri.parse('$serviceBaseUrl/$id/duplicate'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $authorization',
+      },
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode != 201) {
+      throw Exception('Failed to duplicate ramble: ${response.body}');
     }
 
     return Ramble.fromJson(jsonDecode(response.body) as Map<String, Object?>);

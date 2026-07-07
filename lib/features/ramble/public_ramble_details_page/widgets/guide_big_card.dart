@@ -1,17 +1,21 @@
 import 'package:balade/core/constants.dart';
+import 'package:balade/core/phone_utils.dart';
 import 'package:balade/features/guides/models/guide/guide.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class GuideBigCard extends StatelessWidget {
-  const GuideBigCard({super.key, required this.guide, this.onContactGuide});
+  const GuideBigCard({super.key, required this.guide});
 
   final Guide guide;
-  final VoidCallback? onContactGuide;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final displayPhone = formatStoredPhone(guide.phone);
+    final telUri = phoneToTelUri(guide.phone);
+    final canContact = telUri != null || guide.email.isNotEmpty;
 
     return Card(
       child: Padding(
@@ -52,14 +56,27 @@ class GuideBigCard extends StatelessWidget {
                           ],
                         ),
                       ],
+                      if (displayPhone != null && telUri != null) ...[
+                        const SizedBox(height: 8),
+                        InkWell(
+                          onTap: () => _launchTel(telUri),
+                          child: Row(
+                            children: [
+                              Icon(Icons.phone, size: 18, color: colorScheme.primary),
+                              const SizedBox(width: 6),
+                              Text(displayPhone, style: theme.textTheme.bodyMedium),
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
 
                 // Contact button
-                if (onContactGuide != null)
+                if (canContact)
                   FilledButton.icon(
-                    onPressed: onContactGuide,
+                    onPressed: () => _contactGuide(context),
                     icon: const Icon(Icons.message, size: 18),
                     label: const Text('Contact'),
                     style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
@@ -90,6 +107,33 @@ class GuideBigCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _contactGuide(BuildContext context) async {
+    final telUri = phoneToTelUri(guide.phone);
+    if (telUri != null) {
+      await _launchTel(telUri);
+      return;
+    }
+
+    if (guide.email.isNotEmpty) {
+      final uri = Uri(scheme: 'mailto', path: guide.email);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+        return;
+      }
+    }
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Aucun moyen de contact disponible pour ce guide.')));
+    }
+  }
+
+  Future<void> _launchTel(String telUri) async {
+    final uri = Uri.parse('tel:$telUri');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
   }
 
   Widget _buildInfoSection(BuildContext context, String title, IconData icon, String content) {

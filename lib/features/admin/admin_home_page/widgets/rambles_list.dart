@@ -1,3 +1,4 @@
+import 'package:balade/core/api_error_message.dart';
 import 'package:balade/core/permission.dart';
 import 'package:balade/features/admin/admin_home_page/providers/rambles_provider.dart';
 import 'package:balade/features/admin/admin_home_page/widgets/filters/rambles_filters_panel.dart';
@@ -13,9 +14,11 @@ import 'package:balade/features/guides/providers/current_guide_provider.dart';
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
 import 'package:balade/features/ramble/ramble_permissions.dart';
 import 'package:balade/features/ramble/rambles_service.dart';
+import 'package:date_field/date_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 class RamblesList extends ConsumerStatefulWidget {
   const RamblesList({super.key});
@@ -301,6 +304,7 @@ class _RamblesListState extends ConsumerState<RamblesList> {
         rambles: state.rambles,
         onEdit: _handleEdit,
         onCancel: _handleCancel,
+        onDuplicate: _handleDuplicate,
         canManage: canManage,
         viewMode: RamblesViewMode.list,
       );
@@ -309,13 +313,14 @@ class _RamblesListState extends ConsumerState<RamblesList> {
         rambles: state.rambles,
         onEdit: _handleEdit,
         onCancel: _handleCancel,
+        onDuplicate: _handleDuplicate,
         canManage: canManage,
         viewMode: RamblesViewMode.compact,
         padding: const EdgeInsets.all(16),
         spacing: 16,
       );
     } else {
-      return RamblesGrid(rambles: state.rambles, onEdit: _handleEdit, onCancel: _handleCancel, canManage: canManage, viewMode: _viewMode, padding: const EdgeInsets.all(24), spacing: 24);
+      return RamblesGrid(rambles: state.rambles, onEdit: _handleEdit, onCancel: _handleCancel, onDuplicate: _handleDuplicate, canManage: canManage, viewMode: _viewMode, padding: const EdgeInsets.all(24), spacing: 24);
     }
   }
 
@@ -325,6 +330,75 @@ class _RamblesListState extends ConsumerState<RamblesList> {
 
   void _handleCancel(Ramble ramble) {
     _showCancelDialog(ramble);
+  }
+
+  void _handleDuplicate(Ramble ramble) {
+    _showDuplicateDialog(ramble);
+  }
+
+  void _showDuplicateDialog(Ramble ramble) {
+    final titleController = TextEditingController(text: '${ramble.title} (copie)');
+    DateTime? selectedDate = ramble.date;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Dupliquer « ${ramble.title} »'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: titleController,
+              decoration: const InputDecoration(labelText: 'Titre de la copie', border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 16),
+            DateTimeFormField(
+              initialValue: selectedDate,
+              dateFormat: DateFormat('EEEE d MMMM yyyy à HH:mm', 'fr_FR'),
+              decoration: const InputDecoration(labelText: 'Date de la balade', suffixIcon: Icon(Icons.calendar_today)),
+              mode: DateTimeFieldPickerMode.dateAndTime,
+              onChanged: (date) => selectedDate = date,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Annuler')),
+          FilledButton.icon(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _performDuplicate(ramble, titleController.text.trim(), selectedDate);
+            },
+            icon: const Icon(Icons.copy),
+            label: const Text('Dupliquer'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _performDuplicate(Ramble ramble, String title, DateTime? date) async {
+    try {
+      final auth = ref.read(authenticationProvider);
+      if (auth?.token == null) return;
+
+      final copy = await RamblesService.instance.duplicateRamble(
+        ramble.id,
+        title: title.isNotEmpty ? title : null,
+        date: date,
+        authorization: auth!.token,
+      );
+
+      ref.read(ramblesProvider.notifier).loadRambles(authorization: auth.token);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Balade dupliquée : « ${copy.title} » (brouillon)')));
+        context.go('/admin/modifier-balade/${copy.id}');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur lors de la duplication : ${parseApiErrorMessage(e)}')));
+      }
+    }
   }
 
   void _showCancelDialog(Ramble ramble) {

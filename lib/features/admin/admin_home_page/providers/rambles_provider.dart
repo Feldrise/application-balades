@@ -88,6 +88,7 @@ class RamblesNotifier extends StateNotifier<RamblesState> {
         dateTo: state.filters.dateTo,
         guideId: state.filters.guideId,
         isCancelled: state.filters.isCancelled,
+        includeUnpublished: true,
         authorization: authorization,
       );
 

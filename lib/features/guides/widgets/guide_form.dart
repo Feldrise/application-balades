@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:balade/core/api_error_message.dart';
+import 'package:balade/core/phone_utils.dart';
 import 'package:balade/core/widgets/error_snackbar.dart';
 import 'package:balade/core/widgets/loading_overlay.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
@@ -56,7 +58,10 @@ class GuideFormState extends ConsumerState<GuideForm> {
     _firstNameController.text = widget.initialGuide?.firstName ?? "";
     _lastNameController.text = widget.initialGuide?.lastName ?? "";
     _emailController.text = widget.initialGuide?.email ?? "";
-    // _phoneController.value = PhoneNumber.parse(widget.initialGuide?.phone ?? "");
+    if (widget.initialGuide?.phone != null && widget.initialGuide!.phone!.isNotEmpty) {
+      final parsed = parseStoredPhone(widget.initialGuide!.phone!);
+      if (parsed != null) _phoneController.value = parsed;
+    }
     _bioController.text = widget.initialGuide?.bio ?? "";
     _experienceController.text = widget.initialGuide?.experience ?? "";
     _specialtiesController.text = widget.initialGuide?.specialties ?? "";
@@ -136,11 +141,11 @@ class GuideFormState extends ConsumerState<GuideForm> {
                   validator: (value) => FormValidator.emailValidator(value, isRequired: true),
                 ),
 
-                // PhoneFormField(
-                //   controller: _phoneController,
-                //   decoration: const InputDecoration(labelText: 'Téléphone', hintText: '06 12 34 56 78'),
-                //   validator: (value) => FormValidator.phoneValidator(value, isRequired: false),
-                // ),
+                PhoneFormField(
+                  controller: _phoneController,
+                  decoration: const InputDecoration(labelText: 'Téléphone', hintText: '06 12 34 56 78'),
+                  validator: (value) => FormValidator.phoneValidator(value, isRequired: false),
+                ),
                 if (!widget.selfEditMode)
                   SwitchListTile(
                     title: const Text('Guide actif'),
@@ -264,7 +269,7 @@ class GuideFormState extends ConsumerState<GuideForm> {
         'first_name': _firstNameController.text,
         'last_name': _lastNameController.text,
         'email': _emailController.text,
-        'phone': _phoneController.value.toString(),
+        'phone': phoneToApiValue(_phoneController.value),
         'bio': _bioController.text,
         'experience': _experienceController.text,
         'specialties': _specialtiesController.text,
@@ -272,7 +277,7 @@ class GuideFormState extends ConsumerState<GuideForm> {
         'certification_level': _selectedCertificationLevel,
         if (_avatarImage != null) 'avatar_base64': base64Encode(_avatarImage!.bytes),
         'emergency_contact_name': _emergencyContactNameController.text,
-        'emergency_contact_phone': _emergencyContactPhoneController.value.toString(),
+        'emergency_contact_phone': phoneToApiValue(_emergencyContactPhoneController.value),
         if (!widget.selfEditMode) 'is_active': _isActive,
       };
 
@@ -298,7 +303,7 @@ class GuideFormState extends ConsumerState<GuideForm> {
       }
     } catch (e) {
       if (mounted) {
-        ErrorSnackbar.show(context, 'Erreur lors de la sauvegarde du guide : ${e.toString()}');
+        ErrorSnackbar.show(context, 'Erreur lors de la sauvegarde du guide : ${parseApiErrorMessage(e)}');
       }
       return;
     } finally {

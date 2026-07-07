@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:balade/core/api_error_message.dart';
 import 'package:balade/core/constants.dart';
 import 'package:balade/core/forms/duration_picker.dart';
 import 'package:balade/core/widgets/error_snackbar.dart';
@@ -43,6 +44,8 @@ class RambleFormState extends ConsumerState<RambleForm> {
   final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();
   final _meetingPointController = TextEditingController();
+  final _meetingLatitudeController = TextEditingController();
+  final _meetingLongitudeController = TextEditingController();
   final _maxParticipantsController = TextEditingController();
   final _equipmentController = TextEditingController();
   final _prerequisitesController = TextEditingController();
@@ -65,6 +68,9 @@ class RambleFormState extends ConsumerState<RambleForm> {
   int? _paymentGuideId;
   List<Guide> _availablePaymentGuides = [];
 
+  PublicationMode _publicationMode = PublicationMode.publishNow;
+  DateTime? _scheduledPublishDate;
+
   @override
   void initState() {
     super.initState();
@@ -73,6 +79,12 @@ class RambleFormState extends ConsumerState<RambleForm> {
     _descriptionController.text = widget.initialRamble?.description ?? "";
     _locationController.text = widget.initialRamble?.location ?? "";
     _meetingPointController.text = widget.initialRamble?.meetingPoint ?? "";
+    if (widget.initialRamble?.meetingLatitude != null) {
+      _meetingLatitudeController.text = widget.initialRamble!.meetingLatitude.toString();
+    }
+    if (widget.initialRamble?.meetingLongitude != null) {
+      _meetingLongitudeController.text = widget.initialRamble!.meetingLongitude.toString();
+    }
     _maxParticipantsController.text = widget.initialRamble?.maxParticipants.toString() ?? "";
     _equipmentController.text = widget.initialRamble?.equipmentNeeded ?? "";
     _prerequisitesController.text = widget.initialRamble?.prerequisites ?? "";
@@ -88,6 +100,18 @@ class RambleFormState extends ConsumerState<RambleForm> {
     _paymentEnabled = widget.initialRamble?.paymentEnabled ?? false;
     _paymentRequired = widget.initialRamble?.paymentRequired ?? false;
     _paymentGuideId = widget.initialRamble?.paymentGuideId;
+
+    final initial = widget.initialRamble;
+    if (initial != null) {
+      if (initial.isDraft) {
+        _publicationMode = PublicationMode.draft;
+      } else if (initial.isScheduled) {
+        _publicationMode = PublicationMode.scheduled;
+        _scheduledPublishDate = initial.publishedAt;
+      } else {
+        _publicationMode = PublicationMode.publishNow;
+      }
+    }
 
     if ((widget.initialRamble?.prices ?? []).isNotEmpty) {
       _prices.clear();
@@ -135,6 +159,8 @@ class RambleFormState extends ConsumerState<RambleForm> {
     _descriptionController.dispose();
     _locationController.dispose();
     _meetingPointController.dispose();
+    _meetingLatitudeController.dispose();
+    _meetingLongitudeController.dispose();
     _maxParticipantsController.dispose();
     _equipmentController.dispose();
     _prerequisitesController.dispose();
@@ -337,6 +363,28 @@ class RambleFormState extends ConsumerState<RambleForm> {
                   validator: FormValidator.requiredValidator,
                 ),
 
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _meetingLatitudeController,
+                        decoration: const InputDecoration(labelText: 'Latitude', hintText: '48.8566'),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                        validator: _validateMeetingCoordinate,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _meetingLongitudeController,
+                        decoration: const InputDecoration(labelText: 'Longitude', hintText: '2.3522'),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                        validator: _validateMeetingCoordinate,
+                      ),
+                    ),
+                  ],
+                ),
+
                 TextFormField(
                   controller: _maxParticipantsController,
                   decoration: const InputDecoration(labelText: 'Nombre maximum de participants', suffixText: 'personnes'),
@@ -376,9 +424,9 @@ class RambleFormState extends ConsumerState<RambleForm> {
 
             const SizedBox(height: 24),
 
-            // Tarifs et prérequis
+            // Tarifs
             FormSection(
-              title: 'Tarifs et prérequis',
+              title: 'Tarifs',
               children: [
                 PricingList(
                   prices: _prices,
@@ -394,8 +442,8 @@ class RambleFormState extends ConsumerState<RambleForm> {
                   child: TextFormField(
                     controller: _equipmentController,
                     decoration: InputDecoration(
-                      labelText: 'Équipement recommandé',
-                      hintText: 'Ex: Chaussures de marche, vêtements adaptés à la météo...',
+                      labelText: 'Équipements nécessaires et prérequis',
+                      hintText: 'Ex: Chaussures de marche, bonne condition physique...',
                       alignLabelWithHint: true,
                     ),
                     maxLines: 3,
@@ -407,14 +455,50 @@ class RambleFormState extends ConsumerState<RambleForm> {
                   child: TextFormField(
                     controller: _prerequisitesController,
                     decoration: InputDecoration(
-                      labelText: 'Prérequis et conditions particulières',
-                      hintText: 'Ex: Bonne condition physique requise, accessible aux débutants...',
+                      labelText: 'Conditions particulières',
+                      hintText: 'Ex: Annulation en cas de pluie, accès limité aux enfants...',
                       alignLabelWithHint: true,
                     ),
                     maxLines: 3,
                     maxLength: 300,
                   ),
                 ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            // Publication
+            FormSection(
+              title: 'Publication',
+              children: [
+                SegmentedButton<PublicationMode>(
+                  segments: const [
+                    ButtonSegment(value: PublicationMode.publishNow, label: Text('Publier maintenant'), icon: Icon(Icons.publish)),
+                    ButtonSegment(value: PublicationMode.draft, label: Text('Brouillon'), icon: Icon(Icons.edit_note)),
+                    ButtonSegment(value: PublicationMode.scheduled, label: Text('Planifier'), icon: Icon(Icons.schedule)),
+                  ],
+                  selected: {_publicationMode},
+                  onSelectionChanged: (selection) {
+                    setState(() {
+                      _publicationMode = selection.first;
+                    });
+                  },
+                ),
+                if (_publicationMode == PublicationMode.scheduled) ...[
+                  const SizedBox(height: 16),
+                  DateTimeFormField(
+                    initialValue: _scheduledPublishDate,
+                    dateFormat: DateFormat('EEEE d MMMM yyyy à HH:mm', 'fr_FR'),
+                    decoration: const InputDecoration(labelText: 'Date de publication', suffixIcon: Icon(Icons.calendar_today)),
+                    mode: DateTimeFieldPickerMode.dateAndTime,
+                    onChanged: (date) {
+                      setState(() {
+                        _scheduledPublishDate = date;
+                      });
+                    },
+                  ),
+                ],
               ],
             ),
 
@@ -516,6 +600,42 @@ class RambleFormState extends ConsumerState<RambleForm> {
     );
   }
 
+  String? _validateMeetingCoordinate(String? value) {
+    final latText = _meetingLatitudeController.text.trim();
+    final lngText = _meetingLongitudeController.text.trim();
+    final hasLat = latText.isNotEmpty;
+    final hasLng = lngText.isNotEmpty;
+
+    if (!hasLat && !hasLng) return null;
+    if (hasLat != hasLng) return 'Renseignez la latitude et la longitude';
+
+    final parsed = double.tryParse(value ?? '');
+    if (parsed == null) return 'Coordonnée invalide';
+    return null;
+  }
+
+  Map<String, Object?> _buildPublicationPayload() {
+    if (widget.initialRamble == null) {
+      switch (_publicationMode) {
+        case PublicationMode.publishNow:
+          return {'published_at': DateTime.now().toUtc().toIso8601String()};
+        case PublicationMode.draft:
+          return {'is_draft': true};
+        case PublicationMode.scheduled:
+          return {'published_at': _scheduledPublishDate?.toUtc().toIso8601String()};
+      }
+    }
+
+    switch (_publicationMode) {
+      case PublicationMode.publishNow:
+        return {'published_at': DateTime.now().toUtc().toIso8601String()};
+      case PublicationMode.draft:
+        return {'published_at': null};
+      case PublicationMode.scheduled:
+        return {'published_at': _scheduledPublishDate?.toUtc().toIso8601String()};
+    }
+  }
+
   Future<void> save() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -540,6 +660,13 @@ class RambleFormState extends ConsumerState<RambleForm> {
       return;
     }
 
+    if (_publicationMode == PublicationMode.scheduled && _scheduledPublishDate == null) {
+      if (mounted) {
+        ErrorSnackbar.show(context, 'Veuillez choisir une date de publication');
+      }
+      return;
+    }
+
     try {
       LoadingOverlay.of(context).show();
 
@@ -550,6 +677,8 @@ class RambleFormState extends ConsumerState<RambleForm> {
         'date': _selectedDate?.toUtc().toIso8601String(),
         'location': _locationController.text,
         'meeting_point': _meetingPointController.text,
+        'meeting_latitude': double.tryParse(_meetingLatitudeController.text),
+        'meeting_longitude': double.tryParse(_meetingLongitudeController.text),
         'max_participants': int.tryParse(_maxParticipantsController.text),
         'difficulty': _selectedDifficulty,
         'estimated_duration': _selectedDuration.toString().split('.').first,
@@ -563,6 +692,7 @@ class RambleFormState extends ConsumerState<RambleForm> {
         'payment_enabled': _paymentEnabled,
         'payment_required': _paymentRequired,
         'payment_guide_id': _paymentGuideId,
+        ..._buildPublicationPayload(),
       };
 
       if (widget.initialRamble != null) {
@@ -580,7 +710,7 @@ class RambleFormState extends ConsumerState<RambleForm> {
       }
     } catch (e) {
       if (mounted) {
-        ErrorSnackbar.show(context, 'Erreur lors de la sauvegarde : $e');
+        ErrorSnackbar.show(context, 'Erreur lors de la sauvegarde : ${parseApiErrorMessage(e)}');
       }
     } finally {
       if (mounted) {

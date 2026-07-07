@@ -20,7 +20,7 @@ class _EditRamblePageState extends ConsumerState<EditRamblePage> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: RamblesService.instance.fetchRamble(int.parse(widget.id), authorization: ref.read(authenticationProvider)!.token),
+      future: RamblesService.instance.fetchRamble(int.parse(widget.id), includeUnpublished: true, authorization: ref.read(authenticationProvider)!.token),
       builder: (context, snapshot) {
         return Scaffold(
           appBar: AppBar(

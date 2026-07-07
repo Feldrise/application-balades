@@ -1,16 +1,18 @@
 import 'package:balade/core/constants.dart';
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
+import 'package:balade/features/ramble/widgets/ramble_publication_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 
 class RambleCompactCard extends StatelessWidget {
-  const RambleCompactCard({super.key, required this.ramble, this.onEdit, this.onDelete, this.onCancel});
+  const RambleCompactCard({super.key, required this.ramble, this.onEdit, this.onDelete, this.onCancel, this.onDuplicate});
 
   final Ramble ramble;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final VoidCallback? onCancel;
+  final VoidCallback? onDuplicate;
 
   @override
   Widget build(BuildContext context) {
@@ -146,6 +148,7 @@ class RambleCompactCard extends StatelessWidget {
           Positioned(right: -10, top: -10, child: Icon(rambleTypeIcons[ramble.type] ?? Icons.explore, size: 80, color: theme.colorScheme.onPrimaryContainer.withOpacity(0.1))),
           // Status indicator
           Positioned(top: 8, right: 8, child: _buildStatusIndicator(theme)),
+          if (!ramble.isPublished) Positioned(top: 8, left: 8, child: RamblePublicationBadge(ramble: ramble, compact: true)),
         ],
       ),
     );
@@ -226,6 +229,14 @@ class RambleCompactCard extends StatelessWidget {
       ),
       child: Row(
         children: [
+          if (onDuplicate != null) ...[
+            IconButton(
+              onPressed: onDuplicate,
+              icon: const Icon(Icons.copy, size: 16),
+              tooltip: 'Dupliquer',
+              style: IconButton.styleFrom(minimumSize: const Size(32, 32)),
+            ),
+          ],
           if (onEdit != null) ...[
             Expanded(
               child: TextButton.icon(

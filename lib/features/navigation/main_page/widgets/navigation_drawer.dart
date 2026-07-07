@@ -1,3 +1,4 @@
+import 'package:balade/core/widgets/app_logo.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/authentication/permission_provider.dart';
 import 'package:balade/features/navigation/main_page/widgets/navigation_items.dart';
@@ -34,11 +35,7 @@ class MainNavigationDrawer extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                CircleAvatar(
-                  radius: 32,
-                  backgroundColor: theme.colorScheme.onPrimary.withAlpha(50),
-                  child: Icon(Icons.eco, size: 32, color: theme.colorScheme.onPrimary),
-                ),
+                const AppLogo(height: 64),
                 const SizedBox(height: 16),
                 Text(
                   'Balade EcoLogique',

@@ -12,6 +12,7 @@ class RamblesGrid extends StatelessWidget {
     required this.rambles,
     required this.onEdit,
     required this.onCancel,
+    this.onDuplicate,
     this.viewMode = RamblesViewMode.grid,
     this.crossAxisCount = 2,
     this.childAspectRatio = 1.2,
@@ -23,6 +24,7 @@ class RamblesGrid extends StatelessWidget {
   final List<Ramble> rambles;
   final Function(Ramble) onEdit;
   final Function(Ramble) onCancel;
+  final Function(Ramble)? onDuplicate;
   final RamblesViewMode viewMode;
   final int crossAxisCount;
   final double childAspectRatio;
@@ -33,6 +35,12 @@ class RamblesGrid extends StatelessWidget {
   VoidCallback? _editCallback(Ramble ramble) => canManage == null || canManage!(ramble) ? () => onEdit(ramble) : null;
 
   VoidCallback? _cancelCallback(Ramble ramble) => canManage == null || canManage!(ramble) ? () => onCancel(ramble) : null;
+
+  VoidCallback? _duplicateCallback(Ramble ramble) {
+    if (onDuplicate == null) return null;
+    if (canManage != null && !canManage!(ramble)) return null;
+    return () => onDuplicate!(ramble);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +68,7 @@ class RamblesGrid extends StatelessWidget {
       ),
       itemCount: rambles.length,
       itemBuilder: (context, index) {
-        return RambleAdminCard(ramble: rambles[index], onEdit: _editCallback(rambles[index]), onCancel: _cancelCallback(rambles[index]));
+        return RambleAdminCard(ramble: rambles[index], onEdit: _editCallback(rambles[index]), onCancel: _cancelCallback(rambles[index]), onDuplicate: _duplicateCallback(rambles[index]));
       },
     );
   }
@@ -89,7 +97,7 @@ class RamblesGrid extends StatelessWidget {
           ),
           itemCount: rambles.length,
           itemBuilder: (context, index) {
-            return RambleCompactCard(ramble: rambles[index], onEdit: _editCallback(rambles[index]), onCancel: _cancelCallback(rambles[index]));
+            return RambleCompactCard(ramble: rambles[index], onEdit: _editCallback(rambles[index]), onCancel: _cancelCallback(rambles[index]), onDuplicate: _duplicateCallback(rambles[index]));
           },
         );
       },
@@ -105,7 +113,7 @@ class RamblesGrid extends StatelessWidget {
             padding: EdgeInsets.zero,
             itemCount: rambles.length,
             itemBuilder: (context, index) {
-              return RambleTableRow(ramble: rambles[index], onEdit: _editCallback(rambles[index]), onCancel: _cancelCallback(rambles[index]));
+              return RambleTableRow(ramble: rambles[index], onEdit: _editCallback(rambles[index]), onCancel: _cancelCallback(rambles[index]), onDuplicate: _duplicateCallback(rambles[index]));
             },
           ),
         ),
@@ -120,7 +128,7 @@ class RamblesGrid extends StatelessWidget {
       itemBuilder: (context, index) {
         return Padding(
           padding: EdgeInsets.symmetric(vertical: spacing / 2),
-          child: RambleAdminCard(ramble: rambles[index], onEdit: _editCallback(rambles[index]), onCancel: _cancelCallback(rambles[index])),
+          child: RambleAdminCard(ramble: rambles[index], onEdit: _editCallback(rambles[index]), onCancel: _cancelCallback(rambles[index]), onDuplicate: _duplicateCallback(rambles[index])),
         );
       },
     );
