@@ -1,5 +1,7 @@
 import 'package:balade/features/admin/layout/admin_navigation_provider.dart';
 import 'package:balade/features/admin/layout/admin_sidebar.dart';
+import 'package:balade/features/authentication/permission_provider.dart';
+import 'package:balade/features/guides/providers/current_guide_provider.dart';
 import 'package:balade/themes/screen_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,18 +37,40 @@ class _AdminLayoutState extends ConsumerState<AdminLayout> {
     final isMobile = screenWidth < ScreenHelper.breakpointTablet;
 
     final navigationState = ref.watch(adminNavigationProvider);
-    final currentItem = ref.read(adminNavigationProvider.notifier).getCurrentNavigationItem();
+    final permission = ref.watch(permissionProvider);
+    final currentItem = ref.read(adminNavigationProvider.notifier).getCurrentNavigationItem(permission);
+    final guideState = ref.watch(currentGuideProvider);
+    final showUnlinkedBanner = permission?.isGuide() == true && guideState.status == CurrentGuideStatus.unlinked;
 
     if (isMobile) {
-      return _buildMobileLayout(theme, currentItem);
+      return _buildMobileLayout(theme, currentItem, showUnlinkedBanner);
     } else if (isTablet) {
-      return _buildTabletLayout(theme, currentItem);
+      return _buildTabletLayout(theme, currentItem, showUnlinkedBanner);
     } else {
-      return _buildDesktopLayout(theme, currentItem, navigationState, isDesktop);
+      return _buildDesktopLayout(theme, currentItem, navigationState, isDesktop, showUnlinkedBanner);
     }
   }
 
-  Widget _buildDesktopLayout(ThemeData theme, AdminNavigationItem? currentItem, AdminNavigationState navigationState, bool isDesktop) {
+  Widget _buildUnlinkedBanner(ThemeData theme) {
+    return MaterialBanner(
+      content: const Text('Votre compte n\'est pas encore lié à un profil guide. Contactez un administrateur.'),
+      leading: Icon(Icons.warning_amber, color: theme.colorScheme.error),
+      backgroundColor: theme.colorScheme.errorContainer,
+      actions: const [SizedBox.shrink()],
+    );
+  }
+
+  Widget _wrapWithBanner(Widget child, bool showUnlinkedBanner, ThemeData theme) {
+    if (!showUnlinkedBanner) return child;
+    return Column(
+      children: [
+        _buildUnlinkedBanner(theme),
+        Expanded(child: child),
+      ],
+    );
+  }
+
+  Widget _buildDesktopLayout(ThemeData theme, AdminNavigationItem? currentItem, AdminNavigationState navigationState, bool isDesktop, bool showUnlinkedBanner) {
     return Scaffold(
       body: Row(
         children: [
@@ -55,7 +79,7 @@ class _AdminLayoutState extends ConsumerState<AdminLayout> {
             child: Column(
               children: [
                 _buildTopBar(theme, currentItem, showMenuButton: false),
-                Expanded(child: widget.child),
+                Expanded(child: _wrapWithBanner(widget.child, showUnlinkedBanner, theme)),
               ],
             ),
           ),
@@ -64,19 +88,19 @@ class _AdminLayoutState extends ConsumerState<AdminLayout> {
     );
   }
 
-  Widget _buildTabletLayout(ThemeData theme, AdminNavigationItem? currentItem) {
+  Widget _buildTabletLayout(ThemeData theme, AdminNavigationItem? currentItem, bool showUnlinkedBanner) {
     return Scaffold(
       appBar: _buildAppBar(theme, currentItem, showMenuButton: true),
       drawer: Drawer(child: AdminSidebar(isDesktop: false)),
-      body: widget.child,
+      body: _wrapWithBanner(widget.child, showUnlinkedBanner, theme),
     );
   }
 
-  Widget _buildMobileLayout(ThemeData theme, AdminNavigationItem? currentItem) {
+  Widget _buildMobileLayout(ThemeData theme, AdminNavigationItem? currentItem, bool showUnlinkedBanner) {
     return Scaffold(
       appBar: _buildAppBar(theme, currentItem, showMenuButton: true),
       drawer: Drawer(child: AdminSidebar(isDesktop: false)),
-      body: widget.child,
+      body: _wrapWithBanner(widget.child, showUnlinkedBanner, theme),
     );
   }
 

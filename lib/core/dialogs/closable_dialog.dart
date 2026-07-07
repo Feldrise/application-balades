@@ -15,26 +15,27 @@ class ClosableDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.9;
+
     return Dialog(
       backgroundColor: Theme.of(context).colorScheme.surface,
       surfaceTintColor: Theme.of(context).colorScheme.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
       child: Container(
-        constraints: BoxConstraints(maxWidth: maxWidth),
+        constraints: BoxConstraints(maxWidth: maxWidth, maxHeight: maxHeight),
         padding: EdgeInsets.symmetric(vertical: title != null ? ScreenHelper.instance.horizontalPadding : 20, horizontal: ScreenHelper.instance.horizontalPadding),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // The header
             DialogHeader(title: title, isClosable: isClosable),
             if (title != null) const SizedBox(height: 12),
-
-            // The content
-            Flexible(child: child),
+            Flexible(
+              child: SingleChildScrollView(
+                child: child,
+              ),
+            ),
             const SizedBox(height: 20),
-
-            // The actions
             Row(mainAxisAlignment: MainAxisAlignment.end, children: actions),
           ],
         ),

@@ -2,6 +2,7 @@ import 'package:balade/features/admin/registrations_management/providers/admin_r
 import 'package:balade/features/admin/registrations_management/providers/bulk_actions_provider.dart';
 import 'package:balade/features/admin/registrations_management/widgets/registration_edit_dialog.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
+import 'package:balade/features/authentication/permission_provider.dart';
 import 'package:balade/features/payments/providers/payment_providers.dart';
 import 'package:balade/features/payments/widgets/payment_status_chip.dart';
 import 'package:balade/features/registrations/models/registration/registration.dart';
@@ -272,13 +273,15 @@ class _AdminRegistrationsDataTableState extends ConsumerState<AdminRegistrations
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(onPressed: () => _showEditDialog(context, ref, registration), icon: const Icon(Icons.edit_outlined), tooltip: 'Modifier', iconSize: isDesktop ? 20 : 18),
-            IconButton(
-              onPressed: () => _showDeleteConfirmation(context, ref, registration),
-              icon: const Icon(Icons.delete_outline),
-              tooltip: 'Supprimer',
-              iconSize: isDesktop ? 20 : 18,
-            ),
+            if (_canEdit(ref))
+              IconButton(onPressed: () => _showEditDialog(context, ref, registration), icon: const Icon(Icons.edit_outlined), tooltip: 'Modifier', iconSize: isDesktop ? 20 : 18),
+            if (_canDelete(ref))
+              IconButton(
+                onPressed: () => _showDeleteConfirmation(context, ref, registration),
+                icon: const Icon(Icons.delete_outline),
+                tooltip: 'Supprimer',
+                iconSize: isDesktop ? 20 : 18,
+              ),
           ],
         ),
       ),
@@ -350,6 +353,16 @@ class _AdminRegistrationsDataTableState extends ConsumerState<AdminRegistrations
 
   void _showBulkActionsDialog(BuildContext context, WidgetRef ref) {
     showDialog(context: context, builder: (context) => const BulkActionsDialog());
+  }
+
+  bool _canEdit(WidgetRef ref) {
+    final permission = ref.watch(permissionProvider);
+    return permission?.isAdmin() == true || permission?.canUpdateRegistrationDetails() == true;
+  }
+
+  bool _canDelete(WidgetRef ref) {
+    final permission = ref.watch(permissionProvider);
+    return permission?.isAdmin() == true || permission?.canManageRegistration() == true;
   }
 }
 

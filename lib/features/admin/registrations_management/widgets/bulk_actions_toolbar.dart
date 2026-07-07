@@ -1,5 +1,6 @@
 import 'package:balade/features/admin/registrations_management/providers/bulk_actions_provider.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
+import 'package:balade/features/authentication/permission_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,8 +11,14 @@ class BulkActionsToolbar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final bulkActionsState = ref.watch(bulkActionsProvider);
     final bulkActionsNotifier = ref.read(bulkActionsProvider.notifier);
+    final permission = ref.watch(permissionProvider);
 
     if (!bulkActionsState.hasSelection) {
+      return const SizedBox.shrink();
+    }
+
+    final canBulk = permission?.isAdmin() == true || permission?.canBulkRegistrationActions() == true;
+    if (!canBulk) {
       return const SizedBox.shrink();
     }
 

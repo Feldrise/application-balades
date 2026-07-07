@@ -59,4 +59,56 @@ class GuidesService {
       throw Exception('Failed to update guide: ${response.body}');
     }
   }
+
+  /// Returns the current user's guide profile, or null if not linked (404).
+  Future<Guide?> fetchMyGuide({required String authorization}) async {
+    final http.Response response = await http.get(
+      Uri.parse('$serviceBaseUrl/me'),
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $authorization'},
+    );
+
+    if (response.statusCode == 404) return null;
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load guide profile: ${response.body}');
+    }
+
+    return Guide.fromJson(jsonDecode(response.body) as Map<String, Object?>);
+  }
+
+  Future<void> updateMyGuide(Map<String, Object?> data, {required String authorization}) async {
+    final http.Response response = await http.put(
+      Uri.parse('$serviceBaseUrl/me'),
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $authorization'},
+      body: jsonEncode(data),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update guide profile: ${response.body}');
+    }
+  }
+
+  Future<void> updateMyPaymentConfig(Map<String, Object?> data, {required String authorization}) async {
+    final http.Response response = await http.put(
+      Uri.parse('$serviceBaseUrl/me/payment-config'),
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $authorization'},
+      body: jsonEncode(data),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update payment config: ${response.body}');
+    }
+  }
+
+  Future<void> linkUserToGuide(int guideId, int userId, {required String authorization}) async {
+    final http.Response response = await http.post(
+      Uri.parse('$serviceBaseUrl/$guideId/link-user'),
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $authorization'},
+      body: jsonEncode({'user_id': userId}),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Failed to link user to guide: ${response.body}');
+    }
+  }
 }

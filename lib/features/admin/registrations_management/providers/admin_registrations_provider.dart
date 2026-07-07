@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:balade/core/api_error_message.dart';
 import 'package:balade/features/registrations/models/registration/registration.dart';
 import 'package:balade/features/registrations/registrations_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -161,7 +162,7 @@ class AdminRegistrationsNotifier extends StateNotifier<AdminRegistrationsState> 
 
       state = state.copyWith(registrations: response.registrations, isLoading: false, pagination: newPagination);
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: parseApiErrorMessage(e));
     }
   }
 

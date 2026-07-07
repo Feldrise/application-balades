@@ -1,5 +1,6 @@
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/authentication/data/models/authed_user/authed_user.dart';
+import 'package:balade/features/authentication/permission_provider.dart';
 import 'package:balade/features/navigation/main_page/widgets/navigation_items.dart';
 import 'package:balade/features/users/models/user/user.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,8 @@ class SideNavigation extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final authState = ref.watch(authenticationProvider);
+    final permission = ref.watch(permissionProvider);
+    final visibleAdminItems = visiblePublicAdminItems(permission);
 
     return Container(
       width: isDesktop ? 280 : 240,
@@ -54,7 +57,7 @@ class SideNavigation extends ConsumerWidget {
                 ...mainNavigationItems.map((item) => _NavItem(item: item, isSelected: _isCurrentRoute(context, item.route), onTap: () => context.go(item.route))),
                 const SizedBox(height: 24),
                 Divider(color: theme.colorScheme.outline.withAlpha(50)),
-                ...adminNavigationItems.map((item) => _NavItem(item: item, isSelected: _isCurrentRoute(context, item.route), onTap: () => context.go(item.route))),
+                ...visibleAdminItems.map((item) => _NavItem(item: item, isSelected: _isCurrentRoute(context, item.route), onTap: () => context.go(item.route))),
                 const SizedBox(height: 16),
               ],
             ),

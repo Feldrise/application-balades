@@ -24,7 +24,8 @@ class RamblesFiltersSidebar extends ConsumerWidget {
     required this.onGuideChanged,
     required this.onDateFromChanged,
     required this.onDateToChanged,
-    required this.onClearFilters,
+    required     this.onClearFilters,
+    this.hideGuideFilter = false,
   });
 
   final bool? selectedCancellationStatus; // null = all, false = active, true = cancelled
@@ -40,6 +41,7 @@ class RamblesFiltersSidebar extends ConsumerWidget {
   final ValueChanged<DateTime?> onDateFromChanged;
   final ValueChanged<DateTime?> onDateToChanged;
   final VoidCallback onClearFilters;
+  final bool hideGuideFilter;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -108,10 +110,10 @@ class RamblesFiltersSidebar extends ConsumerWidget {
 
           const SizedBox(height: 24),
 
-          // Guide filter
-          _buildFilterSection(theme, 'Guide', [_buildGuideFilter(ref, theme)]),
-
-          const SizedBox(height: 24),
+          if (!hideGuideFilter) ...[
+            _buildFilterSection(theme, 'Guide', [_buildGuideFilter(ref, theme)]),
+            const SizedBox(height: 24),
+          ],
 
           // Date range filters
           _buildFilterSection(theme, 'Période', [_buildDateRangeFilters(theme)]),

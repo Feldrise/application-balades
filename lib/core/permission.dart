@@ -4,62 +4,50 @@ class Permission {
 
   const Permission(this._permissions, this._roles);
 
-  bool can(String permission) {
-    return _permissions.contains(permission);
-  }
+  bool can(String permission) => _permissions.contains(permission);
 
-  bool hasRole(String role) {
-    return _roles.contains(role);
-  }
-
-  // User permissions
-  bool canCreateUser() => can('create:user');
-  bool canReadUser() => can('read:user');
-  bool canReadSelfUser() => can('read:user:self');
-  bool canUpdateUser() => can('update:user');
-  bool canUpdateSelfUser() => can('update:user:self');
-  bool canDeleteUser() => can('delete:user');
-  bool canDeleteSelfUser() => can('delete:user:self');
-
-  // Client permissions
-  bool canCreateClient() => can('create:client');
-  bool canReadClient() => can('read:client');
-  bool canReadSelfClient() => can('read:client:self');
-  bool canUpdateClient() => can('update:client');
-  bool canUpdateSelfClient() => can('update:client:self');
-  bool canDeleteClient() => can('delete:client');
-  bool canDeleteSelfClient() => can('delete:client:self');
-
-  // Employee permissions
-  bool canCreateEmployee() => can('create:employee');
-  bool canReadEmployee() => can('read:employee');
-  bool canReadSelfEmployee() => can('read:employee:self');
-  bool canUpdateEmployee() => can('update:employee');
-  bool canUpdateSelfEmployee() => can('update:employee:self');
-  bool canDeleteEmployee() => can('delete:employee');
-  bool canDeleteSelfEmployee() => can('delete:employee:self');
-
-  // Persona permissions
-  bool canCreatePersona() => can('create:persona');
-  bool canReadPersona() => can('read:persona');
-  bool canUpdatePersona() => can('update:persona');
-  bool canDeletePersona() => can('delete:persona');
-  bool canCreatePersonaReview() => can('create:persona_review');
-
-  // Scenario permissions
-  bool canCreateScenario() => can('create:scenario');
-  bool canReadScenario() => can('read:scenario');
-  bool canUpdateScenario() => can('update:scenario');
-  bool canDeleteScenario() => can('delete:scenario');
-  bool canCreateScenarioReview() => can('create:scenario_review');
-
-  // Invoice permissions
-  bool canCreateInvoice() => can('create:invoice');
-  bool canReadInvoice() => can('read:invoice');
-  bool canUpdateInvoice() => can('update:invoice');
-  bool canDeleteInvoice() => can('delete:invoice');
+  bool hasRole(String role) => _roles.contains(role);
 
   // Roles
   bool isAdmin() => hasRole('admin');
-  bool isRcc() => hasRole('rcc');
+
+  bool isGuide() => hasRole('guide');
+
+  bool canAccessAdminArea() => isAdmin() || isGuide();
+
+  // User management (admin)
+  bool canCreateUser() => can('create:user');
+
+  // Balades
+  bool canReadRamble() => can('read:ramble');
+
+  bool canCreateRamble() => can('create:ramble');
+
+  bool canUpdateRamble() => can('update:ramble');
+
+  bool canUpdateOwnRamble() => can('update:ramble:self');
+
+  bool canDeleteRamble() => can('delete:ramble');
+
+  bool canDeleteOwnRamble() => can('delete:ramble:self');
+
+  // Registrations (own balades)
+  bool canViewAllRegistrations() => can('view:all-registrations');
+
+  bool canViewOwnRegistrations() => can('view:registrations:self');
+
+  bool canUpdateRegistrationDetails() => can('update:registration-details') || can('update:registration-details:self');
+
+  bool canUpdateRegistrationStatus() => can('update:registration-status') || can('update:registration-status:self');
+
+  bool canManageRegistration() => can('manage:registration') || can('manage:registration:self');
+
+  bool canBulkRegistrationActions() => can('bulk:registration-actions') || can('bulk:registration-actions:self');
+
+  // Profile / payments
+  bool canReadSelfUser() => can('read:user:self');
+
+  bool canUpdateSelfUser() => can('update:user:self');
+
+  bool canConfigureGuidePayments() => can('configure:guide-payments:self');
 }

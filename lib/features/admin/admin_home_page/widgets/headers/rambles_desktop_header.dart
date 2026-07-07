@@ -8,6 +8,7 @@ class RamblesDesktopHeader extends StatelessWidget {
     required this.onRefresh,
     required this.onExport,
     required this.onCreateNew,
+    this.showCreateButton = true,
   });
 
   final TextEditingController searchController;
@@ -15,6 +16,7 @@ class RamblesDesktopHeader extends StatelessWidget {
   final VoidCallback onRefresh;
   final VoidCallback onExport;
   final VoidCallback onCreateNew;
+  final bool showCreateButton;
 
   @override
   Widget build(BuildContext context) {
@@ -68,10 +70,10 @@ class RamblesDesktopHeader extends StatelessWidget {
 
         const SizedBox(width: 12),
 
-        // Add new ramble button
-        FilledButton.icon(onPressed: onCreateNew, icon: const Icon(Icons.add), label: const Text('Nouvelle balade')),
-
-        const SizedBox(width: 12),
+        if (showCreateButton) ...[
+          FilledButton.icon(onPressed: onCreateNew, icon: const Icon(Icons.add), label: const Text('Nouvelle balade')),
+          const SizedBox(width: 12),
+        ],
 
         // Refresh button
         IconButton.outlined(onPressed: onRefresh, icon: const Icon(Icons.refresh), tooltip: 'Actualiser'),

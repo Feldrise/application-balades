@@ -1,5 +1,7 @@
 import 'package:balade/features/admin/registrations_management/providers/admin_registrations_provider.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
+import 'package:balade/features/authentication/permission_provider.dart';
+import 'package:balade/features/guides/providers/current_guide_provider.dart';
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
 import 'package:balade/features/ramble/rambles_service.dart';
 import 'package:date_field/date_field.dart';
@@ -32,7 +34,14 @@ class _AdminRegistrationsFiltersState extends ConsumerState<AdminRegistrationsFi
     setState(() => isLoadingRambles = true);
     try {
       final auth = ref.read(authenticationProvider);
-      final rambles = await RamblesService.instance.fetchRambles(authorization: auth?.token);
+      final permission = ref.read(permissionProvider);
+      final guideId = ref.read(currentGuideProvider).guide?.id;
+      final isGuideOnly = permission?.isGuide() == true && permission?.isAdmin() != true;
+
+      final rambles = await RamblesService.instance.fetchRambles(
+        authorization: auth?.token,
+        guideId: isGuideOnly ? guideId : null,
+      );
       setState(() {
         availableRambles = rambles;
         isLoadingRambles = false;

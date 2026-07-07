@@ -24,6 +24,7 @@ class RamblesFiltersPanel extends ConsumerWidget {
     required this.onDateFromChanged,
     required this.onDateToChanged,
     required this.onClearFilters,
+    this.hideGuideFilter = false,
   });
 
   final bool? selectedCancellationStatus; // null = all, false = active, true = cancelled
@@ -39,6 +40,7 @@ class RamblesFiltersPanel extends ConsumerWidget {
   final ValueChanged<DateTime?> onDateFromChanged;
   final ValueChanged<DateTime?> onDateToChanged;
   final VoidCallback onClearFilters;
+  final bool hideGuideFilter;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -115,22 +117,22 @@ class RamblesFiltersPanel extends ConsumerWidget {
               ),
             ),
 
-            // Guide filter
-            SizedBox(
-              width: 250,
-              child: SearchableDropdown<Guide>(
-                label: "Guide",
-                value: selectedGuideId != null ? Guide(selectedGuideId!, firstName: '', lastName: '', email: '', isActive: true) : null,
-                displayStringForOption: (guide) => '${guide.firstName} ${guide.lastName}',
-                optionsBuilder: (textEditingValue) async {
-                  final auth = ref.read(authenticationProvider);
-                  final guides = await GuidesService.instance.fetchGuides(textEditingValue.text, authorization: auth?.token);
-                  return guides;
-                },
-                onSelected: (guide) => onGuideChanged(guide?.id),
-                shouldResetOnTap: false,
+            if (!hideGuideFilter)
+              SizedBox(
+                width: 250,
+                child: SearchableDropdown<Guide>(
+                  label: "Guide",
+                  value: selectedGuideId != null ? Guide(selectedGuideId!, firstName: '', lastName: '', email: '', isActive: true) : null,
+                  displayStringForOption: (guide) => '${guide.firstName} ${guide.lastName}',
+                  optionsBuilder: (textEditingValue) async {
+                    final auth = ref.read(authenticationProvider);
+                    final guides = await GuidesService.instance.fetchGuides(textEditingValue.text, authorization: auth?.token);
+                    return guides;
+                  },
+                  onSelected: (guide) => onGuideChanged(guide?.id),
+                  shouldResetOnTap: false,
+                ),
               ),
-            ),
           ],
         ),
 

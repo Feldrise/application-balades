@@ -1,3 +1,4 @@
+import 'package:balade/core/permission.dart';
 import 'package:balade/features/admin/admin_home_page/providers/rambles_provider.dart';
 import 'package:balade/features/admin/admin_home_page/widgets/filters/rambles_filters_panel.dart';
 import 'package:balade/features/admin/admin_home_page/widgets/filters/rambles_filters_sidebar.dart';
@@ -7,7 +8,10 @@ import 'package:balade/features/admin/admin_home_page/widgets/headers/rambles_he
 import 'package:balade/features/admin/admin_home_page/widgets/headers/rambles_results_header.dart';
 import 'package:balade/features/admin/admin_home_page/widgets/states/rambles_empty_state.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
+import 'package:balade/features/authentication/permission_provider.dart';
+import 'package:balade/features/guides/providers/current_guide_provider.dart';
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
+import 'package:balade/features/ramble/ramble_permissions.dart';
 import 'package:balade/features/ramble/rambles_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,17 +29,29 @@ class _RamblesListState extends ConsumerState<RamblesList> {
   bool _showFilters = false;
   RamblesViewMode _viewMode = RamblesViewMode.compact; // Default to compact view
 
+  bool _guideFilterApplied = false;
+
   @override
   void initState() {
     super.initState();
 
-    // Load rambles on init
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _applyGuideDefaultFilter();
       _loadRambles();
     });
 
-    // Add listener to search field for real-time search
     _searchController.addListener(_onSearchChanged);
+  }
+
+  void _applyGuideDefaultFilter() {
+    if (_guideFilterApplied) return;
+
+    final permission = ref.read(permissionProvider);
+    final guideId = ref.read(currentGuideProvider).guide?.id;
+    if (permission?.isGuide() == true && !permission!.isAdmin() && guideId != null) {
+      _guideFilterApplied = true;
+      _onFilterChanged(guideId: guideId);
+    }
   }
 
   @override
@@ -91,6 +107,12 @@ class _RamblesListState extends ConsumerState<RamblesList> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(currentGuideProvider, (_, next) {
+      if (!_guideFilterApplied && next.guide?.id != null) {
+        _applyGuideDefaultFilter();
+      }
+    });
+
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth > 1200;
     final isTablet = screenWidth > 768 && screenWidth <= 1200;
@@ -106,10 +128,13 @@ class _RamblesListState extends ConsumerState<RamblesList> {
 
   Widget _buildDesktopLayout() {
     final state = ref.watch(ramblesProvider);
+    final permission = ref.watch(permissionProvider);
+    final guideId = ref.watch(currentGuideProvider).guide?.id;
+    final isGuideOnly = permission?.isGuide() == true && permission?.isAdmin() != true;
+    final showCreate = canCreateBalade(permission, ref.watch(isFunctionalGuideProvider));
 
     return Row(
       children: [
-        // Left sidebar with filters (always visible on desktop)
         RamblesFiltersSidebar(
           selectedCancellationStatus: state.filters.isCancelled,
           selectedType: state.filters.type,
@@ -117,6 +142,7 @@ class _RamblesListState extends ConsumerState<RamblesList> {
           selectedGuideId: state.filters.guideId,
           dateFrom: state.filters.dateFrom,
           dateTo: state.filters.dateTo,
+          hideGuideFilter: isGuideOnly,
           onCancellationStatusChanged: (value) => _onFilterChanged(isCancelled: value),
           onTypeChanged: (value) => _onFilterChanged(type: value),
           onDifficultyChanged: (value) => _onFilterChanged(difficulty: value),
@@ -125,8 +151,6 @@ class _RamblesListState extends ConsumerState<RamblesList> {
           onDateToChanged: (value) => _onFilterChanged(dateTo: value),
           onClearFilters: _onClearFilters,
         ),
-
-        // Main content area
         Expanded(
           child: Column(
             children: [
@@ -136,6 +160,7 @@ class _RamblesListState extends ConsumerState<RamblesList> {
                 onRefresh: _loadRambles,
                 onExport: _handleExport,
                 onCreateNew: _handleCreateNew,
+                showCreateButton: showCreate,
               ),
               RamblesResultsHeader(
                 resultsCount: state.rambles.length,
@@ -147,7 +172,7 @@ class _RamblesListState extends ConsumerState<RamblesList> {
                 onViewModeChanged: _onViewModeChanged,
                 showViewToggle: true,
               ),
-              Expanded(child: _buildContent(state, isDesktop: true)),
+              Expanded(child: _buildContent(state, isDesktop: true, permission: permission, guideId: guideId)),
             ],
           ),
         ),
@@ -157,6 +182,9 @@ class _RamblesListState extends ConsumerState<RamblesList> {
 
   Widget _buildTabletLayout() {
     final state = ref.watch(ramblesProvider);
+    final permission = ref.watch(permissionProvider);
+    final guideId = ref.watch(currentGuideProvider).guide?.id;
+    final isGuideOnly = permission?.isGuide() == true && permission?.isAdmin() != true;
 
     return Column(
       children: [
@@ -175,6 +203,7 @@ class _RamblesListState extends ConsumerState<RamblesList> {
             selectedGuideId: state.filters.guideId,
             dateFrom: state.filters.dateFrom,
             dateTo: state.filters.dateTo,
+            hideGuideFilter: isGuideOnly,
             onCancellationStatusChanged: (value) => _onFilterChanged(isCancelled: value),
             onTypeChanged: (value) => _onFilterChanged(type: value),
             onDifficultyChanged: (value) => _onFilterChanged(difficulty: value),
@@ -189,15 +218,18 @@ class _RamblesListState extends ConsumerState<RamblesList> {
           sortAscending: state.sort.sortAscending,
           onSortChanged: _onSortChanged,
           onSortDirectionChanged: _onSortDirectionChanged,
-          showViewToggle: false, // No view toggle for tablet
+          showViewToggle: false,
         ),
-        Expanded(child: _buildContent(state, isTablet: true)),
+        Expanded(child: _buildContent(state, isTablet: true, permission: permission, guideId: guideId)),
       ],
     );
   }
 
   Widget _buildMobileLayout() {
     final state = ref.watch(ramblesProvider);
+    final permission = ref.watch(permissionProvider);
+    final guideId = ref.watch(currentGuideProvider).guide?.id;
+    final isGuideOnly = permission?.isGuide() == true && permission?.isAdmin() != true;
 
     return Column(
       children: [
@@ -216,6 +248,7 @@ class _RamblesListState extends ConsumerState<RamblesList> {
             selectedGuideId: state.filters.guideId,
             dateFrom: state.filters.dateFrom,
             dateTo: state.filters.dateTo,
+            hideGuideFilter: isGuideOnly,
             onCancellationStatusChanged: (value) => _onFilterChanged(isCancelled: value),
             onTypeChanged: (value) => _onFilterChanged(type: value),
             onDifficultyChanged: (value) => _onFilterChanged(difficulty: value),
@@ -230,14 +263,14 @@ class _RamblesListState extends ConsumerState<RamblesList> {
           sortAscending: state.sort.sortAscending,
           onSortChanged: _onSortChanged,
           onSortDirectionChanged: _onSortDirectionChanged,
-          showViewToggle: false, // No view toggle for mobile
+          showViewToggle: false,
         ),
-        Expanded(child: _buildContent(state, isMobile: true)),
+        Expanded(child: _buildContent(state, isMobile: true, permission: permission, guideId: guideId)),
       ],
     );
   }
 
-  Widget _buildContent(RamblesState state, {bool isDesktop = false, bool isTablet = false, bool isMobile = false}) {
+  Widget _buildContent(RamblesState state, {bool isDesktop = false, bool isTablet = false, bool isMobile = false, Permission? permission, int? guideId}) {
     if (state.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -261,25 +294,28 @@ class _RamblesListState extends ConsumerState<RamblesList> {
       return RamblesEmptyState(onClearFilters: _onClearFilters);
     }
 
+    bool canManage(Ramble ramble) => canManageRamble(permission, ramble, guideId);
+
     if (isMobile) {
       return RamblesGrid(
         rambles: state.rambles,
         onEdit: _handleEdit,
         onCancel: _handleCancel,
-        viewMode: RamblesViewMode.list, // Mobile uses list view
+        canManage: canManage,
+        viewMode: RamblesViewMode.list,
       );
     } else if (isTablet) {
       return RamblesGrid(
         rambles: state.rambles,
         onEdit: _handleEdit,
         onCancel: _handleCancel,
-        viewMode: RamblesViewMode.compact, // Tablet uses compact grid
+        canManage: canManage,
+        viewMode: RamblesViewMode.compact,
         padding: const EdgeInsets.all(16),
         spacing: 16,
       );
     } else {
-      // Desktop - use selected view mode
-      return RamblesGrid(rambles: state.rambles, onEdit: _handleEdit, onCancel: _handleCancel, viewMode: _viewMode, padding: const EdgeInsets.all(24), spacing: 24);
+      return RamblesGrid(rambles: state.rambles, onEdit: _handleEdit, onCancel: _handleCancel, canManage: canManage, viewMode: _viewMode, padding: const EdgeInsets.all(24), spacing: 24);
     }
   }
 
@@ -350,6 +386,10 @@ class _RamblesListState extends ConsumerState<RamblesList> {
   }
 
   void _handleCreateNew() {
+    if (!canCreateBalade(ref.read(permissionProvider), ref.read(isFunctionalGuideProvider))) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vous devez avoir un profil guide lié pour créer une balade.')));
+      return;
+    }
     context.go("/admin/nouvelle-balade");
   }
 }

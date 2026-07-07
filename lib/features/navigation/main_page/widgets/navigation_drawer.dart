@@ -1,4 +1,5 @@
 import 'package:balade/features/authentication/authentication_provider.dart';
+import 'package:balade/features/authentication/permission_provider.dart';
 import 'package:balade/features/navigation/main_page/widgets/navigation_items.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +18,8 @@ class MainNavigationDrawer extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final authState = ref.watch(authenticationProvider);
+    final permission = ref.watch(permissionProvider);
+    final visibleAdminItems = visiblePublicAdminItems(permission);
 
     return Drawer(
       backgroundColor: theme.colorScheme.surface,
@@ -61,7 +64,7 @@ class MainNavigationDrawer extends ConsumerWidget {
                   ),
                 ),
                 const Divider(),
-                ...adminNavigationItems.map(
+                ...visibleAdminItems.map(
                   (item) => _DrawerNavItem(
                     item: item,
                     isSelected: _isCurrentRoute(context, item.route),

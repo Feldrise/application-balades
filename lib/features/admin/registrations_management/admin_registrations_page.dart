@@ -4,6 +4,7 @@ import 'package:balade/features/admin/registrations_management/widgets/admin_reg
 import 'package:balade/features/admin/registrations_management/widgets/bulk_actions_toolbar.dart';
 import 'package:balade/features/admin/registrations_management/widgets/registrations_stats_cards.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
+import 'package:balade/features/authentication/permission_provider.dart';
 import 'package:balade/themes/screen_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -36,9 +37,15 @@ class _AdminRegistrationsPageState extends ConsumerState<AdminRegistrationsPage>
 
   void _loadInitialData() {
     final auth = ref.read(authenticationProvider);
-    if (auth != null) {
-      ref.read(adminRegistrationsProvider.notifier).loadRegistrations(authorization: 'Bearer ${auth.token}');
+    if (auth == null) return;
+
+    final permission = ref.read(permissionProvider);
+    final isGuideOnly = permission?.isGuide() == true && permission?.isAdmin() != true;
+    if (isGuideOnly && ref.read(adminRegistrationsProvider).filters.rambleId == null) {
+      return;
     }
+
+    ref.read(adminRegistrationsProvider.notifier).loadRegistrations(authorization: 'Bearer ${auth.token}');
   }
 
   @override
@@ -311,6 +318,8 @@ class _AdminRegistrationsPageState extends ConsumerState<AdminRegistrationsPage>
       builder: (context, ref, child) {
         final state = ref.watch(adminRegistrationsProvider);
         final auth = ref.watch(authenticationProvider);
+        final permission = ref.watch(permissionProvider);
+        final isGuideOnly = permission?.isGuide() == true && permission?.isAdmin() != true;
 
         if (auth == null) {
           return _buildStateCard(
@@ -318,6 +327,19 @@ class _AdminRegistrationsPageState extends ConsumerState<AdminRegistrationsPage>
             title: 'Authentification requise',
             message: 'Vous devez être connecté en tant qu\'administrateur.',
             color: Theme.of(context).colorScheme.onSurfaceVariant,
+          );
+        }
+
+        if (isGuideOnly && state.filters.rambleId == null) {
+          return _buildStateCard(
+            icon: Icons.nature_people_outlined,
+            title: 'Sélectionnez une balade',
+            message: 'En tant que guide, vous devez choisir une balade dans les filtres pour afficher ses inscriptions.',
+            action: OutlinedButton.icon(
+              onPressed: () => setState(() => showFilters = true),
+              icon: const Icon(Icons.filter_list),
+              label: const Text('Ouvrir les filtres'),
+            ),
           );
         }
 

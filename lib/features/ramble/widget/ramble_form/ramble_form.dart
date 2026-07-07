@@ -7,6 +7,8 @@ import 'package:balade/core/widgets/loading_overlay.dart';
 import 'package:balade/core/widgets/searchable_dropdown.dart';
 import 'package:balade/features/admin/admin_home_page/providers/rambles_provider.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
+import 'package:balade/features/authentication/permission_provider.dart';
+import 'package:balade/features/guides/providers/current_guide_provider.dart';
 import 'package:balade/features/guides/dialogs/add_guide_dialog.dart';
 import 'package:balade/features/guides/guides_service.dart';
 import 'package:balade/features/guides/models/guide/guide.dart';
@@ -105,12 +107,24 @@ class RambleFormState extends ConsumerState<RambleForm> {
       final authToken = ref.read(authenticationProvider)?.token;
       if (authToken == null) return;
 
-      final allGuides = await GuidesService.instance.fetchGuides('', authorization: authToken);
-      _availablePaymentGuides = allGuides.where((guide) => guide.paymentEnabled == true).toList();
+      final permission = ref.read(permissionProvider);
+      final currentGuide = ref.read(currentGuideProvider).guide;
+      final isGuideOnly = permission?.isGuide() == true && permission?.isAdmin() != true;
+
+      if (isGuideOnly && currentGuide != null) {
+        if (currentGuide.paymentEnabled) {
+          _availablePaymentGuides = [currentGuide];
+          _paymentGuideId ??= currentGuide.id;
+        } else {
+          _availablePaymentGuides = [];
+        }
+      } else {
+        final allGuides = await GuidesService.instance.fetchGuides('', authorization: authToken);
+        _availablePaymentGuides = allGuides.where((guide) => guide.paymentEnabled == true).toList();
+      }
 
       if (mounted) setState(() {});
     } catch (e) {
-      // Handle error silently or show a message
       debugPrint('Error loading payment guides: $e');
     }
   }
@@ -136,6 +150,9 @@ class RambleFormState extends ConsumerState<RambleForm> {
 
   @override
   Widget build(BuildContext context) {
+    final permission = ref.watch(permissionProvider);
+    final isGuideOnly = permission?.isGuide() == true && permission?.isAdmin() != true;
+
     return Form(
       key: _formKey,
       child: SingleChildScrollView(
@@ -163,63 +180,63 @@ class RambleFormState extends ConsumerState<RambleForm> {
 
             const SizedBox(height: 32),
 
-            // Guide information
-            FormSection(
-              title: 'Informations sur le(s) guide(s)',
-              children: [
-                SearchableDropdown<Guide>(
-                  label: "Rechercher un guide",
-                  displayStringForOption: (guide) => '${guide.firstName} ${guide.lastName}',
-                  onCreate: (name) async {
-                    final int? newGuideID = await showDialog<int>(
-                      context: context,
-                      builder: (context) => const LoadingOverlay(child: AddGuideDialog()),
-                    );
+            if (!isGuideOnly) ...[
+              FormSection(
+                title: 'Informations sur le(s) guide(s)',
+                children: [
+                  SearchableDropdown<Guide>(
+                    label: "Rechercher un guide",
+                    displayStringForOption: (guide) => '${guide.firstName} ${guide.lastName}',
+                    onCreate: (name) async {
+                      final int? newGuideID = await showDialog<int>(
+                        context: context,
+                        builder: (context) => const LoadingOverlay(child: AddGuideDialog()),
+                      );
 
-                    if (newGuideID != null) {
-                      setState(() {
-                        _selectedGuides.add(newGuideID);
-                      });
-                    }
-                  },
-                  optionsBuilder: (textEditingValue) async {
-                    final List<Guide> guides = await GuidesService.instance.fetchGuides(textEditingValue.text, authorization: ref.read(authenticationProvider)?.token);
+                      if (newGuideID != null) {
+                        setState(() {
+                          _selectedGuides.add(newGuideID);
+                        });
+                      }
+                    },
+                    optionsBuilder: (textEditingValue) async {
+                      final List<Guide> guides = await GuidesService.instance.fetchGuides(textEditingValue.text, authorization: ref.read(authenticationProvider)?.token);
 
-                    return guides.where((guide) => !_selectedGuides.contains(guide.id)).toList();
-                  },
-                  onSelected: (guide) {
-                    if (guide != null && !_selectedGuides.contains(guide.id)) {
-                      setState(() {
-                        _selectedGuides.add(guide.id);
-                      });
-                    }
-                  },
-                  fakeOnCreate: (value) => Guide(0, firstName: "", lastName: "", email: "", isActive: true),
-                  shouldResetOnTap: true,
-                ),
-                SizedBox(),
-                FormLargeField(
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      for (final guideId in _selectedGuides)
-                        GuideSmallCard(
-                          guideId: guideId,
-                          onRemove: () {
-                            setState(() {
-                              _selectedGuides.remove(guideId);
-                            });
-                          },
-                          onGuideEdited: () => setState(() {}),
-                        ),
-                    ],
+                      return guides.where((guide) => !_selectedGuides.contains(guide.id)).toList();
+                    },
+                    onSelected: (guide) {
+                      if (guide != null && !_selectedGuides.contains(guide.id)) {
+                        setState(() {
+                          _selectedGuides.add(guide.id);
+                        });
+                      }
+                    },
+                    fakeOnCreate: (value) => Guide(0, firstName: "", lastName: "", email: "", isActive: true),
+                    shouldResetOnTap: true,
                   ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 32),
+                  SizedBox(),
+                  FormLargeField(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (final guideId in _selectedGuides)
+                          GuideSmallCard(
+                            guideId: guideId,
+                            onRemove: () {
+                              setState(() {
+                                _selectedGuides.remove(guideId);
+                              });
+                            },
+                            onGuideEdited: () => setState(() {}),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+            ],
 
             // Informations générales
             FormSection(
@@ -504,6 +521,17 @@ class RambleFormState extends ConsumerState<RambleForm> {
       return;
     }
 
+    final permission = ref.read(permissionProvider);
+    final isGuideOnly = permission?.isGuide() == true && permission?.isAdmin() != true;
+    final isFunctionalGuide = ref.read(isFunctionalGuideProvider);
+
+    if (widget.initialRamble == null && isGuideOnly && !isFunctionalGuide) {
+      if (mounted) {
+        ErrorSnackbar.show(context, 'Votre compte n\'est pas lié à un profil guide.');
+      }
+      return;
+    }
+
     // Additional validation for payment configuration
     if (_paymentEnabled && _paymentGuideId == null) {
       if (mounted) {
@@ -528,11 +556,10 @@ class RambleFormState extends ConsumerState<RambleForm> {
         'equipment_needed': _equipmentController.text,
         'prerequisites': _prerequisitesController.text,
         if (_coverImage != null) 'cover_image_base64': base64Encode(_coverImage!.bytes),
-        'guide_ids': _selectedGuides,
+        if (!isGuideOnly) 'guide_ids': _selectedGuides,
         'prices': [
           for (final price in _prices) {'label': price.$1.text, 'amount': double.tryParse(price.$2.text) ?? 0.0},
         ],
-        // Payment configuration fields
         'payment_enabled': _paymentEnabled,
         'payment_required': _paymentRequired,
         'payment_guide_id': _paymentGuideId,

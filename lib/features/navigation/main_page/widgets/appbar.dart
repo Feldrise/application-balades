@@ -44,15 +44,15 @@ class BeAppbar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         // Desktop navigation actions
-        if (isDesktop) ...[
-          _buildNavAction(context, Icons.search, 'Rechercher', () {}),
-          _buildNavAction(context, Icons.notifications_outlined, 'Notifications', () {}),
-          _buildNavAction(context, Icons.account_circle_outlined, 'Mon compte', () {}),
-        ] else ...[
-          // Mobile actions
-          IconButton(icon: const Icon(Icons.search), onPressed: () {}, tooltip: 'Rechercher'),
-          IconButton(icon: const Icon(Icons.notifications_outlined), onPressed: () {}, tooltip: 'Notifications'),
-        ],
+        // if (isDesktop) ...[
+        //   _buildNavAction(context, Icons.search, 'Rechercher', () {}),
+        //   _buildNavAction(context, Icons.notifications_outlined, 'Notifications', () {}),
+        //   _buildNavAction(context, Icons.account_circle_outlined, 'Mon compte', () {}),
+        // ] else ...[
+        //   // Mobile actions
+        //   IconButton(icon: const Icon(Icons.search), onPressed: () {}, tooltip: 'Rechercher'),
+        //   IconButton(icon: const Icon(Icons.notifications_outlined), onPressed: () {}, tooltip: 'Notifications'),
+        // ],
       ],
     );
   }

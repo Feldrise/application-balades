@@ -16,9 +16,11 @@ import 'package:balade/core/forms/image_input_round.dart';
 import 'package:balade/core/form_validator.dart';
 
 class GuideForm extends ConsumerStatefulWidget {
-  const GuideForm({super.key, this.initialGuide});
+  const GuideForm({super.key, this.initialGuide, this.selfEditMode = false, this.onSaved});
 
   final Guide? initialGuide;
+  final bool selfEditMode;
+  final VoidCallback? onSaved;
 
   @override
   ConsumerState<GuideForm> createState() => GuideFormState();
@@ -139,16 +141,17 @@ class GuideFormState extends ConsumerState<GuideForm> {
                 //   decoration: const InputDecoration(labelText: 'Téléphone', hintText: '06 12 34 56 78'),
                 //   validator: (value) => FormValidator.phoneValidator(value, isRequired: false),
                 // ),
-                SwitchListTile(
-                  title: const Text('Guide actif'),
-                  subtitle: const Text('Le guide peut être assigné à des balades'),
-                  value: _isActive,
-                  onChanged: (value) {
-                    setState(() {
-                      _isActive = value;
-                    });
-                  },
-                ),
+                if (!widget.selfEditMode)
+                  SwitchListTile(
+                    title: const Text('Guide actif'),
+                    subtitle: const Text('Le guide peut être assigné à des balades'),
+                    value: _isActive,
+                    onChanged: (value) {
+                      setState(() {
+                        _isActive = value;
+                      });
+                    },
+                  ),
               ],
             ),
 
@@ -270,9 +273,16 @@ class GuideFormState extends ConsumerState<GuideForm> {
         if (_avatarImage != null) 'avatar_base64': base64Encode(_avatarImage!.bytes),
         'emergency_contact_name': _emergencyContactNameController.text,
         'emergency_contact_phone': _emergencyContactPhoneController.value.toString(),
+        if (!widget.selfEditMode) 'is_active': _isActive,
       };
 
-      if (widget.initialGuide != null) {
+      if (widget.selfEditMode) {
+        await GuidesService.instance.updateMyGuide(data, authorization: ref.read(authenticationProvider)!.token);
+        if (mounted) {
+          widget.onSaved?.call();
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profil mis à jour avec succès')));
+        }
+      } else if (widget.initialGuide != null) {
         await GuidesService.instance.updateGuide(widget.initialGuide!.id, data, authorization: ref.read(authenticationProvider)!.token);
 
         if (mounted) {

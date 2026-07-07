@@ -1,4 +1,5 @@
 import 'package:balade/features/admin/layout/admin_navigation_provider.dart';
+import 'package:balade/features/authentication/permission_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -26,7 +27,10 @@ class AdminSidebar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final navigationState = ref.watch(adminNavigationProvider);
+    final permission = ref.watch(permissionProvider);
+    final visibleItems = visibleAdminNavigationItems(permission);
     final isExpanded = isDesktop ? navigationState.isSidebarExpanded : true;
+    final isGuideOnly = permission?.isGuide() == true && permission?.isAdmin() != true;
 
     return Container(
       width: isExpanded ? (isDesktop ? 280 : 240) : 72,
@@ -37,15 +41,15 @@ class AdminSidebar extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          _buildHeader(context, theme, isExpanded),
-          Expanded(child: _buildNavigationItems(context, theme, isExpanded)),
+          _buildHeader(context, theme, isExpanded, isGuideOnly),
+          Expanded(child: _buildNavigationItems(context, theme, isExpanded, visibleItems)),
           _buildFooter(context, theme, isExpanded),
         ],
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, ThemeData theme, bool isExpanded) {
+  Widget _buildHeader(BuildContext context, ThemeData theme, bool isExpanded, bool isGuideOnly) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -63,7 +67,7 @@ class AdminSidebar extends ConsumerWidget {
               CircleAvatar(
                 radius: 20,
                 backgroundColor: theme.colorScheme.primary,
-                child: Icon(Icons.admin_panel_settings, size: 24, color: theme.colorScheme.onPrimary),
+                child: Icon(isGuideOnly ? Icons.nature_people : Icons.admin_panel_settings, size: 24, color: theme.colorScheme.onPrimary),
               ),
               if (isExpanded) ...[
                 const SizedBox(width: 12),
@@ -72,7 +76,7 @@ class AdminSidebar extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Administration',
+                        isGuideOnly ? 'Espace guide' : 'Administration',
                         style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.onPrimaryContainer),
                       ),
                       Text('Balade EcoLogique', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onPrimaryContainer.withOpacity(0.8))),
@@ -87,11 +91,11 @@ class AdminSidebar extends ConsumerWidget {
     );
   }
 
-  Widget _buildNavigationItems(BuildContext context, ThemeData theme, bool isExpanded) {
+  Widget _buildNavigationItems(BuildContext context, ThemeData theme, bool isExpanded, List<AdminNavigationItem> visibleItems) {
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 16),
       children: [
-        ...adminNavigationItems.map(
+        ...visibleItems.map(
           (item) => _AdminNavItem(item: item, isSelected: _isCurrentRoute(context, item.route), isExpanded: isExpanded, onTap: () => context.go(item.route)),
         ),
       ],

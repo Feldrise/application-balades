@@ -1,4 +1,5 @@
 import 'package:balade/core/dialogs/closable_dialog.dart';
+import 'package:balade/core/widgets/error_snackbar.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/guides/guides_service.dart';
 import 'package:balade/features/guides/models/guide/guide.dart';
@@ -17,6 +18,39 @@ class EditGuideDialog extends ConsumerStatefulWidget {
 
 class _EditGuideDialogState extends ConsumerState<EditGuideDialog> {
   final GlobalKey<GuideFormState> _formKey = GlobalKey<GuideFormState>();
+  final _userIdController = TextEditingController();
+  bool _linkingUser = false;
+
+  @override
+  void dispose() {
+    _userIdController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _linkUser() async {
+    final userId = int.tryParse(_userIdController.text.trim());
+    if (userId == null) {
+      ErrorSnackbar.show(context, 'Veuillez entrer un ID utilisateur valide');
+      return;
+    }
+
+    final token = ref.read(authenticationProvider)?.token;
+    if (token == null) return;
+
+    setState(() => _linkingUser = true);
+    try {
+      await GuidesService.instance.linkUserToGuide(widget.guideId, userId, authorization: token);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Utilisateur lié avec succès. L\'utilisateur doit se reconnecter pour obtenir le rôle guide.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) ErrorSnackbar.show(context, 'Erreur : $e');
+    } finally {
+      if (mounted) setState(() => _linkingUser = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +87,39 @@ class _EditGuideDialogState extends ConsumerState<EditGuideDialog> {
 
               final Guide guide = snapshot.data as Guide;
 
-              return GuideForm(key: _formKey, initialGuide: guide);
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GuideForm(key: _formKey, initialGuide: guide),
+                  const SizedBox(height: 24),
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Lier un utilisateur', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text('Associez ce profil guide à un compte utilisateur existant (par ID). Le rôle guide sera accordé automatiquement.'),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _userIdController,
+                          decoration: const InputDecoration(labelText: 'ID utilisateur', border: OutlineInputBorder()),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      FilledButton.icon(
+                        onPressed: _linkingUser ? null : _linkUser,
+                        icon: _linkingUser ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.link),
+                        label: const Text('Lier'),
+                      ),
+                    ],
+                  ),
+                ],
+              );
             },
           ),
         );

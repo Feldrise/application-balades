@@ -1,3 +1,4 @@
+import 'package:balade/core/permission.dart';
 import 'package:flutter/material.dart';
 
 class NavigationItem {
@@ -21,3 +22,17 @@ const List<NavigationItem> adminNavigationItems = [
   NavigationItem(icon: Icons.admin_panel_settings_outlined, selectedIcon: Icons.admin_panel_settings, label: 'Admin', route: '/admin', adminOnly: true),
   NavigationItem(icon: Icons.help_outline, selectedIcon: Icons.help, label: 'Aide', route: '/aide'),
 ];
+
+List<NavigationItem> visiblePublicAdminItems(Permission? permission) {
+  if (permission == null || !permission.canAccessAdminArea()) {
+    return adminNavigationItems.where((item) => !item.adminOnly).toList();
+  }
+
+  return adminNavigationItems.map((item) {
+    if (!item.adminOnly) return item;
+    final label = permission.isAdmin() ? 'Administration' : 'Espace guide';
+    final icon = permission.isAdmin() ? Icons.admin_panel_settings_outlined : Icons.nature_people_outlined;
+    final selectedIcon = permission.isAdmin() ? Icons.admin_panel_settings : Icons.nature_people;
+    return NavigationItem(icon: icon, selectedIcon: selectedIcon, label: label, route: item.route, adminOnly: true);
+  }).toList();
+}

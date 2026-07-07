@@ -50,6 +50,18 @@ class AuthenticationNotifier extends StateNotifier<AuthedUser?> {
     await preferences.setString('authed_user', jsonEncode(user.toJson()));
   }
 
+  Future<void> refreshUser() async {
+    final token = state?.token;
+    if (token == null) return;
+
+    final User user = await AuthenticationService.instance.getMe(authorization: 'Bearer $token');
+    final updated = AuthedUser(user: user, token: token);
+    state = updated;
+
+    final SharedPreferences preferences = await SharedPreferences.getInstance();
+    await preferences.setString('authed_user', jsonEncode(updated.toJson()));
+  }
+
   Future<void> logout() async {
     state = null;
 

@@ -1,20 +1,20 @@
 import 'package:balade/core/widgets/loading_overlay.dart';
+import 'package:balade/features/admin/guide_profile/guide_profile_page.dart';
 import 'package:balade/features/admin/guides_management/admin_guides_page.dart';
-import 'package:balade/features/admin/layout/admin_layout.dart';
+import 'package:balade/features/admin/layout/admin_shell.dart';
+import 'package:balade/features/admin/ramble_details_page/admin_ramble_details_page.dart';
 import 'package:balade/features/admin/rambles_management/admin_rambles_page.dart';
 import 'package:balade/features/admin/registrations_management/admin_registrations_page.dart';
 import 'package:balade/features/admin/settings/admin_settings_page.dart';
-import 'package:balade/features/authentication/admin_login_page.dart';
 import 'package:balade/features/authentication/data/models/authed_user/authed_user.dart';
+import 'package:balade/features/authentication/login_page.dart';
 import 'package:balade/features/navigation/main_page/main_page.dart';
 import 'package:balade/features/payments/payment_page.dart';
 import 'package:balade/features/ramble/add_ramble_page/add_ramble_page.dart';
-import 'package:balade/features/authentication/login_page.dart';
 import 'package:balade/features/ramble/edit_ramble_page/edit_ramble_page.dart';
-import 'package:balade/features/registrations/user_registrations_page.dart';
 import 'package:balade/features/ramble/public_ramble_details_page/public_ramble_details_page.dart';
 import 'package:balade/features/ramble/public_rambles_page/public_rambles_page.dart';
-import 'package:balade/features/admin/ramble_details_page/admin_ramble_details_page.dart';
+import 'package:balade/features/registrations/user_registrations_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -119,7 +119,7 @@ GoRouter router(AuthedUser? loggedUser) => GoRouter(
         ),
         // Admin routes with nested layout
         ShellRoute(
-          builder: (context, state, child) => loggedUser == null ? AdminLoginPage() : AdminLayout(child: child),
+          builder: (context, state, child) => AdminShell(child: child),
           routes: [
             GoRoute(
               path: "/admin",
@@ -154,6 +154,10 @@ GoRouter router(AuthedUser? loggedUser) => GoRouter(
             GoRoute(
               path: "/admin/inscriptions",
               pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const AdminRegistrationsPage()),
+            ),
+            GoRoute(
+              path: "/admin/mon-profil",
+              pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const GuideProfilePage()),
             ),
             GoRoute(
               path: "/admin/parametres",

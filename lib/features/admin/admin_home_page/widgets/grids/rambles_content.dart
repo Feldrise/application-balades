@@ -17,6 +17,7 @@ class RamblesGrid extends StatelessWidget {
     this.childAspectRatio = 1.2,
     this.padding = const EdgeInsets.all(24),
     this.spacing = 24,
+    this.canManage,
   });
 
   final List<Ramble> rambles;
@@ -27,6 +28,11 @@ class RamblesGrid extends StatelessWidget {
   final double childAspectRatio;
   final EdgeInsets padding;
   final double spacing;
+  final bool Function(Ramble)? canManage;
+
+  VoidCallback? _editCallback(Ramble ramble) => canManage == null || canManage!(ramble) ? () => onEdit(ramble) : null;
+
+  VoidCallback? _cancelCallback(Ramble ramble) => canManage == null || canManage!(ramble) ? () => onCancel(ramble) : null;
 
   @override
   Widget build(BuildContext context) {
@@ -54,37 +60,36 @@ class RamblesGrid extends StatelessWidget {
       ),
       itemCount: rambles.length,
       itemBuilder: (context, index) {
-        return RambleAdminCard(ramble: rambles[index], onEdit: () => onEdit(rambles[index]), onCancel: () => onCancel(rambles[index]));
+        return RambleAdminCard(ramble: rambles[index], onEdit: _editCallback(rambles[index]), onCancel: _cancelCallback(rambles[index]));
       },
     );
   }
 
   Widget _buildCompactGrid() {
-    // Determine responsive grid layout
     return LayoutBuilder(
       builder: (context, constraints) {
         int responsiveCrossAxisCount;
         if (constraints.maxWidth > 1200) {
-          responsiveCrossAxisCount = 4; // Desktop: 4 columns
+          responsiveCrossAxisCount = 4;
         } else if (constraints.maxWidth > 900) {
-          responsiveCrossAxisCount = 3; // Large tablet: 3 columns
+          responsiveCrossAxisCount = 3;
         } else if (constraints.maxWidth > 600) {
-          responsiveCrossAxisCount = 2; // Small tablet: 2 columns
+          responsiveCrossAxisCount = 2;
         } else {
-          responsiveCrossAxisCount = 1; // Mobile: 1 column
+          responsiveCrossAxisCount = 1;
         }
 
         return GridView.builder(
           padding: padding,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: responsiveCrossAxisCount,
-            mainAxisExtent: 290, // Fixed height for consistent layout
+            mainAxisExtent: 290,
             crossAxisSpacing: spacing,
             mainAxisSpacing: spacing,
           ),
           itemCount: rambles.length,
           itemBuilder: (context, index) {
-            return RambleCompactCard(ramble: rambles[index], onEdit: () => onEdit(rambles[index]), onCancel: () => onCancel(rambles[index]));
+            return RambleCompactCard(ramble: rambles[index], onEdit: _editCallback(rambles[index]), onCancel: _cancelCallback(rambles[index]));
           },
         );
       },
@@ -94,15 +99,13 @@ class RamblesGrid extends StatelessWidget {
   Widget _buildTableView() {
     return Column(
       children: [
-        // Table header
         RambleTableRow(ramble: null, isHeader: true),
-        // Table rows
         Expanded(
           child: ListView.builder(
             padding: EdgeInsets.zero,
             itemCount: rambles.length,
             itemBuilder: (context, index) {
-              return RambleTableRow(ramble: rambles[index], onEdit: () => onEdit(rambles[index]), onCancel: () => onCancel(rambles[index]));
+              return RambleTableRow(ramble: rambles[index], onEdit: _editCallback(rambles[index]), onCancel: _cancelCallback(rambles[index]));
             },
           ),
         ),
@@ -117,7 +120,7 @@ class RamblesGrid extends StatelessWidget {
       itemBuilder: (context, index) {
         return Padding(
           padding: EdgeInsets.symmetric(vertical: spacing / 2),
-          child: RambleAdminCard(ramble: rambles[index], onEdit: () => onEdit(rambles[index]), onCancel: () => onCancel(rambles[index])),
+          child: RambleAdminCard(ramble: rambles[index], onEdit: _editCallback(rambles[index]), onCancel: _cancelCallback(rambles[index])),
         );
       },
     );
