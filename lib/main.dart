@@ -1,3 +1,5 @@
+import 'package:balade/core/configure_url_strategy_stub.dart'
+    if (dart.library.html) 'package:balade/core/configure_url_strategy_web.dart';
 import 'package:balade/core/widgets/splash_screen.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/authentication/data/models/authed_user/authed_user.dart';
@@ -5,13 +7,12 @@ import 'package:balade/features/navigation/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'package:intl/intl_standalone.dart';
 import 'util.dart';
 import 'themes/theme.dart';
 
 Future<void> main() async {
-  usePathUrlStrategy();
+  configureUrlStrategy();
 
   WidgetsFlutterBinding.ensureInitialized();
 
