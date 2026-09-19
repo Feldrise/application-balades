@@ -1,9 +1,13 @@
 import 'package:balade/core/dialogs/closable_dialog.dart';
 import 'package:balade/core/widgets/error_snackbar.dart';
+import 'package:balade/core/widgets/searchable_dropdown.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/guides/guides_service.dart';
 import 'package:balade/features/guides/models/guide/guide.dart';
 import 'package:balade/features/guides/widgets/guide_form.dart';
+import 'package:balade/features/users/models/user/user.dart';
+import 'package:balade/features/users/user_display.dart';
+import 'package:balade/features/users/users_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -18,19 +22,13 @@ class EditGuideDialog extends ConsumerStatefulWidget {
 
 class _EditGuideDialogState extends ConsumerState<EditGuideDialog> {
   final GlobalKey<GuideFormState> _formKey = GlobalKey<GuideFormState>();
-  final _userIdController = TextEditingController();
+  User? _selectedUser;
   bool _linkingUser = false;
 
-  @override
-  void dispose() {
-    _userIdController.dispose();
-    super.dispose();
-  }
-
   Future<void> _linkUser() async {
-    final userId = int.tryParse(_userIdController.text.trim());
+    final userId = _selectedUser?.id;
     if (userId == null) {
-      ErrorSnackbar.show(context, 'Veuillez entrer un ID utilisateur valide');
+      ErrorSnackbar.show(context, 'Veuillez sélectionner un utilisateur');
       return;
     }
 
@@ -99,22 +97,36 @@ class _EditGuideDialogState extends ConsumerState<EditGuideDialog> {
                     child: Text('Lier un utilisateur', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                   ),
                   const SizedBox(height: 8),
-                  const Text('Associez ce profil guide à un compte utilisateur existant (par ID). Le rôle guide sera accordé automatiquement.'),
+                  const Text('Associez ce profil guide à un compte utilisateur existant. Le rôle guide sera accordé automatiquement.'),
                   const SizedBox(height: 12),
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: TextField(
-                          controller: _userIdController,
-                          decoration: const InputDecoration(labelText: 'ID utilisateur', border: OutlineInputBorder()),
-                          keyboardType: TextInputType.number,
+                        child: SearchableDropdown<User>(
+                          label: 'Rechercher un utilisateur',
+                          value: _selectedUser,
+                          displayStringForOption: userDisplayLabel,
+                          optionsBuilder: (textEditingValue) async {
+                            final token = ref.read(authenticationProvider)?.token;
+                            if (token == null) return [];
+
+                            return UsersService.instance.searchUsers(textEditingValue.text, authorization: token);
+                          },
+                          onSelected: (user) {
+                            setState(() => _selectedUser = user);
+                          },
+                          shouldResetOnTap: false,
                         ),
                       ),
                       const SizedBox(width: 12),
-                      FilledButton.icon(
-                        onPressed: _linkingUser ? null : _linkUser,
-                        icon: _linkingUser ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.link),
-                        label: const Text('Lier'),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: FilledButton.icon(
+                          onPressed: _linkingUser || _selectedUser == null ? null : _linkUser,
+                          icon: _linkingUser ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.link),
+                          label: const Text('Lier'),
+                        ),
                       ),
                     ],
                   ),
