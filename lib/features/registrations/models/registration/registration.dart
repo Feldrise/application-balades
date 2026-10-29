@@ -38,29 +38,6 @@ abstract class RegistrationRambleSummary with _$RegistrationRambleSummary {
 }
 
 @freezed
-abstract class RegistrationParticipant with _$RegistrationParticipant {
-  const factory RegistrationParticipant({
-    @JsonKey(name: 'first_name') required String firstName,
-    @JsonKey(name: 'last_name') required String lastName,
-    required String email,
-    String? phone,
-  }) = _RegistrationParticipant;
-
-  factory RegistrationParticipant.fromJson(Map<String, Object?> json) => _$RegistrationParticipantFromJson(json);
-}
-
-@freezed
-abstract class CreateRegistrationRequest with _$CreateRegistrationRequest {
-  const factory CreateRegistrationRequest({
-    @JsonKey(name: 'ramble_id') required int rambleId,
-    required List<RegistrationParticipant> participants,
-    @JsonKey(name: 'primary_email') String? primaryEmail,
-  }) = _CreateRegistrationRequest;
-
-  factory CreateRegistrationRequest.fromJson(Map<String, Object?> json) => _$CreateRegistrationRequestFromJson(json);
-}
-
-@freezed
 abstract class ConfirmRegistrationRequest with _$ConfirmRegistrationRequest {
   const factory ConfirmRegistrationRequest({required bool confirmed}) = _ConfirmRegistrationRequest;
 
@@ -72,38 +49,4 @@ abstract class CancelRegistrationRequest with _$CancelRegistrationRequest {
   const factory CancelRegistrationRequest({String? reason}) = _CancelRegistrationRequest;
 
   factory CancelRegistrationRequest.fromJson(Map<String, Object?> json) => _$CancelRegistrationRequestFromJson(json);
-}
-
-enum RegistrationStatus {
-  pending,
-  @JsonValue('waiting_list')
-  waitingList,
-  confirmed,
-  cancelled;
-
-  String get label {
-    switch (this) {
-      case RegistrationStatus.pending:
-        return 'En attente de confirmation';
-      case RegistrationStatus.waitingList:
-        return 'Liste d\'attente';
-      case RegistrationStatus.confirmed:
-        return 'Confirmé';
-      case RegistrationStatus.cancelled:
-        return 'Annulé';
-    }
-  }
-
-  String get description {
-    switch (this) {
-      case RegistrationStatus.pending:
-        return 'Votre inscription est confirmée. Vous recevrez un email de confirmation finale 3 jours avant la balade.';
-      case RegistrationStatus.waitingList:
-        return 'La balade est complète. Vous êtes sur liste d\'attente et serez notifié si une place se libère.';
-      case RegistrationStatus.confirmed:
-        return 'Votre participation est confirmée. Rendez-vous le jour J !';
-      case RegistrationStatus.cancelled:
-        return 'Votre inscription a été annulée.';
-    }
-  }
 }

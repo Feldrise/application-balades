@@ -14,18 +14,6 @@ class RegistrationsService {
 
   static final RegistrationsService instance = RegistrationsService._();
 
-  /// Create a new registration for a ramble
-  /// Supports both single and group registrations (1-10 participants)
-  Future<Registration> createRegistration(CreateRegistrationRequest request) async {
-    final http.Response response = await http.post(Uri.parse(serviceBaseUrl), headers: {'Content-Type': 'application/json'}, body: jsonEncode(request.toJson()));
-
-    if (response.statusCode == 201) {
-      return Registration.fromJson(jsonDecode(response.body) as Map<String, Object?>);
-    } else {
-      throw Exception('Failed to create registration: ${response.body}');
-    }
-  }
-
   /// Get registration details by ID
   Future<Registration> fetchRegistration(int id) async {
     final Uri uri = Uri.parse('$serviceBaseUrl/$id');
@@ -35,18 +23,6 @@ class RegistrationsService {
       return Registration.fromJson(jsonDecode(response.body) as Map<String, Object?>);
     } else {
       throw Exception('Failed to load registration: ${response.body}');
-    }
-  }
-
-  /// Get all registrations for the authenticated user
-  Future<List<Registration>> fetchUserRegistrations({required String authorization}) async {
-    final http.Response response = await http.get(Uri.parse(serviceBaseUrl), headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $authorization'});
-
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonList = jsonDecode(response.body) as List<dynamic>;
-      return jsonList.map((json) => Registration.fromJson(json as Map<String, Object?>)).toList();
-    } else {
-      throw Exception('Failed to load user registrations: ${response.body}');
     }
   }
 

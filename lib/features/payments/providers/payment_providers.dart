@@ -2,6 +2,10 @@ import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/payments/models/payment.dart';
 import 'package:balade/features/payments/services/payments_service.dart';
 import 'package:balade/features/payments/services/stripe_service.dart';
+import 'package:balade/features/ramble/models/ramble/ramble.dart';
+import 'package:balade/features/ramble/public_rambles_page/providers/public_rambles_provider.dart';
+import 'package:balade/features/registrations/models/registration/registration.dart';
+import 'package:balade/features/registrations/registrations_service.dart';
 import 'package:balade/features/registrations/services/registration_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
@@ -14,6 +18,20 @@ final paymentsServiceProvider = Provider<PaymentsService>((ref) {
 // Provider for registration service
 final registrationServiceProvider = Provider<RegistrationService>((ref) {
   return RegistrationService.instance;
+});
+
+// Provider for the ramble being paid, with its payment guide
+final rambleDetailsProvider = FutureProvider.autoDispose.family<Ramble, int>((ref, rambleId) async {
+  final authed = ref.watch(authenticationProvider);
+  final service = ref.read(ramblesServiceProvider);
+
+  return await service.fetchRamble(rambleId, authorization: authed?.token);
+});
+
+// Provider for the registration being paid. The payment page still pays legacy registrations
+// until the confirmation and payment of reservations replaces it.
+final registrationProvider = FutureProvider.autoDispose.family<Registration, int>((ref, id) async {
+  return await RegistrationsService.instance.fetchRegistration(id);
 });
 
 // Provider for Stripe service

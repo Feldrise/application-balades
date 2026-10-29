@@ -77,42 +77,6 @@ Map<String, dynamic> _$RegistrationRambleSummaryToJson(
   'location': instance.location,
 };
 
-_RegistrationParticipant _$RegistrationParticipantFromJson(
-  Map<String, dynamic> json,
-) => _RegistrationParticipant(
-  firstName: json['first_name'] as String,
-  lastName: json['last_name'] as String,
-  email: json['email'] as String,
-  phone: json['phone'] as String?,
-);
-
-Map<String, dynamic> _$RegistrationParticipantToJson(
-  _RegistrationParticipant instance,
-) => <String, dynamic>{
-  'first_name': instance.firstName,
-  'last_name': instance.lastName,
-  'email': instance.email,
-  'phone': instance.phone,
-};
-
-_CreateRegistrationRequest _$CreateRegistrationRequestFromJson(
-  Map<String, dynamic> json,
-) => _CreateRegistrationRequest(
-  rambleId: (json['ramble_id'] as num).toInt(),
-  participants: (json['participants'] as List<dynamic>)
-      .map((e) => RegistrationParticipant.fromJson(e as Map<String, dynamic>))
-      .toList(),
-  primaryEmail: json['primary_email'] as String?,
-);
-
-Map<String, dynamic> _$CreateRegistrationRequestToJson(
-  _CreateRegistrationRequest instance,
-) => <String, dynamic>{
-  'ramble_id': instance.rambleId,
-  'participants': instance.participants,
-  'primary_email': instance.primaryEmail,
-};
-
 _ConfirmRegistrationRequest _$ConfirmRegistrationRequestFromJson(
   Map<String, dynamic> json,
 ) => _ConfirmRegistrationRequest(confirmed: json['confirmed'] as bool);

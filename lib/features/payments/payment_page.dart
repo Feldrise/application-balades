@@ -4,7 +4,6 @@ import 'package:balade/features/payments/widgets/payment_summary_card.dart';
 import 'package:balade/features/payments/widgets/price_selection_widget.dart';
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
 import 'package:balade/features/registrations/models/registration/registration.dart';
-import 'package:balade/features/registrations/providers/registration_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' hide Card;
