@@ -1,14 +1,15 @@
+import 'package:balade/features/admin/reservations_management/models/admin_reservation_filter.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
 import 'package:balade/features/ramble/public_ramble_details_page/widgets/ramble_details_header.dart';
 import 'package:balade/features/ramble/public_ramble_details_page/widgets/ramble_details_info.dart';
 import 'package:balade/features/ramble/rambles_service.dart';
-import 'package:balade/features/registrations/models/registration/registration.dart';
-import 'package:balade/features/registrations/registrations_service.dart';
+import 'package:balade/features/reservations/models/reservation/reservation.dart';
+import 'package:balade/features/reservations/reservations_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'widgets/admin_participants_list.dart';
+import 'widgets/admin_reservations_list.dart';
 import 'widgets/additional_documents_card.dart';
 
 class AdminRambleDetailsPage extends ConsumerStatefulWidget {
@@ -21,7 +22,7 @@ class AdminRambleDetailsPage extends ConsumerStatefulWidget {
 }
 
 class _AdminRambleDetailsPageState extends ConsumerState<AdminRambleDetailsPage> {
-  late Future<(Ramble, List<Registration>)> _future;
+  late Future<(Ramble, List<Reservation>)> _future;
 
   @override
   void initState() {
@@ -29,17 +30,17 @@ class _AdminRambleDetailsPageState extends ConsumerState<AdminRambleDetailsPage>
     _future = _load();
   }
 
-  Future<(Ramble, List<Registration>)> _load() async {
+  Future<(Ramble, List<Reservation>)> _load() async {
     final auth = ref.read(authenticationProvider);
     final token = auth?.token;
 
     try {
       final rambleFuture = RamblesService.instance.fetchRamble(widget.rambleId, includeUnpublished: true, authorization: token);
-      final registrationsFuture = token == null
-          ? Future.value(<Registration>[]) // no token: avoid 401 spam; page will show warning
-          : RegistrationsService.instance.fetchRambleRegistrations(widget.rambleId, authorization: token);
-      final result = await Future.wait([rambleFuture, registrationsFuture]);
-      return (result[0] as Ramble, result[1] as List<Registration>);
+      final reservationsFuture = token == null
+          ? Future.value(<Reservation>[]) // no token: avoid 401 spam; page will show warning
+          : ReservationsService.instance.fetchAdminReservations(token: token, filter: AdminReservationFilter(rambleId: widget.rambleId), perPage: 500).then((list) => list.reservations);
+      final result = await Future.wait([rambleFuture, reservationsFuture]);
+      return (result[0] as Ramble, result[1] as List<Reservation>);
     } catch (e) {
       rethrow;
     }
@@ -49,7 +50,7 @@ class _AdminRambleDetailsPageState extends ConsumerState<AdminRambleDetailsPage>
   Widget build(BuildContext context) {
     final authed = ref.watch(authenticationProvider);
     final hasToken = (authed?.token ?? '').isNotEmpty;
-    return FutureBuilder<(Ramble, List<Registration>)>(
+    return FutureBuilder<(Ramble, List<Reservation>)>(
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -80,7 +81,7 @@ class _AdminRambleDetailsPageState extends ConsumerState<AdminRambleDetailsPage>
         }
 
         final ramble = snapshot.data!.$1;
-        final registrations = snapshot.data!.$2;
+        final reservations = snapshot.data!.$2;
 
         final screenWidth = MediaQuery.of(context).size.width;
         final isDesktop = screenWidth >= 1200;
@@ -90,7 +91,7 @@ class _AdminRambleDetailsPageState extends ConsumerState<AdminRambleDetailsPage>
           body: CustomScrollView(
             slivers: [
               RambleDetailsHeader(ramble: ramble, onBack: () => Navigator.of(context).pop()),
-              SliverToBoxAdapter(child: _buildResponsiveContent(context, ramble, registrations, isDesktop, isTablet, hasToken)),
+              SliverToBoxAdapter(child: _buildResponsiveContent(context, ramble, reservations, isDesktop, isTablet, hasToken)),
             ],
           ),
         );
@@ -98,13 +99,13 @@ class _AdminRambleDetailsPageState extends ConsumerState<AdminRambleDetailsPage>
     );
   }
 
-  Widget _buildResponsiveContent(BuildContext context, Ramble ramble, List<Registration> registrations, bool isDesktop, bool isTablet, bool hasToken) {
-    if (isDesktop) return _buildDesktopLayout(context, ramble, registrations, hasToken);
-    if (isTablet) return _buildTabletLayout(context, ramble, registrations, hasToken);
-    return _buildMobileLayout(context, ramble, registrations, hasToken);
+  Widget _buildResponsiveContent(BuildContext context, Ramble ramble, List<Reservation> reservations, bool isDesktop, bool isTablet, bool hasToken) {
+    if (isDesktop) return _buildDesktopLayout(context, ramble, reservations, hasToken);
+    if (isTablet) return _buildTabletLayout(context, ramble, reservations, hasToken);
+    return _buildMobileLayout(context, ramble, reservations, hasToken);
   }
 
-  Widget _buildDesktopLayout(BuildContext context, Ramble ramble, List<Registration> registrations, bool hasToken) {
+  Widget _buildDesktopLayout(BuildContext context, Ramble ramble, List<Reservation> reservations, bool hasToken) {
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Row(
@@ -135,15 +136,15 @@ class _AdminRambleDetailsPageState extends ConsumerState<AdminRambleDetailsPage>
                         children: [
                           Icon(Icons.lock_outline, color: Theme.of(context).colorScheme.onSurfaceVariant),
                           const SizedBox(width: 8),
-                          Expanded(child: Text('Connectez-vous en tant qu\'administrateur pour voir les inscriptions.', style: Theme.of(context).textTheme.bodyMedium)),
+                          Expanded(child: Text('Connectez-vous en tant qu\'administrateur pour voir les réservations.', style: Theme.of(context).textTheme.bodyMedium)),
                         ],
                       ),
                     ),
                   ),
-                AdminParticipantsList(
-                  registrations: registrations,
+                AdminReservationsList(
+                  reservations: reservations,
                   maxParticipants: ramble.maxParticipants,
-                  onConfirmRegistration: (registration, confirmed) => _handleConfirm(registration, confirmed),
+                  onRefresh: _reload,
                 ),
               ],
             ),
@@ -153,7 +154,7 @@ class _AdminRambleDetailsPageState extends ConsumerState<AdminRambleDetailsPage>
     );
   }
 
-  Widget _buildTabletLayout(BuildContext context, Ramble ramble, List<Registration> registrations, bool hasToken) {
+  Widget _buildTabletLayout(BuildContext context, Ramble ramble, List<Reservation> reservations, bool hasToken) {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -171,22 +172,22 @@ class _AdminRambleDetailsPageState extends ConsumerState<AdminRambleDetailsPage>
                   children: [
                     Icon(Icons.lock_outline, color: Theme.of(context).colorScheme.onSurfaceVariant),
                     const SizedBox(width: 8),
-                    Expanded(child: Text('Connectez-vous en tant qu\'administrateur pour voir les inscriptions.', style: Theme.of(context).textTheme.bodyMedium)),
+                    Expanded(child: Text('Connectez-vous en tant qu\'administrateur pour voir les réservations.', style: Theme.of(context).textTheme.bodyMedium)),
                   ],
                 ),
               ),
             ),
-          AdminParticipantsList(
-            registrations: registrations,
+          AdminReservationsList(
+            reservations: reservations,
             maxParticipants: ramble.maxParticipants,
-            onConfirmRegistration: (registration, confirmed) => _handleConfirm(registration, confirmed),
+            onRefresh: _reload,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMobileLayout(BuildContext context, Ramble ramble, List<Registration> registrations, bool hasToken) {
+  Widget _buildMobileLayout(BuildContext context, Ramble ramble, List<Reservation> reservations, bool hasToken) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -204,36 +205,26 @@ class _AdminRambleDetailsPageState extends ConsumerState<AdminRambleDetailsPage>
                   children: [
                     Icon(Icons.lock_outline, color: Theme.of(context).colorScheme.onSurfaceVariant),
                     const SizedBox(width: 8),
-                    Expanded(child: Text('Connectez-vous en tant qu\'administrateur pour voir les inscriptions.', style: Theme.of(context).textTheme.bodyMedium)),
+                    Expanded(child: Text('Connectez-vous en tant qu\'administrateur pour voir les réservations.', style: Theme.of(context).textTheme.bodyMedium)),
                   ],
                 ),
               ),
             ),
-          AdminParticipantsList(
-            registrations: registrations,
+          AdminReservationsList(
+            reservations: reservations,
             maxParticipants: ramble.maxParticipants,
-            onConfirmRegistration: (registration, confirmed) => _handleConfirm(registration, confirmed),
+            onRefresh: _reload,
           ),
         ],
       ),
     );
   }
 
-  Future<void> _handleConfirm(Registration registration, bool confirmed) async {
-    final auth = ref.read(authenticationProvider);
-    final token = auth?.token;
-    if (token == null || token.isEmpty) return;
-    try {
-      await RegistrationsService.instance.confirmRegistration(registration.id, confirmed, authorization: 'Bearer $token');
-      if (mounted) {
-        setState(() {
-          _future = _load();
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Échec de la confirmation: $e')));
-      }
+  void _reload() {
+    if (mounted) {
+      setState(() {
+        _future = _load();
+      });
     }
   }
 }

@@ -43,8 +43,8 @@ const List<AdminNavigationItem> adminNavigationItems = [
   AdminNavigationItem(
     icon: Icons.how_to_reg_outlined,
     selectedIcon: Icons.how_to_reg,
-    label: 'Inscriptions',
-    route: '/admin/inscriptions',
+    label: 'Réservations',
+    route: '/admin/reservations',
     description: 'Gestion des réservations',
   ),
   AdminNavigationItem(
