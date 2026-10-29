@@ -5,7 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-Reservation _reservation({String status = 'pending', bool paid = false, List<Map<String, Object?>>? participants, bool hasMissingPrices = false, int estimatedAmount = 1850}) => Reservation.fromJson({
+Reservation _reservation({
+  String status = 'pending',
+  bool paid = false,
+  List<Map<String, Object?>>? participants,
+  bool hasMissingPrices = false,
+  int estimatedAmount = 1850,
+  String? confirmationDeadline,
+}) => Reservation.fromJson({
   'id': 12,
   'created_at': '2026-11-02T10:00:00Z',
   'updated_at': '2026-11-02T10:00:00Z',
@@ -13,6 +20,7 @@ Reservation _reservation({String status = 'pending', bool paid = false, List<Map
   'user_id': 7,
   'contact_email': 'claire@example.com',
   'status': status,
+  'confirmation_deadline': confirmationDeadline,
   'participants':
       participants ??
       [
@@ -104,5 +112,24 @@ void main() {
     expect(find.text('Ajouter des participants'), findsNothing);
     expect(find.text('Annuler la réservation'), findsNothing);
     expect(find.byTooltip('Retirer'), findsNothing);
+  });
+
+  testWidgets('asks to confirm a pending reservation once the confirmation is requested', (tester) async {
+    await _pump(tester, _reservation(confirmationDeadline: '2026-11-30T21:00:00Z'));
+
+    expect(find.text('Confirmer ma réservation'), findsOneWidget);
+    expect(find.textContaining('Confirmez votre réservation avant le'), findsOneWidget);
+  });
+
+  testWidgets('does not ask to confirm before the confirmation is requested', (tester) async {
+    await _pump(tester, _reservation());
+
+    expect(find.text('Confirmer ma réservation'), findsNothing);
+  });
+
+  testWidgets('offers to add participants to a confirmed reservation', (tester) async {
+    await _pump(tester, _reservation(status: 'confirmed', paid: true));
+
+    expect(find.text('Ajouter des participants'), findsOneWidget);
   });
 }

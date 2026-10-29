@@ -1,5 +1,7 @@
 import 'package:balade/features/reservations/models/reservation/reservation.dart';
+import 'package:balade/features/reservations/providers/reservation_providers.dart';
 import 'package:balade/features/reservations/reservation_format.dart';
+import 'package:balade/features/reservations/widgets/confirm_reservation_sheet.dart';
 import 'package:balade/features/reservations/widgets/reservation_actions.dart';
 import 'package:balade/features/reservations/widgets/reservation_status_chip.dart';
 import 'package:flutter/material.dart';
@@ -45,6 +47,13 @@ class ReservationCard extends StatelessWidget {
               _InfoRow(icon: Icons.event, text: '${DateFormat('EEEE dd MMMM yyyy', 'fr').format(date)} à ${DateFormat('HH:mm').format(date)}'),
             ],
             if (ramble?.location != null && ramble!.location!.isNotEmpty) ...[const SizedBox(height: 4), _InfoRow(icon: Icons.place_outlined, text: ramble.location!)],
+            if (canConfirm(reservation) && reservation.confirmationDeadline != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Confirmez votre réservation avant le ${DateFormat('dd/MM/yyyy à HH:mm', 'fr').format(reservation.confirmationDeadline!.toLocal())}, sinon elle sera annulée.',
+                style: theme.textTheme.bodySmall?.copyWith(color: Colors.orange.shade800, fontWeight: FontWeight.w600),
+              ),
+            ],
             if (reservation.status == 'waiting_list') ...[
               const SizedBox(height: 8),
               Text('Toute la réservation est en liste d\'attente et passera en entier dès que la place le permettra.', style: theme.textTheme.bodySmall?.copyWith(color: Colors.blue.shade700)),
@@ -149,6 +158,9 @@ class _ReservationActions extends ConsumerWidget {
       runSpacing: 8,
       alignment: WrapAlignment.end,
       children: [
+        if (canConfirm(reservation))
+          FilledButton.icon(onPressed: () => showConfirmReservationSheet(context, reservation), icon: const Icon(Icons.event_available), label: const Text('Confirmer ma réservation')),
+        if (reservation.status == 'confirmed' && !reservation.hasMissingPrices && amountDue(reservation) > 0) _PayButton(reservation: reservation),
         if (canAddParticipants(reservation))
           FilledButton.tonalIcon(onPressed: () => showAddParticipantsSheet(context, reservation), icon: const Icon(Icons.group_add), label: const Text('Ajouter des participants')),
         OutlinedButton.icon(
@@ -157,6 +169,25 @@ class _ReservationActions extends ConsumerWidget {
           label: Text('Annuler la réservation', style: TextStyle(color: theme.colorScheme.error)),
         ),
       ],
+    );
+  }
+}
+
+/// Pays what a confirmed reservation still owes, when the ramble takes online payment.
+class _PayButton extends ConsumerWidget {
+  const _PayButton({required this.reservation});
+
+  final Reservation reservation;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final paymentEnabled = ref.watch(reservationRambleProvider(reservation.rambleId)).value?.paymentEnabled ?? false;
+    if (!paymentEnabled) return const SizedBox.shrink();
+
+    return FilledButton.icon(
+      onPressed: () => context.push(reservationPaymentLocation(reservation.id)),
+      icon: const Icon(Icons.credit_card),
+      label: Text('Payer ${formatCents(amountDue(reservation))}'),
     );
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/reservations/models/reservation/reservation.dart';
 import 'package:balade/features/reservations/providers/reservation_providers.dart';
@@ -9,8 +11,29 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Participants can be modified until the reservation is paid.
 bool canModifyParticipants(Reservation reservation) => reservation.status != 'cancelled' && !reservation.hasSuccessfulPayment;
 
-/// Participants can be added to a reservation that is pending or in waiting list.
-bool canAddParticipants(Reservation reservation) => reservation.status == 'pending' || reservation.status == 'waiting_list';
+/// Participants can be added to a reservation that is not cancelled; added to a confirmed reservation,
+/// they are confirmed with it and their tariffs are paid right away.
+bool canAddParticipants(Reservation reservation) => reservation.status != 'cancelled';
+
+/// How long before the ramble the booker is asked to confirm and pay.
+const kConfirmationPeriod = Duration(days: 3);
+
+/// A pending reservation is to be confirmed once the confirmation is requested, 3 days before the ramble.
+bool canConfirm(Reservation reservation, {DateTime? now}) {
+  if (reservation.status != 'pending') return false;
+  if (reservation.confirmationDeadline != null) return true;
+  final date = reservation.ramble?.date;
+  return date != null && date.difference(now ?? DateTime.now()) <= kConfirmationPeriod;
+}
+
+/// The amount in cents left to pay: the estimated amount minus the succeeded payments.
+int amountDue(Reservation reservation) {
+  final paid = reservation.payments.where((p) => p.status == 'succeeded').fold(0, (sum, p) => sum + p.amount);
+  return max(reservation.estimatedAmount - paid, 0);
+}
+
+/// Where the booker pays what their reservation still owes.
+String reservationPaymentLocation(int reservationId) => '/mes-reservations/$reservationId/paiement';
 
 /// The message shown to the booker when the API refuses a change on their reservation.
 String reservationErrorMessage(ReservationException error) {
@@ -25,8 +48,10 @@ String reservationErrorMessage(ReservationException error) {
       return 'La réservation est déjà payée : ses participants ne peuvent plus être modifiés.';
     case 'reservation_cancelled':
       return 'Cette réservation est annulée.';
-    case 'reservation_confirmed':
-      return 'Votre réservation est déjà confirmée : l\'ajout de participants n\'est pas encore possible.';
+    case 'missing_prices':
+      return 'Précisez d\'abord le tarif de chaque participant : le montant à payer doit être complet.';
+    case 'reservation_waiting_list':
+      return 'Votre réservation est en liste d\'attente : elle ne peut pas encore être confirmée.';
     case 'second_booker':
       return 'Un seul participant peut être la personne qui réserve.';
     default:
@@ -52,6 +77,7 @@ Future<Reservation?> _runChange(BuildContext context, WidgetRef ref, Future<Rese
   try {
     final reservation = await change(ref.read(reservationsServiceProvider), token);
     ref.invalidate(userReservationsProvider);
+    ref.invalidate(reservationProvider);
     return reservation;
   } on ReservationException catch (e) {
     messenger.showSnackBar(SnackBar(content: Text(reservationErrorMessage(e))));

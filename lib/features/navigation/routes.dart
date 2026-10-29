@@ -15,6 +15,9 @@ import 'package:balade/features/ramble/add_ramble_page/add_ramble_page.dart';
 import 'package:balade/features/ramble/edit_ramble_page/edit_ramble_page.dart';
 import 'package:balade/features/ramble/public_ramble_details_page/public_ramble_details_page.dart';
 import 'package:balade/features/ramble/public_rambles_page/public_rambles_page.dart';
+import 'package:balade/features/reservations/reservation_details_page.dart';
+import 'package:balade/features/reservations/reservation_payment_page.dart';
+import 'package:balade/features/reservations/reservations_service.dart';
 import 'package:balade/features/reservations/user_reservations_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -77,6 +80,27 @@ GoRouter router(AuthedUser? loggedUser) => GoRouter(
             state: state,
             child: UserReservationsPage(addToReservationId: int.tryParse(state.uri.queryParameters['ajouter'] ?? '')),
           ),
+          routes: [
+            GoRoute(
+              path: ":id",
+              pageBuilder: (context, state) {
+                final id = int.tryParse(state.pathParameters['id'] ?? '');
+                final child = id == null ? const Scaffold(body: Center(child: Text('ID de réservation invalide'))) : ReservationDetailsPage(reservationId: id);
+                return _buildPageWithDefaultTransition(context: context, state: state, child: child);
+              },
+              routes: [
+                GoRoute(
+                  path: "paiement",
+                  pageBuilder: (context, state) {
+                    final id = int.tryParse(state.pathParameters['id'] ?? '');
+                    final payment = state.extra is PaymentToMake ? state.extra as PaymentToMake : null;
+                    final child = id == null ? const Scaffold(body: Center(child: Text('ID de réservation invalide'))) : ReservationPaymentPage(reservationId: id, payment: payment);
+                    return _buildPageWithDefaultTransition(context: context, state: state, child: child);
+                  },
+                ),
+              ],
+            ),
+          ],
         ),
         GoRoute(
           path: "/paiement/:registrationId",

@@ -14,6 +14,7 @@ import 'package:balade/features/reservations/widgets/reservation_notices.dart';
 import 'package:balade/features/reservations/widgets/reservation_participant_line.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 /// Adds participants to an existing reservation, all of them or none.
 class AddParticipantsSheet extends ConsumerWidget {
@@ -64,8 +65,10 @@ class _AddParticipantsFormState extends ConsumerState<_AddParticipantsForm> {
   /// How many participants the reservation can still take under the per-reservation limit.
   int get _room => widget.ramble.maxParticipantsPerReservation - widget.reservation.participants.length;
 
-  /// Places left for an addition to a pending reservation; a waiting reservation waits as a whole.
-  int? get _placesLeft => widget.reservation.status == 'pending' ? widget.ramble.placesLeft : null;
+  /// Places left for an addition to a pending or confirmed reservation; a waiting reservation waits as a whole.
+  int? get _placesLeft => widget.reservation.status == 'waiting_list' ? null : widget.ramble.placesLeft;
+
+  bool get _isConfirmed => widget.reservation.status == 'confirmed';
 
   bool get _doesNotFit => _placesLeft != null && _draft.total > _placesLeft!;
 
@@ -89,14 +92,18 @@ class _AddParticipantsFormState extends ConsumerState<_AddParticipantsForm> {
       final participants = [
         for (final p in _draft.participants) ParticipantRequest(firstName: p.firstName.trim(), lastName: p.lastName.trim(), priceLabel: p.priceLabel, isBooker: p.isBooker),
       ];
-      await ref.read(reservationsServiceProvider).addParticipants(widget.reservation.id, participants, token: token);
+      final added = await ref.read(reservationsServiceProvider).addParticipants(widget.reservation.id, participants, token: token);
       ref.invalidate(userReservationsProvider);
+      ref.invalidate(reservationProvider);
       ref.invalidate(reservationRambleProvider(widget.reservation.rambleId));
       if (!mounted) return;
 
+      final router = GoRouter.of(context);
       final messenger = ScaffoldMessenger.of(context);
       Navigator.of(context).pop();
       messenger.showSnackBar(SnackBar(content: Text(participants.length > 1 ? 'Participants ajoutés' : 'Participant ajouté')));
+      // Added to a confirmed reservation, the participants' tariffs are paid right away.
+      if (added.payment != null) router.push(reservationPaymentLocation(widget.reservation.id), extra: added.payment);
     } on ReservationException catch (e) {
       if (e.reason == 'not_enough_places') ref.invalidate(reservationRambleProvider(widget.reservation.rambleId));
       setState(() => _error = reservationErrorMessage(e));
@@ -195,7 +202,15 @@ class _AddParticipantsFormState extends ConsumerState<_AddParticipantsForm> {
                     ),
                     const SizedBox(height: 12),
                   ],
-                  const ReservationNotice(icon: Icons.info_outline, message: kConfirmationNotice),
+                  if (_isConfirmed)
+                    ReservationNotice(
+                      icon: Icons.verified_outlined,
+                      message: widget.ramble.paymentEnabled
+                          ? 'Votre réservation est confirmée : les participants ajoutés le sont aussi, et leurs tarifs sont à payer tout de suite.'
+                          : 'Votre réservation est confirmée : les participants ajoutés le sont aussi.',
+                    )
+                  else
+                    const ReservationNotice(icon: Icons.info_outline, message: kConfirmationNotice),
                 ],
                 if (_error != null) ...[const SizedBox(height: 12), ReservationNotice(icon: Icons.error_outline, color: colorScheme.error, message: _error!)],
                 const SizedBox(height: 24),

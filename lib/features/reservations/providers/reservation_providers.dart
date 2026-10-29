@@ -20,6 +20,18 @@ final userReservationsProvider = FutureProvider.autoDispose<List<Reservation>>((
   return service.fetchUserReservations(token: authed.token);
 });
 
+/// One reservation of the connected booker, as the target of the link of the confirmation request.
+final reservationProvider = FutureProvider.autoDispose.family<Reservation, int>((ref, id) async {
+  final authed = ref.watch(authenticationProvider);
+  final service = ref.read(reservationsServiceProvider);
+
+  if (authed == null) {
+    throw Exception('NOT_AUTHENTICATED');
+  }
+
+  return service.fetchReservation(id, token: authed.token);
+});
+
 /// The ramble of a reservation, with its tariffs, places left and guides.
 final reservationRambleProvider = FutureProvider.autoDispose.family<Ramble, int>((ref, rambleId) {
   return RamblesService.instance.fetchRamble(rambleId, authorization: ref.read(authenticationProvider)?.token);
