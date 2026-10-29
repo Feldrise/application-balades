@@ -1,0 +1,163 @@
+import 'dart:convert';
+
+import 'package:balade/features/reservations/models/reservation/create_reservation_request.dart';
+import 'package:balade/features/reservations/reservations_service.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+
+const _reservationJson = {
+  'id': 12,
+  'created_at': '2026-11-02T10:00:00Z',
+  'updated_at': '2026-11-02T10:00:00Z',
+  'ramble_id': 3,
+  'user_id': 7,
+  'contact_email': 'claire@example.com',
+  'status': 'pending',
+  'participants': [
+    {'id': 1, 'first_name': 'Claire', 'last_name': 'Martin', 'price_label': 'Adulte', 'price_amount': 12.5, 'is_booker': true},
+    {'id': 2, 'first_name': 'Léo', 'last_name': 'Martin', 'price_label': 'Enfant', 'price_amount': 6.0, 'is_booker': false},
+  ],
+  'estimated_amount': 1850,
+  'payments': [
+    {'id': 5, 'created_at': '2026-11-02T10:00:00Z', 'amount': 1850, 'currency': 'eur', 'status': 'succeeded'},
+  ],
+  'ramble': {'title': 'Sortie champignons', 'date': '2026-12-01T09:00:00Z', 'location': 'Forêt de Fontainebleau'},
+};
+
+ReservationsService _service(http.Client client) => ReservationsService(client: client, baseUrl: 'http://api.test/api/v1');
+
+void main() {
+  group('fetchUserReservations', () {
+    test('reads the reservations of the booker with participants, amount and payments', () async {
+      late http.Request received;
+      final service = _service(
+        MockClient((request) async {
+          received = request;
+          return http.Response(jsonEncode([_reservationJson]), 200);
+        }),
+      );
+
+      final reservations = await service.fetchUserReservations(token: 'abc');
+
+      expect(received.method, 'GET');
+      expect(received.url.toString(), 'http://api.test/api/v1/reservations');
+      expect(received.headers['Authorization'], 'Bearer abc');
+
+      final reservation = reservations.single;
+      expect(reservation.id, 12);
+      expect(reservation.status, 'pending');
+      expect(reservation.contactEmail, 'claire@example.com');
+      expect(reservation.estimatedAmount, 1850);
+      expect(reservation.ramble?.title, 'Sortie champignons');
+      expect(reservation.participants.map((p) => p.priceLabel), ['Adulte', 'Enfant']);
+      expect(reservation.participants.first.priceAmount, 12.5);
+      expect(reservation.participants.first.isBooker, isTrue);
+      expect(reservation.payments.single.amount, 1850);
+      expect(reservation.payments.single.status, 'succeeded');
+    });
+  });
+
+  group('fetchReservation', () {
+    test('reads one reservation with the token of the booker', () async {
+      late http.Request received;
+      final service = _service(
+        MockClient((r) async {
+          received = r;
+          return http.Response(jsonEncode(_reservationJson), 200);
+        }),
+      );
+
+      final reservation = await service.fetchReservation(12, token: 'abc');
+
+      expect(received.url.toString(), 'http://api.test/api/v1/reservations/12');
+      expect(received.headers['Authorization'], 'Bearer abc');
+      expect(reservation.participants, hasLength(2));
+    });
+
+    test('refuses a reservation the user cannot see', () async {
+      final service = _service(MockClient((_) async => http.Response(jsonEncode({'status': 'forbidden', 'error': 'insufficient permissions'}), 403)));
+
+      await expectLater(service.fetchReservation(12, token: 'abc'), throwsA(isA<ReservationException>()));
+    });
+  });
+
+  group('createReservation', () {
+    const request = CreateReservationRequest(
+      rambleId: 3,
+      contactEmail: 'claire@example.com',
+      contactPhone: '0601020304',
+      participants: [
+        ParticipantRequest(firstName: 'Claire', lastName: 'Martin', priceLabel: 'Adulte', isBooker: true),
+        ParticipantRequest(firstName: 'Léo', lastName: 'Martin', priceLabel: 'Enfant'),
+      ],
+    );
+
+    test('posts the contact and the participants without authentication and returns the reservation', () async {
+      late http.Request received;
+      final service = _service(
+        MockClient((r) async {
+          received = r;
+          return http.Response(jsonEncode(_reservationJson), 201);
+        }),
+      );
+
+      final reservation = await service.createReservation(request);
+
+      expect(received.method, 'POST');
+      expect(received.url.toString(), 'http://api.test/api/v1/reservations');
+      expect(received.headers.containsKey('Authorization'), isFalse);
+      expect(jsonDecode(received.body), {
+        'ramble_id': 3,
+        'contact_email': 'claire@example.com',
+        'contact_phone': '0601020304',
+        'participants': [
+          {'first_name': 'Claire', 'last_name': 'Martin', 'price_label': 'Adulte', 'is_booker': true},
+          {'first_name': 'Léo', 'last_name': 'Martin', 'price_label': 'Enfant', 'is_booker': false},
+        ],
+      });
+      expect(reservation.id, 12);
+    });
+
+    test('omits the phone when it is not given', () async {
+      late http.Request received;
+      final service = _service(
+        MockClient((r) async {
+          received = r;
+          return http.Response(jsonEncode(_reservationJson), 201);
+        }),
+      );
+
+      await service.createReservation(const CreateReservationRequest(rambleId: 3, contactEmail: 'a@b.fr', participants: [ParticipantRequest(firstName: 'A', lastName: 'B')]));
+
+      expect((jsonDecode(received.body) as Map).containsKey('contact_phone'), isFalse);
+    });
+
+    test('reports the existing reservation when one already exists for this ramble and email', () async {
+      final service = _service(
+        MockClient(
+          (_) async => http.Response(
+            jsonEncode({'status': 'a reservation already exists', 'reason': 'reservation_already_exists', 'error': 'a reservation already exists for this ramble and email', 'reservation_id': 9}),
+            409,
+          ),
+        ),
+      );
+
+      await expectLater(
+        service.createReservation(request),
+        throwsA(isA<ReservationAlreadyExistsException>().having((e) => e.reservationId, 'reservationId', 9)),
+      );
+    });
+
+    test('keeps the API message for other refusals', () async {
+      final service = _service(
+        MockClient((_) async => http.Response(jsonEncode({'status': 'x', 'reason': 'too_many_participants', 'error': 'a reservation cannot have more than 2 participants for this ramble'}), 400)),
+      );
+
+      await expectLater(
+        service.createReservation(request),
+        throwsA(isA<ReservationException>().having((e) => e.message, 'message', 'a reservation cannot have more than 2 participants for this ramble').having((e) => e.reason, 'reason', 'too_many_participants')),
+      );
+    });
+  });
+}
