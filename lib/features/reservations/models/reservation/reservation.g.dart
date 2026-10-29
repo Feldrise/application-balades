@@ -30,11 +30,13 @@ _Reservation _$ReservationFromJson(Map<String, dynamic> json) => _Reservation(
           .toList() ??
       const <Participant>[],
   estimatedAmount: (json['estimated_amount'] as num?)?.toInt() ?? 0,
+  hasMissingPrices: json['has_missing_prices'] as bool? ?? false,
   payments:
       (json['payments'] as List<dynamic>?)
           ?.map((e) => ReservationPayment.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const <ReservationPayment>[],
+  hasSuccessfulPayment: json['has_successful_payment'] as bool? ?? false,
   ramble: json['ramble'] == null
       ? null
       : ReservationRambleSummary.fromJson(
@@ -60,7 +62,9 @@ Map<String, dynamic> _$ReservationToJson(
   'cancellation_reason': instance.cancellationReason,
   'participants': instance.participants,
   'estimated_amount': instance.estimatedAmount,
+  'has_missing_prices': instance.hasMissingPrices,
   'payments': instance.payments,
+  'has_successful_payment': instance.hasSuccessfulPayment,
   'ramble': instance.ramble,
 };
 
@@ -70,6 +74,7 @@ _Participant _$ParticipantFromJson(Map<String, dynamic> json) => _Participant(
   lastName: json['last_name'] as String,
   priceLabel: json['price_label'] as String? ?? '',
   priceAmount: (json['price_amount'] as num?)?.toDouble() ?? 0.0,
+  priceMissing: json['price_missing'] as bool? ?? false,
   isBooker: json['is_booker'] as bool? ?? false,
 );
 
@@ -80,6 +85,7 @@ Map<String, dynamic> _$ParticipantToJson(_Participant instance) =>
       'last_name': instance.lastName,
       'price_label': instance.priceLabel,
       'price_amount': instance.priceAmount,
+      'price_missing': instance.priceMissing,
       'is_booker': instance.isBooker,
     };
 

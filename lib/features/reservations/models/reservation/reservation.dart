@@ -21,7 +21,11 @@ abstract class Reservation with _$Reservation {
     @Default(<Participant>[]) List<Participant> participants,
     // Amount in cents, computed by the API from the participants' prices
     @JsonKey(name: 'estimated_amount') @Default(0) int estimatedAmount,
+    // A participant's tariff is unknown (migrated reservations): the estimated amount leaves it out
+    @JsonKey(name: 'has_missing_prices') @Default(false) bool hasMissingPrices,
     @Default(<ReservationPayment>[]) List<ReservationPayment> payments,
+    // After a removal or a cancellation, the booker is invited to contact the guide for a refund
+    @JsonKey(name: 'has_successful_payment') @Default(false) bool hasSuccessfulPayment,
     ReservationRambleSummary? ramble,
   }) = _Reservation;
 
@@ -37,6 +41,8 @@ abstract class Participant with _$Participant {
     @JsonKey(name: 'price_label') @Default('') String priceLabel,
     // Amount in euros
     @JsonKey(name: 'price_amount') @Default(0.0) double priceAmount,
+    // The ramble has tariffs but this participant's is unknown (migrated participants)
+    @JsonKey(name: 'price_missing') @Default(false) bool priceMissing,
     @JsonKey(name: 'is_booker') @Default(false) bool isBooker,
   }) = _Participant;
 

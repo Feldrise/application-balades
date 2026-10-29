@@ -160,4 +160,88 @@ void main() {
       );
     });
   });
+
+  group('modifying a reservation', () {
+    late http.Request received;
+    late ReservationsService service;
+
+    setUp(() {
+      service = _service(
+        MockClient((r) async {
+          received = r;
+          return http.Response(jsonEncode({..._reservationJson, 'has_successful_payment': true}), 200);
+        }),
+      );
+    });
+
+    test('adds participants with the token of the booker', () async {
+      await service.addParticipants(12, const [ParticipantRequest(firstName: 'Zoé', lastName: 'Martin', priceLabel: 'Enfant')], token: 'abc');
+
+      expect(received.method, 'POST');
+      expect(received.url.toString(), 'http://api.test/api/v1/reservations/12/participants');
+      expect(received.headers['Authorization'], 'Bearer abc');
+      expect(jsonDecode(received.body), {
+        'participants': [
+          {'first_name': 'Zoé', 'last_name': 'Martin', 'price_label': 'Enfant', 'is_booker': false},
+        ],
+      });
+    });
+
+    test('updates the name and tariff of a participant', () async {
+      await service.updateParticipant(12, 2, firstName: 'Léo', lastName: 'Durand', priceLabel: 'Adulte', token: 'abc');
+
+      expect(received.method, 'PUT');
+      expect(received.url.toString(), 'http://api.test/api/v1/reservations/12/participants/2');
+      expect(jsonDecode(received.body), {'first_name': 'Léo', 'last_name': 'Durand', 'price_label': 'Adulte'});
+    });
+
+    test('removes a participant and tells whether a payment succeeded', () async {
+      final reservation = await service.removeParticipant(12, 2, token: 'abc');
+
+      expect(received.method, 'DELETE');
+      expect(received.url.toString(), 'http://api.test/api/v1/reservations/12/participants/2');
+      expect(reservation.hasSuccessfulPayment, isTrue);
+    });
+
+    test('cancels the reservation', () async {
+      await service.cancelReservation(12, token: 'abc');
+
+      expect(received.method, 'PUT');
+      expect(received.url.toString(), 'http://api.test/api/v1/reservations/12/cancel');
+      expect(received.headers['Authorization'], 'Bearer abc');
+    });
+
+    test('reports an addition refused for lack of places', () async {
+      service = _service(
+        MockClient((_) async => http.Response(jsonEncode({'status': 'x', 'reason': 'not_enough_places', 'error': 'the participants do not fit in the 1 places left'}), 409)),
+      );
+
+      await expectLater(
+        service.addParticipants(12, const [ParticipantRequest(firstName: 'A', lastName: 'B')], token: 'abc'),
+        throwsA(isA<ReservationException>().having((e) => e.reason, 'reason', 'not_enough_places')),
+      );
+    });
+  });
+
+  test('reads the missing prices of migrated participants', () async {
+    final service = _service(
+      MockClient(
+        (_) async => http.Response(
+          jsonEncode({
+            ..._reservationJson,
+            'has_missing_prices': true,
+            'participants': [
+              {'id': 1, 'first_name': 'Paul', 'last_name': 'Martin', 'price_label': '', 'price_amount': 0, 'price_missing': true, 'is_booker': false},
+            ],
+          }),
+          200,
+        ),
+      ),
+    );
+
+    final reservation = await service.fetchReservation(12, token: 'abc');
+
+    expect(reservation.hasMissingPrices, isTrue);
+    expect(reservation.participants.single.priceMissing, isTrue);
+  });
 }

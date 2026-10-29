@@ -62,6 +62,45 @@ class ReservationsService {
     throw _exceptionFrom(response);
   }
 
+  /// Add participants to a reservation, all of them or none
+  Future<Reservation> addParticipants(int id, List<ParticipantRequest> participants, {required String token}) async {
+    final response = await _client.post(
+      Uri.parse('$_serviceUrl/$id/participants'),
+      headers: _headers(token),
+      body: jsonEncode({'participants': participants.map((p) => p.toJson()).toList()}),
+    );
+    return _reservationFrom(response);
+  }
+
+  /// Change the name and tariff of a participant, as long as the reservation is not paid
+  Future<Reservation> updateParticipant(int id, int participantId, {required String firstName, required String lastName, required String priceLabel, required String token}) async {
+    final response = await _client.put(
+      Uri.parse('$_serviceUrl/$id/participants/$participantId'),
+      headers: _headers(token),
+      body: jsonEncode({'first_name': firstName, 'last_name': lastName, 'price_label': priceLabel}),
+    );
+    return _reservationFrom(response);
+  }
+
+  /// Remove a participant; removing the last one cancels the reservation
+  Future<Reservation> removeParticipant(int id, int participantId, {required String token}) async {
+    final response = await _client.delete(Uri.parse('$_serviceUrl/$id/participants/$participantId'), headers: _headers(token));
+    return _reservationFrom(response);
+  }
+
+  /// Cancel the whole reservation
+  Future<Reservation> cancelReservation(int id, {required String token}) async {
+    final response = await _client.put(Uri.parse('$_serviceUrl/$id/cancel'), headers: _headers(token));
+    return _reservationFrom(response);
+  }
+
+  Reservation _reservationFrom(http.Response response) {
+    if (response.statusCode == 200) {
+      return Reservation.fromJson(jsonDecode(response.body) as Map<String, Object?>);
+    }
+    throw _exceptionFrom(response);
+  }
+
   ReservationException _exceptionFrom(http.Response response) {
     Map<String, Object?> body = const {};
     try {
