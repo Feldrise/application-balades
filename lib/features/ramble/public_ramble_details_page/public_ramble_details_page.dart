@@ -16,8 +16,6 @@ class PublicRambleDetailsPage extends StatefulWidget {
 }
 
 class _PublicRambleDetailsPageState extends State<PublicRambleDetailsPage> {
-  bool isRegistered = false;
-  bool isLoading = false;
   bool isFavorite = false;
 
   void _handleShare() {
@@ -125,8 +123,6 @@ class _PublicRambleDetailsPageState extends State<PublicRambleDetailsPage> {
                 RambleRegistrationSection(
                   ramble: ramble,
                   onShare: _handleShare,
-                  isRegistered: isRegistered,
-                  isLoading: isLoading,
                   isCompact: false, // Full desktop version
                 ),
 
@@ -154,7 +150,7 @@ class _PublicRambleDetailsPageState extends State<PublicRambleDetailsPage> {
           const SizedBox(height: 24),
 
           // Registration section
-          RambleRegistrationSection(ramble: ramble, onShare: _handleShare, isRegistered: isRegistered, isLoading: isLoading, isCompact: false),
+          RambleRegistrationSection(ramble: ramble, onShare: _handleShare, isCompact: false),
 
           const SizedBox(height: 24),
 
@@ -192,8 +188,6 @@ class _PublicRambleDetailsPageState extends State<PublicRambleDetailsPage> {
           child: RambleRegistrationSection(
             ramble: ramble,
             onShare: _handleShare,
-            isRegistered: isRegistered,
-            isLoading: isLoading,
             isCompact: true, // Compact mobile version
           ),
         ),
