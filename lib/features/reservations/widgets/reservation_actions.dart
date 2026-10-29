@@ -81,6 +81,8 @@ String reservationErrorMessage(ReservationException error) {
       return 'La confirmation n\'est pas encore ouverte : elle ouvre 3 jours avant la balade.';
     case 'confirmation_deadline_passed':
       return 'Le délai de confirmation, 12 heures avant la balade, est dépassé.';
+    case 'ramble_cancelled':
+      return 'La balade est annulée : la réservation ne peut plus être confirmée, payée ni complétée.';
     case 'ramble_started':
       return 'La balade a commencé : la réservation ne peut plus être réglée en ligne.';
     case 'second_booker':
