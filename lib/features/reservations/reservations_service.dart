@@ -1,6 +1,9 @@
 import 'dart:convert';
 
 import 'package:balade/core/constants.dart';
+import 'package:balade/features/admin/reservations_management/models/admin_reservation_filter.dart';
+import 'package:balade/features/admin/reservations_management/models/admin_reservation_list.dart';
+import 'package:balade/features/admin/reservations_management/models/bulk_reservation_action_result.dart';
 import 'package:balade/features/reservations/models/reservation/create_reservation_request.dart';
 import 'package:balade/features/reservations/models/reservation/reservation.dart';
 import 'package:http/http.dart' as http;
@@ -127,6 +130,92 @@ class ReservationsService {
   /// Cancel the whole reservation
   Future<Reservation> cancelReservation(int id, {required String token}) async {
     final response = await _client.put(Uri.parse('$_serviceUrl/$id/cancel'), headers: _headers(token));
+    return _reservationFrom(response);
+  }
+
+  // ===============================
+  // ADMIN METHODS
+  // ===============================
+
+  /// List the reservations with their participants, for admins and guides: the API filters, sorts and
+  /// paginates, and limits a guide to the rambles they guide.
+  Future<AdminReservationList> fetchAdminReservations({
+    required String token,
+    AdminReservationFilter filter = const AdminReservationFilter(),
+    int page = 1,
+    int perPage = 50,
+    String sortBy = 'created_at',
+    bool sortAscending = false,
+  }) async {
+    String day(DateTime date) => date.toIso8601String().split('T')[0];
+
+    final query = <String, Object>{
+      if (filter.rambleId != null) 'ramble_id': '${filter.rambleId}',
+      if (filter.userId != null) 'user_id': '${filter.userId}',
+      if (filter.email?.isNotEmpty ?? false) 'email': filter.email!,
+      if (filter.statuses?.isNotEmpty ?? false) 'statuses': filter.statuses!,
+      if (filter.dateFrom != null) 'date_from': day(filter.dateFrom!),
+      if (filter.dateTo != null) 'date_to': day(filter.dateTo!),
+      if (filter.search?.isNotEmpty ?? false) 'search': filter.search!,
+      if (filter.rambleTitle?.isNotEmpty ?? false) 'ramble_title': filter.rambleTitle!,
+      'page': '$page',
+      'per_page': '$perPage',
+      'sort_by': sortBy,
+      'sort_order': sortAscending ? 'asc' : 'desc',
+    };
+
+    final response = await _client.get(Uri.parse('$_serviceUrl/admin').replace(queryParameters: query), headers: _headers(token));
+
+    if (response.statusCode == 200) {
+      return AdminReservationList.fromJson(jsonDecode(response.body) as Map<String, Object?>);
+    }
+    throw _exceptionFrom(response);
+  }
+
+  /// Set the status of a reservation, as a whole. The API refuses with `not_enough_places` a reservation
+  /// brought back to pending or confirmed that does not fit in the places left, and gives the places released
+  /// to the waiting list. [sendEmail] tells the booker.
+  Future<Reservation> updateReservationStatus(int id, {required String status, String? reason, bool sendEmail = false, required String token}) async {
+    final response = await _client.put(
+      Uri.parse('$_serviceUrl/admin/$id/status'),
+      headers: _headers(token),
+      body: jsonEncode({'status': status, if (reason != null) 'reason': reason, 'send_email': sendEmail}),
+    );
+    return _reservationFrom(response);
+  }
+
+  /// Delete a reservation; the places it held go to the waiting list
+  Future<void> deleteReservation(int id, {required String token}) async {
+    final response = await _client.delete(Uri.parse('$_serviceUrl/admin/$id'), headers: _headers(token));
+
+    if (response.statusCode != 204) {
+      throw _exceptionFrom(response);
+    }
+  }
+
+  /// Apply an action (`confirm`, `cancel`, `move_to_waiting` or `delete`) to several reservations. Each one
+  /// follows the rules of the single action and fails separately: see [BulkReservationActionResult.errors].
+  Future<BulkReservationActionResult> performBulkAction(List<int> reservationIds, {required String action, String? reason, bool sendEmail = false, required String token}) async {
+    final response = await _client.post(
+      Uri.parse('$_serviceUrl/admin/bulk-action'),
+      headers: _headers(token),
+      body: jsonEncode({'reservation_ids': reservationIds, 'action': action, if (reason != null) 'reason': reason, 'send_email': sendEmail}),
+    );
+
+    if (response.statusCode == 200) {
+      return BulkReservationActionResult.fromJson(jsonDecode(response.body) as Map<String, Object?>);
+    }
+    throw _exceptionFrom(response);
+  }
+
+  /// Correct the name or the tariff of a participant, the omitted fields being kept. Once the reservation
+  /// is paid, the tariff is frozen (`reservation_paid`) but the name can still be corrected.
+  Future<Reservation> updateParticipantAsAdmin(int id, int participantId, {String? firstName, String? lastName, String? priceLabel, required String token}) async {
+    final response = await _client.put(
+      Uri.parse('$_serviceUrl/admin/$id/participants/$participantId'),
+      headers: _headers(token),
+      body: jsonEncode({if (firstName != null) 'first_name': firstName, if (lastName != null) 'last_name': lastName, if (priceLabel != null) 'price_label': priceLabel}),
+    );
     return _reservationFrom(response);
   }
 
