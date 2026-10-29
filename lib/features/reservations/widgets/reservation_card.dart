@@ -11,14 +11,17 @@ import 'package:intl/intl.dart';
 
 /// One reservation in full: ramble, status, participants with their tariffs, amount and payments,
 /// with the booker's actions on it.
-class ReservationCard extends StatelessWidget {
+class ReservationCard extends ConsumerWidget {
   const ReservationCard({super.key, required this.reservation});
 
   final Reservation reservation;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final now = ref.watch(reservationClockProvider)();
+    final deadline = confirmationDeadline(reservation);
+    final unavailableReason = confirmationUnavailableReason(reservation, now: now);
     final ramble = reservation.ramble;
     final date = ramble?.date;
 
@@ -47,12 +50,16 @@ class ReservationCard extends StatelessWidget {
               _InfoRow(icon: Icons.event, text: '${DateFormat('EEEE dd MMMM yyyy', 'fr').format(date)} à ${DateFormat('HH:mm').format(date)}'),
             ],
             if (ramble?.location != null && ramble!.location!.isNotEmpty) ...[const SizedBox(height: 4), _InfoRow(icon: Icons.place_outlined, text: ramble.location!)],
-            if (canConfirm(reservation) && reservation.confirmationDeadline != null) ...[
+            if (canConfirm(reservation, now: now) && deadline != null) ...[
               const SizedBox(height: 8),
               Text(
-                'Confirmez votre réservation avant le ${DateFormat('dd/MM/yyyy à HH:mm', 'fr').format(reservation.confirmationDeadline!.toLocal())}, sinon elle sera annulée.',
+                'Confirmez votre réservation avant le ${DateFormat('dd/MM/yyyy à HH:mm', 'fr').format(deadline.toLocal())}, sinon elle sera annulée.',
                 style: theme.textTheme.bodySmall?.copyWith(color: Colors.orange.shade800, fontWeight: FontWeight.w600),
               ),
+            ],
+            if (unavailableReason != null) ...[
+              const SizedBox(height: 8),
+              Text(unavailableReason, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
             ],
             if (reservation.status == 'waiting_list') ...[
               const SizedBox(height: 8),
@@ -152,15 +159,16 @@ class _ReservationActions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final now = ref.watch(reservationClockProvider)();
 
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       alignment: WrapAlignment.end,
       children: [
-        if (canConfirm(reservation))
+        if (canConfirm(reservation, now: now))
           FilledButton.icon(onPressed: () => showConfirmReservationSheet(context, reservation), icon: const Icon(Icons.event_available), label: const Text('Confirmer ma réservation')),
-        if (reservation.status == 'confirmed' && !reservation.hasMissingPrices && amountDue(reservation) > 0) _PayButton(reservation: reservation),
+        if (canPayBalance(reservation, now: now)) _PayButton(reservation: reservation),
         if (canAddParticipants(reservation))
           FilledButton.tonalIcon(onPressed: () => showAddParticipantsSheet(context, reservation), icon: const Icon(Icons.group_add), label: const Text('Ajouter des participants')),
         OutlinedButton.icon(

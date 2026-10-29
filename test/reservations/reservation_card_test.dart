@@ -48,11 +48,17 @@ Reservation _reservation({
 /// The ramble of the reservations, taking online payment.
 Ramble _payingRamble() => Ramble(3, title: 'Sortie champignons', type: 'champignons', difficulty: 'facile', paymentEnabled: true);
 
-Future<void> _pump(WidgetTester tester, Reservation reservation, {bool paymentEnabled = false}) async {
+/// Before the confirmation period of the ramble of the reservations, on 1 December 2026 at 9:00.
+final _beforeConfirmation = DateTime.utc(2026, 11, 20, 9);
+
+Future<void> _pump(WidgetTester tester, Reservation reservation, {bool paymentEnabled = false, DateTime? now}) async {
   await initializeDateFormatting('fr');
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [if (paymentEnabled) reservationRambleProvider.overrideWith((ref, id) async => _payingRamble())],
+      overrides: [
+        if (paymentEnabled) reservationRambleProvider.overrideWith((ref, id) async => _payingRamble()),
+        reservationClockProvider.overrideWithValue(() => now ?? _beforeConfirmation),
+      ],
       child: MaterialApp(
         home: Scaffold(body: SingleChildScrollView(child: ReservationCard(reservation: reservation))),
       ),
@@ -127,17 +133,25 @@ void main() {
     expect(find.byTooltip('Retirer'), findsNothing);
   });
 
-  testWidgets('asks to confirm a pending reservation once the confirmation is requested', (tester) async {
-    await _pump(tester, _reservation(confirmationDeadline: '2026-11-30T21:00:00Z'));
+  testWidgets('asks to confirm a pending reservation within the confirmation period, until its deadline', (tester) async {
+    await _pump(tester, _reservation(confirmationDeadline: '2026-11-30T21:00:00Z'), now: DateTime.utc(2026, 11, 29, 10));
 
     expect(find.text('Confirmer ma réservation'), findsOneWidget);
     expect(find.textContaining('Confirmez votre réservation avant le'), findsOneWidget);
   });
 
-  testWidgets('does not ask to confirm before the confirmation is requested', (tester) async {
-    await _pump(tester, _reservation());
+  testWidgets('tells when the confirmation opens before the confirmation period', (tester) async {
+    await _pump(tester, _reservation(), now: _beforeConfirmation);
 
     expect(find.text('Confirmer ma réservation'), findsNothing);
+    expect(find.textContaining('La confirmation ouvrira le 28/11/2026'), findsOneWidget);
+  });
+
+  testWidgets('tells that the confirmation deadline has passed', (tester) async {
+    await _pump(tester, _reservation(confirmationDeadline: '2026-11-30T21:00:00Z'), now: DateTime.utc(2026, 11, 30, 22));
+
+    expect(find.text('Confirmer ma réservation'), findsNothing);
+    expect(find.textContaining('Le délai de confirmation est dépassé'), findsOneWidget);
   });
 
   testWidgets('offers to add participants to a confirmed reservation', (tester) async {

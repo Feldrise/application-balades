@@ -111,3 +111,6 @@ class ReservationFormNotifier extends StateNotifier<ReservationFormState> {
     }
   }
 }
+
+/// The current time for the reservation rules, replaced in tests.
+final reservationClockProvider = Provider<DateTime Function()>((ref) => DateTime.now);

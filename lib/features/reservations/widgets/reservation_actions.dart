@@ -5,6 +5,7 @@ import 'package:balade/features/reservations/reservations_service.dart';
 import 'package:balade/features/reservations/widgets/add_participants_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 /// Participants can be modified until the reservation is paid.
 bool canModifyParticipants(Reservation reservation) => reservation.status != 'cancelled' && !reservation.hasSuccessfulPayment;
@@ -16,12 +17,40 @@ bool canAddParticipants(Reservation reservation) => reservation.status != 'cance
 /// How long before the ramble the booker is asked to confirm and pay.
 const kConfirmationPeriod = Duration(days: 3);
 
-/// A pending reservation is to be confirmed once the confirmation is requested, 3 days before the ramble.
-bool canConfirm(Reservation reservation, {DateTime? now}) {
+/// How long before the ramble the confirmation deadline falls: unconfirmed reservations are then cancelled.
+const kConfirmationDeadlineBeforeRamble = Duration(hours: 12);
+
+/// When the confirmation opens: 3 days before the ramble, null when the ramble has no date.
+DateTime? confirmationOpening(Reservation reservation) => reservation.ramble?.date?.subtract(kConfirmationPeriod);
+
+/// The confirmation deadline: 12 hours before the ramble, null when the ramble has no date.
+DateTime? confirmationDeadline(Reservation reservation) =>
+    reservation.confirmationDeadline ?? reservation.ramble?.date?.subtract(kConfirmationDeadlineBeforeRamble);
+
+/// A pending reservation can be confirmed from 3 days before the ramble until its confirmation deadline, as the API allows.
+bool canConfirm(Reservation reservation, {required DateTime now}) {
   if (reservation.status != 'pending') return false;
-  if (reservation.confirmationDeadline != null) return true;
+  final opening = confirmationOpening(reservation);
+  final deadline = confirmationDeadline(reservation);
+  return opening != null && deadline != null && !now.isBefore(opening) && now.isBefore(deadline);
+}
+
+/// Why a pending reservation cannot be confirmed at [now], null when it can or when it is not pending.
+String? confirmationUnavailableReason(Reservation reservation, {required DateTime now}) {
+  if (reservation.status != 'pending' || canConfirm(reservation, now: now)) return null;
+  final opening = confirmationOpening(reservation);
+  if (opening == null) return 'La confirmation ouvrira 3 jours avant la balade, une fois sa date fixée.';
+  if (now.isBefore(opening)) {
+    return 'La confirmation ouvrira le ${DateFormat('dd/MM/yyyy à HH:mm', 'fr').format(opening.toLocal())}, 3 jours avant la balade.';
+  }
+  return 'Le délai de confirmation est dépassé : la réservation n\'a pas été confirmée à temps.';
+}
+
+/// The balance of a confirmed reservation can be paid until the ramble starts.
+bool canPayBalance(Reservation reservation, {required DateTime now}) {
+  if (reservation.status != 'confirmed' || reservation.hasMissingPrices || amountDue(reservation) <= 0) return false;
   final date = reservation.ramble?.date;
-  return date != null && date.difference(now ?? DateTime.now()) <= kConfirmationPeriod;
+  return date == null || now.isBefore(date);
 }
 
 /// The amount in cents left to pay, computed by the API: the estimated amount minus the amount paid and kept,
@@ -48,6 +77,12 @@ String reservationErrorMessage(ReservationException error) {
       return 'Précisez d\'abord le tarif de chaque participant : le montant à payer doit être complet.';
     case 'reservation_waiting_list':
       return 'Votre réservation est en liste d\'attente : elle ne peut pas encore être confirmée.';
+    case 'confirmation_not_open':
+      return 'La confirmation n\'est pas encore ouverte : elle ouvre 3 jours avant la balade.';
+    case 'confirmation_deadline_passed':
+      return 'Le délai de confirmation, 12 heures avant la balade, est dépassé.';
+    case 'ramble_started':
+      return 'La balade a commencé : la réservation ne peut plus être réglée en ligne.';
     case 'second_booker':
       return 'Un seul participant peut être la personne qui réserve.';
     default:
