@@ -128,7 +128,7 @@ class _ReservationPaymentPageState extends ConsumerState<ReservationPaymentPage>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final payment = _payment;
-    final paid = reservation.estimatedAmount - amountDue(reservation);
+    final paid = reservation.amountPaid;
 
     return Column(
       children: [

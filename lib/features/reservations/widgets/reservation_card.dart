@@ -197,18 +197,27 @@ class _PaymentRow extends StatelessWidget {
 
   final ReservationPayment payment;
 
-  static const _labels = {'pending': 'En attente', 'succeeded': 'Payé', 'failed': 'Échoué', 'cancelled': 'Annulé', 'refunded': 'Remboursé'};
+  static const _labels = {
+    'pending': 'En attente',
+    'requires_action': 'Action requise',
+    'succeeded': 'Payé',
+    'failed': 'Échoué',
+    'cancelled': 'Annulé',
+    'partially_refunded': 'Remboursé en partie',
+    'refunded': 'Remboursé',
+  };
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final date = payment.paidAt ?? payment.createdAt;
+    final refund = payment.status == 'partially_refunded' && payment.refundAmount != null ? ' (${formatCents(payment.refundAmount!)})' : '';
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         children: [
-          Expanded(child: Text('${DateFormat('dd/MM/yyyy').format(date)} · ${_labels[payment.status] ?? payment.status}')),
+          Expanded(child: Text('${DateFormat('dd/MM/yyyy').format(date)} · ${_labels[payment.status] ?? payment.status}$refund')),
           Text(formatCents(payment.amount), style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
         ],
       ),

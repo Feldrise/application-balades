@@ -1,4 +1,6 @@
+import 'package:balade/features/ramble/models/ramble/ramble.dart';
 import 'package:balade/features/reservations/models/reservation/reservation.dart';
+import 'package:balade/features/reservations/providers/reservation_providers.dart';
 import 'package:balade/features/reservations/widgets/reservation_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +14,9 @@ Reservation _reservation({
   bool hasMissingPrices = false,
   int estimatedAmount = 1850,
   String? confirmationDeadline,
+  List<Map<String, Object?>>? payments,
+  int? amountPaid,
+  int amountDue = 0,
 }) => Reservation.fromJson({
   'id': 12,
   'created_at': '2026-11-02T10:00:00Z',
@@ -30,16 +35,24 @@ Reservation _reservation({
   'estimated_amount': estimatedAmount,
   'has_missing_prices': hasMissingPrices,
   'has_successful_payment': paid,
-  'payments': [
-    {'id': 5, 'created_at': '2026-11-02T10:00:00Z', 'amount': 1850, 'currency': 'eur', 'status': 'succeeded', 'paid_at': '2026-11-03T10:00:00Z'},
-  ],
+  'payments':
+      payments ??
+      [
+        {'id': 5, 'created_at': '2026-11-02T10:00:00Z', 'amount': 1850, 'currency': 'eur', 'status': 'succeeded', 'paid_at': '2026-11-03T10:00:00Z'},
+      ],
+  'amount_paid': amountPaid ?? (paid ? estimatedAmount : 0),
+  'amount_due': amountDue,
   'ramble': {'title': 'Sortie champignons', 'date': '2026-12-01T09:00:00Z', 'location': 'Forêt de Fontainebleau'},
 });
 
-Future<void> _pump(WidgetTester tester, Reservation reservation) async {
+/// The ramble of the reservations, taking online payment.
+Ramble _payingRamble() => Ramble(3, title: 'Sortie champignons', type: 'champignons', difficulty: 'facile', paymentEnabled: true);
+
+Future<void> _pump(WidgetTester tester, Reservation reservation, {bool paymentEnabled = false}) async {
   await initializeDateFormatting('fr');
   await tester.pumpWidget(
     ProviderScope(
+      overrides: [if (paymentEnabled) reservationRambleProvider.overrideWith((ref, id) async => _payingRamble())],
       child: MaterialApp(
         home: Scaffold(body: SingleChildScrollView(child: ReservationCard(reservation: reservation))),
       ),
@@ -131,5 +144,23 @@ void main() {
     await _pump(tester, _reservation(status: 'confirmed', paid: true));
 
     expect(find.text('Ajouter des participants'), findsOneWidget);
+  });
+
+  testWidgets('asks again for the part refunded of a payment, counting its net amount as paid', (tester) async {
+    final reservation = _reservation(
+      status: 'confirmed',
+      paid: true,
+      payments: [
+        {'id': 5, 'created_at': '2026-11-02T10:00:00Z', 'amount': 1850, 'currency': 'eur', 'status': 'partially_refunded', 'paid_at': '2026-11-03T10:00:00Z', 'refund_amount': 1000},
+      ],
+      amountPaid: 850,
+      amountDue: 1000,
+    );
+    await _pump(tester, reservation, paymentEnabled: true);
+    await tester.pumpAndSettle();
+
+    expect(find.text('03/11/2026 · Remboursé en partie (10 €)'), findsOneWidget);
+    expect(find.text('Payer 10 €'), findsOneWidget);
+    expect(find.byTooltip('Modifier'), findsNothing);
   });
 }

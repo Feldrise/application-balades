@@ -26,6 +26,10 @@ abstract class Reservation with _$Reservation {
     @Default(<ReservationPayment>[]) List<ReservationPayment> payments,
     // After a removal or a cancellation, the booker is invited to contact the guide for a refund
     @JsonKey(name: 'has_successful_payment') @Default(false) bool hasSuccessfulPayment,
+    // Amount in cents paid and kept: the succeeded payments minus their refunds
+    @JsonKey(name: 'amount_paid') @Default(0) int amountPaid,
+    // Amount in cents left to pay: the estimated amount minus the amount paid
+    @JsonKey(name: 'amount_due') @Default(0) int amountDue,
     ReservationRambleSummary? ramble,
   }) = _Reservation;
 

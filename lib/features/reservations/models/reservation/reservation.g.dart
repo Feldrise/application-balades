@@ -37,6 +37,8 @@ _Reservation _$ReservationFromJson(Map<String, dynamic> json) => _Reservation(
           .toList() ??
       const <ReservationPayment>[],
   hasSuccessfulPayment: json['has_successful_payment'] as bool? ?? false,
+  amountPaid: (json['amount_paid'] as num?)?.toInt() ?? 0,
+  amountDue: (json['amount_due'] as num?)?.toInt() ?? 0,
   ramble: json['ramble'] == null
       ? null
       : ReservationRambleSummary.fromJson(
@@ -65,6 +67,8 @@ Map<String, dynamic> _$ReservationToJson(
   'has_missing_prices': instance.hasMissingPrices,
   'payments': instance.payments,
   'has_successful_payment': instance.hasSuccessfulPayment,
+  'amount_paid': instance.amountPaid,
+  'amount_due': instance.amountDue,
   'ramble': instance.ramble,
 };
 

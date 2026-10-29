@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/reservations/models/reservation/reservation.dart';
 import 'package:balade/features/reservations/providers/reservation_providers.dart';
@@ -26,11 +24,9 @@ bool canConfirm(Reservation reservation, {DateTime? now}) {
   return date != null && date.difference(now ?? DateTime.now()) <= kConfirmationPeriod;
 }
 
-/// The amount in cents left to pay: the estimated amount minus the succeeded payments.
-int amountDue(Reservation reservation) {
-  final paid = reservation.payments.where((p) => p.status == 'succeeded').fold(0, (sum, p) => sum + p.amount);
-  return max(reservation.estimatedAmount - paid, 0);
-}
+/// The amount in cents left to pay, computed by the API: the estimated amount minus the amount paid and kept,
+/// a partially refunded payment counting for its net amount.
+int amountDue(Reservation reservation) => reservation.amountDue;
 
 /// Where the booker pays what their reservation still owes.
 String reservationPaymentLocation(int reservationId) => '/mes-reservations/$reservationId/paiement';
