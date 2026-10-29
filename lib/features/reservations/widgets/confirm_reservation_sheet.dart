@@ -58,7 +58,7 @@ class _ConfirmReservationSheetState extends ConsumerState<ConfirmReservationShee
       if (confirmed.payment != null) {
         router.push(reservationPaymentLocation(reservation.id), extra: confirmed.payment);
       } else {
-        messenger.showSnackBar(const SnackBar(content: Text('Réservation confirmée')));
+        messenger.showSnackBar(SnackBar(content: Text(confirmed.paymentUnavailable ? 'Réservation confirmée. $kPaymentUnavailableMessage' : 'Réservation confirmée')));
       }
     } on ReservationException catch (e) {
       setState(() => _error = reservationErrorMessage(e));

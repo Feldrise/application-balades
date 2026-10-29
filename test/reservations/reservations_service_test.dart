@@ -267,6 +267,17 @@ void main() {
       expect(added.payment?.amount, 3100);
     });
 
+    test('tells that participants were added but their payment is to make later', () async {
+      final service = _service(
+        MockClient((_) async => http.Response(jsonEncode({..._reservationJson, 'status': 'confirmed', 'payment': null, 'payment_unavailable': true}), 200)),
+      );
+
+      final added = await service.addParticipants(12, const [ParticipantRequest(firstName: 'Zoé', lastName: 'Martin', priceLabel: 'Enfant')], token: 'abc');
+
+      expect(added.payment, isNull);
+      expect(added.paymentUnavailable, isTrue);
+    });
+
     test('reports a confirmation refused while a tariff is missing', () async {
       final service = _service(MockClient((_) async => http.Response(jsonEncode({'status': 'x', 'reason': 'missing_prices', 'error': 'x'}), 409)));
 

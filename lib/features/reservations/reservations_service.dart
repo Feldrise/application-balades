@@ -47,16 +47,26 @@ class PaymentToMake {
 
 /// A reservation as saved, with the payment to make right away when there is one.
 class ReservationWithPayment {
-  const ReservationWithPayment(this.reservation, this.payment);
+  const ReservationWithPayment(this.reservation, this.payment, {this.paymentUnavailable = false});
 
   factory ReservationWithPayment.fromJson(Map<String, Object?> json) {
     final payment = json['payment'];
-    return ReservationWithPayment(Reservation.fromJson(json), payment is Map<String, Object?> ? PaymentToMake.fromJson(payment) : null);
+    return ReservationWithPayment(
+      Reservation.fromJson(json),
+      payment is Map<String, Object?> ? PaymentToMake.fromJson(payment) : null,
+      paymentUnavailable: json['payment_unavailable'] == true,
+    );
   }
 
   final Reservation reservation;
   final PaymentToMake? payment;
+
+  /// The change is saved but the payment could not be prepared: the booker pays later with "Payer".
+  final bool paymentUnavailable;
 }
+
+/// Told to the booker when a change is saved but its payment could not be prepared.
+const kPaymentUnavailableMessage = 'Le paiement n\'a pas pu être préparé pour le moment. Vous pourrez régler plus tard avec « Payer » sur votre réservation.';
 
 class ReservationsService {
   ReservationsService({http.Client? client, String? baseUrl}) : _client = client ?? http.Client(), _serviceUrl = '${baseUrl ?? kApiBaseUrl}/reservations';

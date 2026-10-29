@@ -52,7 +52,11 @@ class _ReservationPaymentPageState extends ConsumerState<ReservationPaymentPage>
       if (!mounted) return;
       setState(() {
         _payment = confirmed.payment;
-        if (confirmed.payment == null) _error = 'Il n\'y a rien à payer en ligne pour cette réservation.';
+        if (confirmed.paymentUnavailable) {
+          _error = 'Le paiement n\'a pas pu être préparé pour le moment. Réessayez un peu plus tard.';
+        } else if (confirmed.payment == null) {
+          _error = 'Il n\'y a rien à payer en ligne pour cette réservation.';
+        }
       });
     } on ReservationException catch (e) {
       if (mounted) setState(() => _error = reservationErrorMessage(e));

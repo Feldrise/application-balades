@@ -101,7 +101,8 @@ class _AddParticipantsFormState extends ConsumerState<_AddParticipantsForm> {
       final router = GoRouter.of(context);
       final messenger = ScaffoldMessenger.of(context);
       Navigator.of(context).pop();
-      messenger.showSnackBar(SnackBar(content: Text(participants.length > 1 ? 'Participants ajoutés' : 'Participant ajouté')));
+      final done = participants.length > 1 ? 'Participants ajoutés' : 'Participant ajouté';
+      messenger.showSnackBar(SnackBar(content: Text(added.paymentUnavailable ? '$done. $kPaymentUnavailableMessage' : done)));
       // Added to a confirmed reservation, the participants' tariffs are paid right away.
       if (added.payment != null) router.push(reservationPaymentLocation(widget.reservation.id), extra: added.payment);
     } on ReservationException catch (e) {
