@@ -15,7 +15,7 @@ import 'package:balade/features/ramble/add_ramble_page/add_ramble_page.dart';
 import 'package:balade/features/ramble/edit_ramble_page/edit_ramble_page.dart';
 import 'package:balade/features/ramble/public_ramble_details_page/public_ramble_details_page.dart';
 import 'package:balade/features/ramble/public_rambles_page/public_rambles_page.dart';
-import 'package:balade/features/registrations/user_registrations_page.dart';
+import 'package:balade/features/reservations/user_reservations_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -72,7 +72,7 @@ GoRouter router(AuthedUser? loggedUser) => GoRouter(
         ),
         GoRoute(
           path: "/mes-reservations",
-          pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const UserRegistrationsPage()),
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const UserReservationsPage()),
         ),
         GoRoute(
           path: "/paiement/:registrationId",
@@ -208,7 +208,6 @@ class _HomePage extends StatelessWidget {
   }
 }
 
-// Removed temporary Reservations placeholder; now using UserRegistrationsPage
 
 class _AccountPage extends StatelessWidget {
   const _AccountPage();

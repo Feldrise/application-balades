@@ -137,7 +137,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text('Connectez-vous pour voir vos inscriptions', style: theme.textTheme.titleMedium),
+                      Text('Connectez-vous pour voir vos réservations', style: theme.textTheme.titleMedium),
                       const SizedBox(height: 16),
                       if (_error != null) ...[
                         Container(
