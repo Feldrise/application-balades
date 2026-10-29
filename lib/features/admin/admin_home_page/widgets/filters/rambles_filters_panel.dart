@@ -17,12 +17,14 @@ class RamblesFiltersPanel extends ConsumerWidget {
     required this.selectedGuideId,
     required this.dateFrom,
     required this.dateTo,
+    required this.hidePastRambles,
     required this.onCancellationStatusChanged,
     required this.onTypeChanged,
     required this.onDifficultyChanged,
     required this.onGuideChanged,
     required this.onDateFromChanged,
     required this.onDateToChanged,
+    required this.onHidePastRamblesChanged,
     required this.onClearFilters,
     this.hideGuideFilter = false,
   });
@@ -33,12 +35,14 @@ class RamblesFiltersPanel extends ConsumerWidget {
   final int? selectedGuideId;
   final DateTime? dateFrom;
   final DateTime? dateTo;
+  final bool hidePastRambles;
   final ValueChanged<bool?> onCancellationStatusChanged;
   final ValueChanged<String?> onTypeChanged;
   final ValueChanged<String?> onDifficultyChanged;
   final ValueChanged<int?> onGuideChanged;
   final ValueChanged<DateTime?> onDateFromChanged;
   final ValueChanged<DateTime?> onDateToChanged;
+  final ValueChanged<bool> onHidePastRamblesChanged;
   final VoidCallback onClearFilters;
   final bool hideGuideFilter;
 
@@ -134,6 +138,25 @@ class RamblesFiltersPanel extends ConsumerWidget {
                 ),
               ),
           ],
+        ),
+
+        const SizedBox(height: 12),
+
+        InkWell(
+          onTap: () => onHidePastRamblesChanged(!hidePastRambles),
+          borderRadius: BorderRadius.circular(8),
+          child: Row(
+            children: [
+              Checkbox(
+                value: hidePastRambles,
+                onChanged: (value) => onHidePastRamblesChanged(value ?? true),
+              ),
+              const SizedBox(width: 4),
+              Icon(Icons.history, size: 16, color: theme.colorScheme.onSurfaceVariant),
+              const SizedBox(width: 4),
+              Text('Masquer les balades passées', style: theme.textTheme.bodyMedium),
+            ],
+          ),
         ),
 
         const SizedBox(height: 16),

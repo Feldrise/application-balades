@@ -76,9 +76,17 @@ class _RamblesListState extends ConsumerState<RamblesList> {
     ref.read(ramblesProvider.notifier).updateFilters(newFilters, authorization: auth?.token);
   }
 
-  void _onFilterChanged({String? type, String? difficulty, int? guideId, DateTime? dateFrom, DateTime? dateTo, bool? isCancelled}) {
+  void _onFilterChanged({String? type, String? difficulty, int? guideId, DateTime? dateFrom, DateTime? dateTo, bool? isCancelled, bool? hidePastRambles}) {
     final currentFilters = ref.read(ramblesProvider).filters;
-    final newFilters = currentFilters.copyWith(type: type, difficulty: difficulty, guideId: guideId, dateFrom: dateFrom, dateTo: dateTo, isCancelled: isCancelled);
+    final newFilters = currentFilters.copyWith(
+      type: type,
+      difficulty: difficulty,
+      guideId: guideId,
+      dateFrom: dateFrom,
+      dateTo: dateTo,
+      isCancelled: isCancelled,
+      hidePastRambles: hidePastRambles,
+    );
     final auth = ref.read(authenticationProvider);
 
     ref.read(ramblesProvider.notifier).updateFilters(newFilters, authorization: auth?.token);
@@ -145,6 +153,7 @@ class _RamblesListState extends ConsumerState<RamblesList> {
           selectedGuideId: state.filters.guideId,
           dateFrom: state.filters.dateFrom,
           dateTo: state.filters.dateTo,
+          hidePastRambles: state.filters.hidePastRambles,
           hideGuideFilter: isGuideOnly,
           onCancellationStatusChanged: (value) => _onFilterChanged(isCancelled: value),
           onTypeChanged: (value) => _onFilterChanged(type: value),
@@ -152,6 +161,7 @@ class _RamblesListState extends ConsumerState<RamblesList> {
           onGuideChanged: (value) => _onFilterChanged(guideId: value),
           onDateFromChanged: (value) => _onFilterChanged(dateFrom: value),
           onDateToChanged: (value) => _onFilterChanged(dateTo: value),
+          onHidePastRamblesChanged: (value) => _onFilterChanged(hidePastRambles: value),
           onClearFilters: _onClearFilters,
         ),
         Expanded(
@@ -206,6 +216,7 @@ class _RamblesListState extends ConsumerState<RamblesList> {
             selectedGuideId: state.filters.guideId,
             dateFrom: state.filters.dateFrom,
             dateTo: state.filters.dateTo,
+            hidePastRambles: state.filters.hidePastRambles,
             hideGuideFilter: isGuideOnly,
             onCancellationStatusChanged: (value) => _onFilterChanged(isCancelled: value),
             onTypeChanged: (value) => _onFilterChanged(type: value),
@@ -213,6 +224,7 @@ class _RamblesListState extends ConsumerState<RamblesList> {
             onGuideChanged: (value) => _onFilterChanged(guideId: value),
             onDateFromChanged: (value) => _onFilterChanged(dateFrom: value),
             onDateToChanged: (value) => _onFilterChanged(dateTo: value),
+            onHidePastRamblesChanged: (value) => _onFilterChanged(hidePastRambles: value),
             onClearFilters: _onClearFilters,
           ),
         RamblesResultsHeader(
@@ -251,6 +263,7 @@ class _RamblesListState extends ConsumerState<RamblesList> {
             selectedGuideId: state.filters.guideId,
             dateFrom: state.filters.dateFrom,
             dateTo: state.filters.dateTo,
+            hidePastRambles: state.filters.hidePastRambles,
             hideGuideFilter: isGuideOnly,
             onCancellationStatusChanged: (value) => _onFilterChanged(isCancelled: value),
             onTypeChanged: (value) => _onFilterChanged(type: value),
@@ -258,6 +271,7 @@ class _RamblesListState extends ConsumerState<RamblesList> {
             onGuideChanged: (value) => _onFilterChanged(guideId: value),
             onDateFromChanged: (value) => _onFilterChanged(dateFrom: value),
             onDateToChanged: (value) => _onFilterChanged(dateTo: value),
+            onHidePastRamblesChanged: (value) => _onFilterChanged(hidePastRambles: value),
             onClearFilters: _onClearFilters,
           ),
         RamblesResultsHeader(

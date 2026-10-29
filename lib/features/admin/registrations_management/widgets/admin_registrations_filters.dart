@@ -175,14 +175,18 @@ class _AdminRegistrationsFiltersState extends ConsumerState<AdminRegistrationsFi
             ),
             items: [
               const DropdownMenuItem<int>(value: null, child: Text('Toutes')),
-              ...availableRambles.map((ramble) => DropdownMenuItem<int>(
-                value: ramble.id,
-                child: Text(
-                  ramble.title,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall,
-                ),
-              )),
+              ...availableRambles.map((ramble) {
+                final dateLabel = ramble.date != null ? DateFormat('dd/MM/yyyy').format(ramble.date!) : null;
+                final label = dateLabel != null ? '${ramble.title} · $dateLabel' : ramble.title;
+                return DropdownMenuItem<int>(
+                  value: ramble.id,
+                  child: Text(
+                    label,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall,
+                  ),
+                );
+              }),
             ],
             onChanged: (value) => _setRambleFilter(value),
             isExpanded: true,

@@ -182,10 +182,12 @@ class _AdminRegistrationsDataTableState extends ConsumerState<AdminRegistrations
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text('${registration.firstName} ${registration.lastName}', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
-            // Show ramble title here on mobile when ramble column is hidden
+            // Show ramble title + date here on mobile when ramble column is hidden
             if (!isDesktop && registration.ramble?.title != null)
               Text(
-                registration.ramble!.title,
+                registration.ramble!.date != null
+                    ? '${registration.ramble!.title} · ${shortDateFormat.format(registration.ramble!.date!)}'
+                    : registration.ramble!.title,
                 style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

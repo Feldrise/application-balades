@@ -6,7 +6,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Filter state
 class RamblesFilterState {
-  const RamblesFilterState({this.search, this.type, this.difficulty, this.location, this.dateFrom, this.dateTo, this.guideId, this.isCancelled});
+  const RamblesFilterState({
+    this.search,
+    this.type,
+    this.difficulty,
+    this.location,
+    this.dateFrom,
+    this.dateTo,
+    this.guideId,
+    this.isCancelled,
+    this.hidePastRambles = true,
+  });
 
   final String? search;
   final String? type;
@@ -16,8 +26,19 @@ class RamblesFilterState {
   final DateTime? dateTo;
   final int? guideId;
   final bool? isCancelled;
+  final bool hidePastRambles;
 
-  RamblesFilterState copyWith({String? search, String? type, String? difficulty, String? location, DateTime? dateFrom, DateTime? dateTo, int? guideId, bool? isCancelled}) {
+  RamblesFilterState copyWith({
+    String? search,
+    String? type,
+    String? difficulty,
+    String? location,
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    int? guideId,
+    bool? isCancelled,
+    bool? hidePastRambles,
+  }) {
     return RamblesFilterState(
       search: search ?? this.search,
       type: type ?? this.type,
@@ -27,11 +48,22 @@ class RamblesFilterState {
       dateTo: dateTo ?? this.dateTo,
       guideId: guideId ?? this.guideId,
       isCancelled: isCancelled ?? this.isCancelled,
+      hidePastRambles: hidePastRambles ?? this.hidePastRambles,
     );
   }
 
   Map<String, dynamic> toMap() {
-    return {'search': search, 'type': type, 'difficulty': difficulty, 'location': location, 'dateFrom': dateFrom, 'dateTo': dateTo, 'guideId': guideId, 'isCancelled': isCancelled};
+    return {
+      'search': search,
+      'type': type,
+      'difficulty': difficulty,
+      'location': location,
+      'dateFrom': dateFrom,
+      'dateTo': dateTo,
+      'guideId': guideId,
+      'isCancelled': isCancelled,
+      'hidePastRambles': hidePastRambles,
+    };
   }
 }
 
@@ -92,7 +124,14 @@ class RamblesNotifier extends StateNotifier<RamblesState> {
         authorization: authorization,
       );
 
-      final sortedRambles = _sortRambles(rambles);
+      final filteredRambles = state.filters.hidePastRambles
+          ? rambles.where((ramble) {
+              if (ramble.date == null) return true;
+              return ramble.date!.isAfter(DateTime.now());
+            }).toList()
+          : rambles;
+
+      final sortedRambles = _sortRambles(filteredRambles);
       state = state.copyWith(rambles: sortedRambles, isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
