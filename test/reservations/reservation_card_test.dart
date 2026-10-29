@@ -177,4 +177,22 @@ void main() {
     expect(find.text('Payer 10 €'), findsOneWidget);
     expect(find.byTooltip('Modifier'), findsNothing);
   });
+
+  testWidgets('still offers to specify the missing tariff of a participant once paid', (tester) async {
+    await _pump(
+      tester,
+      _reservation(
+        status: 'confirmed',
+        paid: true,
+        hasMissingPrices: true,
+        participants: [
+          {'id': 1, 'first_name': 'Claire', 'last_name': 'Martin', 'price_label': 'Adulte', 'price_amount': 12.5, 'is_booker': true},
+          {'id': 2, 'first_name': 'Paul', 'last_name': 'Martin', 'price_label': '', 'price_amount': 0, 'price_missing': true},
+        ],
+      ),
+    );
+
+    expect(find.byTooltip('Préciser le tarif'), findsOneWidget);
+    expect(find.byTooltip('Modifier'), findsNothing);
+  });
 }

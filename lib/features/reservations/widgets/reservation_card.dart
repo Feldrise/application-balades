@@ -137,6 +137,13 @@ class _ParticipantRow extends ConsumerWidget {
               icon: const Icon(Icons.edit_outlined, size: 18),
               tooltip: 'Modifier',
               visualDensity: VisualDensity.compact,
+            )
+          else if (canSpecifyMissingPrice(reservation, participant))
+            IconButton(
+              onPressed: () => editParticipant(context, ref, reservation, participant),
+              icon: Icon(Icons.edit_outlined, size: 18, color: Colors.orange.shade800),
+              tooltip: 'Préciser le tarif',
+              visualDensity: VisualDensity.compact,
             ),
           if (reservation.status != 'cancelled')
             IconButton(

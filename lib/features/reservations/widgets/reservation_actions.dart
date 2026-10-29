@@ -10,6 +10,10 @@ import 'package:intl/intl.dart';
 /// Participants can be modified until the reservation is paid.
 bool canModifyParticipants(Reservation reservation) => reservation.status != 'cancelled' && !reservation.hasSuccessfulPayment;
 
+/// Once paid, the unknown tariff of a participant can still be specified, so that the balance can be paid.
+bool canSpecifyMissingPrice(Reservation reservation, Participant participant) =>
+    reservation.status != 'cancelled' && reservation.hasSuccessfulPayment && participant.priceMissing;
+
 /// Participants can be added to a reservation that is not cancelled; added to a confirmed reservation,
 /// they are confirmed with it and their tariffs are paid right away.
 bool canAddParticipants(Reservation reservation) => reservation.status != 'cancelled';
@@ -177,7 +181,7 @@ Future<void> _afterRelease(BuildContext context, Reservation saved, String done)
   await showDialog<void>(context: context, builder: (_) => ContactGuideDialog(rambleId: saved.rambleId, title: done));
 }
 
-/// Changes the name or tariff of a participant, before payment.
+/// Changes the name or tariff of a participant before payment, or specifies their missing tariff once paid.
 Future<void> editParticipant(BuildContext context, WidgetRef ref, Reservation reservation, Participant participant) async {
   final result = await showDialog<({String firstName, String lastName, String priceLabel})>(
     context: context,
@@ -255,7 +259,7 @@ class _EditParticipantDialogState extends ConsumerState<_EditParticipantDialog> 
     final prices = rambleAsync.value?.prices ?? const [];
 
     return AlertDialog(
-      title: const Text('Modifier le participant'),
+      title: Text(widget.reservation.hasSuccessfulPayment ? 'Préciser le tarif' : 'Modifier le participant'),
       content: Form(
         key: _formKey,
         child: Column(
@@ -263,6 +267,7 @@ class _EditParticipantDialogState extends ConsumerState<_EditParticipantDialog> 
           children: [
             TextFormField(
               controller: _firstName,
+              enabled: !widget.reservation.hasSuccessfulPayment,
               decoration: const InputDecoration(labelText: 'Prénom *', border: OutlineInputBorder()),
               textCapitalization: TextCapitalization.words,
               validator: (value) => (value?.trim().isEmpty ?? true) ? 'Prénom requis' : null,
@@ -270,6 +275,7 @@ class _EditParticipantDialogState extends ConsumerState<_EditParticipantDialog> 
             const SizedBox(height: 12),
             TextFormField(
               controller: _lastName,
+              enabled: !widget.reservation.hasSuccessfulPayment,
               decoration: const InputDecoration(labelText: 'Nom *', border: OutlineInputBorder()),
               textCapitalization: TextCapitalization.words,
               validator: (value) => (value?.trim().isEmpty ?? true) ? 'Nom requis' : null,
