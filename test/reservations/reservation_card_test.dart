@@ -1,10 +1,11 @@
 import 'package:balade/features/reservations/models/reservation/reservation.dart';
 import 'package:balade/features/reservations/widgets/reservation_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-Reservation _reservation({String status = 'pending'}) => Reservation.fromJson({
+Reservation _reservation({String status = 'pending', bool paid = false, List<Map<String, Object?>>? participants, bool hasMissingPrices = false, int estimatedAmount = 1850}) => Reservation.fromJson({
   'id': 12,
   'created_at': '2026-11-02T10:00:00Z',
   'updated_at': '2026-11-02T10:00:00Z',
@@ -12,11 +13,15 @@ Reservation _reservation({String status = 'pending'}) => Reservation.fromJson({
   'user_id': 7,
   'contact_email': 'claire@example.com',
   'status': status,
-  'participants': [
-    {'id': 1, 'first_name': 'Claire', 'last_name': 'Martin', 'price_label': 'Adulte', 'price_amount': 12.5, 'is_booker': true},
-    {'id': 2, 'first_name': 'Léo', 'last_name': 'Martin', 'price_label': 'Enfant', 'price_amount': 6.0, 'is_booker': false},
-  ],
-  'estimated_amount': 1850,
+  'participants':
+      participants ??
+      [
+        {'id': 1, 'first_name': 'Claire', 'last_name': 'Martin', 'price_label': 'Adulte', 'price_amount': 12.5, 'is_booker': true},
+        {'id': 2, 'first_name': 'Léo', 'last_name': 'Martin', 'price_label': 'Enfant', 'price_amount': 6.0, 'is_booker': false},
+      ],
+  'estimated_amount': estimatedAmount,
+  'has_missing_prices': hasMissingPrices,
+  'has_successful_payment': paid,
   'payments': [
     {'id': 5, 'created_at': '2026-11-02T10:00:00Z', 'amount': 1850, 'currency': 'eur', 'status': 'succeeded', 'paid_at': '2026-11-03T10:00:00Z'},
   ],
@@ -26,8 +31,10 @@ Reservation _reservation({String status = 'pending'}) => Reservation.fromJson({
 Future<void> _pump(WidgetTester tester, Reservation reservation) async {
   await initializeDateFormatting('fr');
   await tester.pumpWidget(
-    MaterialApp(
-      home: Scaffold(body: SingleChildScrollView(child: ReservationCard(reservation: reservation))),
+    ProviderScope(
+      child: MaterialApp(
+        home: Scaffold(body: SingleChildScrollView(child: ReservationCard(reservation: reservation))),
+      ),
     ),
   );
 }
@@ -53,5 +60,49 @@ void main() {
 
     expect(find.text('Liste d\'attente'), findsOneWidget);
     expect(find.textContaining('passera en entier'), findsOneWidget);
+  });
+
+  testWidgets('announces the missing tariff of a migrated participant instead of a free one', (tester) async {
+    await _pump(
+      tester,
+      _reservation(
+        hasMissingPrices: true,
+        estimatedAmount: 1250,
+        participants: [
+          {'id': 1, 'first_name': 'Claire', 'last_name': 'Martin', 'price_label': 'Adulte', 'price_amount': 12.5, 'is_booker': true},
+          {'id': 2, 'first_name': 'Paul', 'last_name': 'Martin', 'price_label': '', 'price_amount': 0, 'price_missing': true},
+        ],
+      ),
+    );
+
+    expect(find.text('Tarif à préciser'), findsOneWidget);
+    expect(find.text('12,50 € + tarifs à préciser'), findsOneWidget);
+    expect(find.textContaining(' · 0 €'), findsNothing);
+    expect(find.text('Gratuit'), findsNothing);
+  });
+
+  testWidgets('offers to add participants, modify or remove them and cancel a pending reservation', (tester) async {
+    await _pump(tester, _reservation());
+
+    expect(find.text('Ajouter des participants'), findsOneWidget);
+    expect(find.text('Annuler la réservation'), findsOneWidget);
+    expect(find.byTooltip('Modifier'), findsNWidgets(2));
+    expect(find.byTooltip('Retirer'), findsNWidgets(2));
+  });
+
+  testWidgets('no longer offers to modify participants once paid', (tester) async {
+    await _pump(tester, _reservation(status: 'confirmed', paid: true));
+
+    expect(find.byTooltip('Modifier'), findsNothing);
+    expect(find.byTooltip('Retirer'), findsNWidgets(2));
+    expect(find.text('Annuler la réservation'), findsOneWidget);
+  });
+
+  testWidgets('offers no action on a cancelled reservation', (tester) async {
+    await _pump(tester, _reservation(status: 'cancelled'));
+
+    expect(find.text('Ajouter des participants'), findsNothing);
+    expect(find.text('Annuler la réservation'), findsNothing);
+    expect(find.byTooltip('Retirer'), findsNothing);
   });
 }

@@ -1,5 +1,6 @@
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
 import 'package:balade/features/reservations/providers/reservation_providers.dart';
+import 'package:balade/features/reservations/reservation_draft.dart';
 import 'package:balade/features/reservations/reservation_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,8 +15,21 @@ class ReservationCounters extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final form = ref.watch(reservationFormProvider(ramble));
     final notifier = ref.read(reservationFormProvider(ramble).notifier);
-    final draft = form.draft;
 
+    return DraftCounters(draft: form.draft, onIncrement: notifier.increment, onDecrement: notifier.decrement);
+  }
+}
+
+/// +/− counters of a draft: one per tariff, or a single "Personnes" counter.
+class DraftCounters extends StatelessWidget {
+  const DraftCounters({super.key, required this.draft, required this.onIncrement, required this.onDecrement});
+
+  final ReservationDraft draft;
+  final void Function(String priceLabel) onIncrement;
+  final void Function(String priceLabel) onDecrement;
+
+  @override
+  Widget build(BuildContext context) {
     if (!draft.hasTariffChoice) {
       final label = draft.prices.isEmpty ? '' : draft.prices.first.label;
       final amount = draft.prices.isEmpty ? null : formatEuros(draft.prices.first.amount);
@@ -23,8 +37,8 @@ class ReservationCounters extends ConsumerWidget {
         title: 'Personnes',
         subtitle: amount,
         count: draft.total,
-        onIncrement: draft.canIncrement ? () => notifier.increment(label) : null,
-        onDecrement: draft.canDecrement(label) ? () => notifier.decrement(label) : null,
+        onIncrement: draft.canIncrement ? () => onIncrement(label) : null,
+        onDecrement: draft.canDecrement(label) ? () => onDecrement(label) : null,
       );
     }
 
@@ -35,8 +49,8 @@ class ReservationCounters extends ConsumerWidget {
             title: price.label,
             subtitle: formatEuros(price.amount),
             count: draft.countFor(price.label),
-            onIncrement: draft.canIncrement ? () => notifier.increment(price.label) : null,
-            onDecrement: draft.canDecrement(price.label) ? () => notifier.decrement(price.label) : null,
+            onIncrement: draft.canIncrement ? () => onIncrement(price.label) : null,
+            onDecrement: draft.canDecrement(price.label) ? () => onDecrement(price.label) : null,
           ),
       ],
     );

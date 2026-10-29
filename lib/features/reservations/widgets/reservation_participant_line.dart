@@ -3,14 +3,7 @@ import 'package:flutter/material.dart';
 
 /// One participant of the reservation: first name, last name and tariff. Only the contact gives an email.
 class ReservationParticipantLine extends StatefulWidget {
-  const ReservationParticipantLine({
-    super.key,
-    required this.participant,
-    required this.number,
-    required this.tariffLabels,
-    required this.onChanged,
-    this.onRemove,
-  });
+  const ReservationParticipantLine({super.key, required this.participant, required this.number, required this.tariffLabels, required this.onChanged, this.onRemove, this.canBeBooker = true});
 
   final DraftParticipant participant;
   final int number;
@@ -19,6 +12,9 @@ class ReservationParticipantLine extends StatefulWidget {
   final List<String> tariffLabels;
   final void Function({String? firstName, String? lastName, String? priceLabel, bool? isBooker}) onChanged;
   final VoidCallback? onRemove;
+
+  /// False when the booker is already a participant of the reservation.
+  final bool canBeBooker;
 
   @override
   State<ReservationParticipantLine> createState() => _ReservationParticipantLineState();
@@ -58,9 +54,15 @@ class _ReservationParticipantLineState extends State<ReservationParticipantLine>
               children: [
                 Icon(participant.isBooker ? Icons.person : Icons.person_outline, color: theme.colorScheme.primary, size: 20),
                 const SizedBox(width: 8),
-                Expanded(child: Text('Participant ${widget.number}', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600))),
+                Expanded(
+                  child: Text('Participant ${widget.number}', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+                ),
                 if (widget.onRemove != null)
-                  IconButton(onPressed: widget.onRemove, icon: Icon(Icons.remove_circle_outline, color: theme.colorScheme.error), tooltip: 'Retirer ce participant'),
+                  IconButton(
+                    onPressed: widget.onRemove,
+                    icon: Icon(Icons.remove_circle_outline, color: theme.colorScheme.error),
+                    tooltip: 'Retirer ce participant',
+                  ),
               ],
             ),
             const SizedBox(height: 8),
@@ -98,14 +100,15 @@ class _ReservationParticipantLineState extends State<ReservationParticipantLine>
                 validator: (value) => value == null ? 'Tarif requis' : null,
               ),
             ],
-            CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              controlAffinity: ListTileControlAffinity.leading,
-              dense: true,
-              value: participant.isBooker,
-              onChanged: (value) => widget.onChanged(isBooker: value ?? false),
-              title: const Text('C\'est moi (la personne qui réserve)'),
-            ),
+            if (widget.canBeBooker)
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+                dense: true,
+                value: participant.isBooker,
+                onChanged: (value) => widget.onChanged(isBooker: value ?? false),
+                title: const Text('C\'est moi (la personne qui réserve)'),
+              ),
           ],
         ),
       ),

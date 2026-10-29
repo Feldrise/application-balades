@@ -1,5 +1,6 @@
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
+import 'package:balade/features/ramble/rambles_service.dart';
 import 'package:balade/features/reservations/models/reservation/reservation.dart';
 import 'package:balade/features/reservations/reservation_draft.dart';
 import 'package:balade/features/reservations/reservations_service.dart';
@@ -17,6 +18,11 @@ final userReservationsProvider = FutureProvider.autoDispose<List<Reservation>>((
   }
 
   return service.fetchUserReservations(token: authed.token);
+});
+
+/// The ramble of a reservation, with its tariffs, places left and guides.
+final reservationRambleProvider = FutureProvider.autoDispose.family<Ramble, int>((ref, rambleId) {
+  return RamblesService.instance.fetchRamble(rambleId, authorization: ref.read(authenticationProvider)?.token);
 });
 
 /// The reservation being filled in for a ramble, shared by the counters on the ramble page and the form.
