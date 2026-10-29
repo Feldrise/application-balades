@@ -1,13 +1,21 @@
 import 'package:balade/features/authentication/authentication_provider.dart';
+import 'package:balade/features/reservations/models/reservation/reservation.dart';
 import 'package:balade/features/reservations/providers/reservation_providers.dart';
+import 'package:balade/features/reservations/widgets/reservation_actions.dart';
 import 'package:balade/features/reservations/widgets/reservation_card.dart';
 import 'package:balade/features/reservations/widgets/reservations_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+/// Where a booker is sent to add participants to their existing reservation, through the login if needed.
+String addParticipantsLocation(int reservationId) => '/mes-reservations?ajouter=$reservationId';
+
 class UserReservationsPage extends ConsumerWidget {
-  const UserReservationsPage({super.key});
+  const UserReservationsPage({super.key, this.addToReservationId});
+
+  /// Opens the addition of participants to this reservation once loaded.
+  final int? addToReservationId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,7 +36,13 @@ class UserReservationsPage extends ConsumerWidget {
                   const SizedBox(height: 12),
                   Text('Connectez-vous pour voir vos réservations', style: theme.textTheme.titleMedium),
                   const SizedBox(height: 12),
-                  FilledButton.icon(onPressed: () => context.go('/connexion'), icon: const Icon(Icons.login), label: const Text('Se connecter')),
+                  FilledButton.icon(
+                    onPressed: () => context.go(
+                      Uri(path: '/connexion', queryParameters: {if (addToReservationId != null) 'redirection': addParticipantsLocation(addToReservationId!)}).toString(),
+                    ),
+                    icon: const Icon(Icons.login),
+                    label: const Text('Se connecter'),
+                  ),
                 ],
               ),
             ),
@@ -43,16 +57,42 @@ class UserReservationsPage extends ConsumerWidget {
         title: const Text('Mes réservations'),
         actions: [IconButton(onPressed: () => ref.invalidate(userReservationsProvider), icon: const Icon(Icons.refresh), tooltip: 'Actualiser')],
       ),
-      body: const _ReservationsContent(),
+      body: _ReservationsContent(addToReservationId: addToReservationId),
     );
   }
 }
 
-class _ReservationsContent extends ConsumerWidget {
-  const _ReservationsContent();
+class _ReservationsContent extends ConsumerStatefulWidget {
+  const _ReservationsContent({this.addToReservationId});
+
+  final int? addToReservationId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_ReservationsContent> createState() => _ReservationsContentState();
+}
+
+class _ReservationsContentState extends ConsumerState<_ReservationsContent> {
+  /// The addition asked by the route is opened once only.
+  bool _additionOpened = false;
+
+  void _openAddition(List<Reservation> reservations) {
+    final id = widget.addToReservationId;
+    if (id == null || _additionOpened) return;
+    _additionOpened = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final reservation = reservations.where((r) => r.id == id).firstOrNull;
+      if (reservation == null || !canAddParticipants(reservation)) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Des participants ne peuvent pas être ajoutés à cette réservation.')));
+        return;
+      }
+      showAddParticipantsSheet(context, reservation);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final reservationsAsync = ref.watch(userReservationsProvider);
 
     return reservationsAsync.when(
@@ -77,6 +117,7 @@ class _ReservationsContent extends ConsumerWidget {
         );
       },
       data: (reservations) {
+        _openAddition(reservations);
         if (reservations.isEmpty) return const ReservationsEmptyState();
 
         return ListView.builder(padding: const EdgeInsets.all(16), itemCount: reservations.length, itemBuilder: (context, index) => ReservationCard(reservation: reservations[index]));

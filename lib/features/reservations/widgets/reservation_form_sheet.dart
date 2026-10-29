@@ -6,6 +6,7 @@ import 'package:balade/features/reservations/widgets/reservation_counters.dart';
 import 'package:balade/features/reservations/widgets/reservation_notices.dart';
 import 'package:balade/features/reservations/widgets/reservation_participant_line.dart';
 import 'package:balade/features/reservations/widgets/reservation_success_dialog.dart';
+import 'package:balade/features/reservations/user_reservations_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -54,7 +55,13 @@ class _ReservationFormSheetState extends ConsumerState<ReservationFormSheet> {
     await ref.read(reservationFormProvider(widget.ramble).notifier).submit(contactEmail: _emailController.text, contactPhone: _phoneController.text);
     if (!mounted) return;
 
-    final created = ref.read(reservationFormProvider(widget.ramble)).created;
+    final form = ref.read(reservationFormProvider(widget.ramble));
+    if (form.existingReservationId != null) {
+      _goToExistingReservation(form.existingReservationId!);
+      return;
+    }
+
+    final created = form.created;
     if (created == null) return;
 
     final navigator = Navigator.of(context);
@@ -66,6 +73,26 @@ class _ReservationFormSheetState extends ConsumerState<ReservationFormSheet> {
       builder: (context) => ReservationSuccessDialog(reservation: created, ramble: widget.ramble),
     );
     notifier.reset();
+  }
+
+  /// The booker already has a reservation for this ramble: they add participants to it, after logging in if needed.
+  void _goToExistingReservation(int reservationId) {
+    final authed = ref.read(authenticationProvider);
+    final email = _emailController.text.trim();
+    final location = addParticipantsLocation(reservationId);
+    final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+
+    ref.read(reservationFormProvider(widget.ramble).notifier).reset();
+    Navigator.of(context).pop();
+
+    if (authed != null && authed.user.email.toLowerCase() == email.toLowerCase()) {
+      messenger.showSnackBar(const SnackBar(content: Text('Vous avez déjà une réservation pour cette balade : ajoutez-y vos participants.')));
+      router.go(location);
+    } else {
+      messenger.showSnackBar(const SnackBar(content: Text('Vous avez déjà une réservation pour cette balade : connectez-vous pour y ajouter vos participants.')));
+      router.go(Uri(path: '/connexion', queryParameters: {'email': email, 'redirection': location}).toString());
+    }
   }
 
   @override
@@ -162,21 +189,6 @@ class _ReservationFormSheetState extends ConsumerState<ReservationFormSheet> {
                     const SizedBox(height: 24),
                     if (draft.goesToWaitingList) ...[const ReservationNotice(icon: Icons.hourglass_top, color: Colors.orange, message: kWaitingListWarning), const SizedBox(height: 12)],
                     const ReservationNotice(icon: Icons.info_outline, message: kConfirmationNotice),
-                    if (form.existingReservationId != null) ...[
-                      const SizedBox(height: 12),
-                      ReservationNotice(icon: Icons.info_outline, color: colorScheme.error, message: 'Une réservation existe déjà pour cette balade avec cet email.'),
-                      const SizedBox(height: 8),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: OutlinedButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                            context.go('/mes-reservations');
-                          },
-                          child: const Text('Voir mes réservations'),
-                        ),
-                      ),
-                    ],
                     if (form.error != null) ...[const SizedBox(height: 12), ReservationNotice(icon: Icons.error_outline, color: colorScheme.error, message: form.error!)],
                     const SizedBox(height: 24),
                   ],

@@ -72,7 +72,11 @@ GoRouter router(AuthedUser? loggedUser) => GoRouter(
         ),
         GoRoute(
           path: "/mes-reservations",
-          pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const UserReservationsPage()),
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: UserReservationsPage(addToReservationId: int.tryParse(state.uri.queryParameters['ajouter'] ?? '')),
+          ),
         ),
         GoRoute(
           path: "/paiement/:registrationId",
@@ -112,7 +116,11 @@ GoRouter router(AuthedUser? loggedUser) => GoRouter(
         ),
         GoRoute(
           path: "/connexion",
-          pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const LoginPage()),
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: LoginPage(email: state.uri.queryParameters['email'], redirection: state.uri.queryParameters['redirection']),
+          ),
         ),
         GoRoute(
           path: "/mon-compte",

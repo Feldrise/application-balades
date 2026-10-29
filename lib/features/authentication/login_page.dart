@@ -6,7 +6,13 @@ import 'package:balade/features/authentication/data/models/authed_user/authed_us
 import 'package:go_router/go_router.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({super.key, this.email, this.redirection});
+
+  /// Prefills the email, e.g. the contact email of a reservation.
+  final String? email;
+
+  /// Where to go once connected, "Mes réservations" by default.
+  final String? redirection;
 
   @override
   ConsumerState<LoginPage> createState() => _LoginPageState();
@@ -28,6 +34,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _emailChecked = false; // we have called authenticate and now wait for OTP
   bool _existingUser = true; // default assume existing; toggled by precheck
   DateTime? _otpExpiresAt; // to show a countdown
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.email != null) _emailController.text = widget.email!;
+  }
+
+  /// Only an in-app path is followed, never another site.
+  String get _destination {
+    final redirection = widget.redirection;
+    if (redirection != null && redirection.startsWith('/') && !redirection.startsWith('//')) return redirection;
+    return '/mes-reservations';
+  }
 
   @override
   void dispose() {
@@ -109,7 +128,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         throw Exception('Réponse invalide du serveur');
       }
       await ref.read(authenticationProvider.notifier).login(AuthedUser(user: result.user!, token: result.token!));
-      if (mounted) context.go('/mes-reservations');
+      if (mounted) context.go(_destination);
     } catch (e) {
       setState(() => _error = 'Code invalide ou expiré');
     } finally {
