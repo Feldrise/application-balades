@@ -223,6 +223,57 @@ void main() {
     });
   });
 
+  group('confirming and paying', () {
+    const paymentJson = {
+      'payment': {'id': 9, 'amount': 3100, 'status': 'pending', 'reservation_id': 12},
+      'client_secret': 'pi_1_secret',
+      'publishable_key': 'pk_test_guide',
+    };
+
+    test('confirms the reservation and reads the payment to make', () async {
+      late http.Request received;
+      final service = _service(
+        MockClient((request) async {
+          received = request;
+          return http.Response(jsonEncode({..._reservationJson, 'status': 'confirmed', 'payment': paymentJson}), 200);
+        }),
+      );
+
+      final confirmed = await service.confirmReservation(12, token: 'abc');
+
+      expect(received.method, 'PUT');
+      expect(received.url.toString(), 'http://api.test/api/v1/reservations/12/confirm');
+      expect(received.headers['Authorization'], 'Bearer abc');
+      expect(confirmed.reservation.status, 'confirmed');
+      expect(confirmed.payment?.amount, 3100);
+      expect(confirmed.payment?.clientSecret, 'pi_1_secret');
+      expect(confirmed.payment?.publishableKey, 'pk_test_guide');
+    });
+
+    test('confirms without payment when there is nothing to pay online', () async {
+      final service = _service(MockClient((_) async => http.Response(jsonEncode({..._reservationJson, 'status': 'confirmed', 'payment': null}), 200)));
+
+      final confirmed = await service.confirmReservation(12, token: 'abc');
+
+      expect(confirmed.payment, isNull);
+    });
+
+    test('reads the complementary payment of participants added to a confirmed reservation', () async {
+      final service = _service(MockClient((_) async => http.Response(jsonEncode({..._reservationJson, 'status': 'confirmed', 'payment': paymentJson}), 200)));
+
+      final added = await service.addParticipants(12, const [ParticipantRequest(firstName: 'Zoé', lastName: 'Martin', priceLabel: 'Enfant')], token: 'abc');
+
+      expect(added.reservation.status, 'confirmed');
+      expect(added.payment?.amount, 3100);
+    });
+
+    test('reports a confirmation refused while a tariff is missing', () async {
+      final service = _service(MockClient((_) async => http.Response(jsonEncode({'status': 'x', 'reason': 'missing_prices', 'error': 'x'}), 409)));
+
+      await expectLater(service.confirmReservation(12, token: 'abc'), throwsA(isA<ReservationException>().having((e) => e.reason, 'reason', 'missing_prices')));
+    });
+  });
+
   test('reads the missing prices of migrated participants', () async {
     final service = _service(
       MockClient(

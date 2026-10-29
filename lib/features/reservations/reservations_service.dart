@@ -23,6 +23,38 @@ class ReservationAlreadyExistsException extends ReservationException {
   final int reservationId;
 }
 
+/// A payment the booker has to make right away, created by the API from the participants' tariffs.
+class PaymentToMake {
+  const PaymentToMake({required this.amount, required this.clientSecret, required this.publishableKey});
+
+  factory PaymentToMake.fromJson(Map<String, Object?> json) {
+    final payment = json['payment'] as Map<String, Object?>;
+    return PaymentToMake(amount: (payment['amount'] as num).toInt(), clientSecret: json['client_secret'] as String, publishableKey: json['publishable_key'] as String);
+  }
+
+  /// Amount in cents
+  final int amount;
+
+  /// Stripe client secret of the payment intent, on the guide's account
+  final String clientSecret;
+
+  /// Stripe publishable key of the guide
+  final String publishableKey;
+}
+
+/// A reservation as saved, with the payment to make right away when there is one.
+class ReservationWithPayment {
+  const ReservationWithPayment(this.reservation, this.payment);
+
+  factory ReservationWithPayment.fromJson(Map<String, Object?> json) {
+    final payment = json['payment'];
+    return ReservationWithPayment(Reservation.fromJson(json), payment is Map<String, Object?> ? PaymentToMake.fromJson(payment) : null);
+  }
+
+  final Reservation reservation;
+  final PaymentToMake? payment;
+}
+
 class ReservationsService {
   ReservationsService({http.Client? client, String? baseUrl}) : _client = client ?? http.Client(), _serviceUrl = '${baseUrl ?? kApiBaseUrl}/reservations';
 
@@ -62,14 +94,18 @@ class ReservationsService {
     throw _exceptionFrom(response);
   }
 
-  /// Add participants to a reservation, all of them or none
-  Future<Reservation> addParticipants(int id, List<ParticipantRequest> participants, {required String token}) async {
-    final response = await _client.post(
-      Uri.parse('$_serviceUrl/$id/participants'),
-      headers: _headers(token),
-      body: jsonEncode({'participants': participants.map((p) => p.toJson()).toList()}),
-    );
-    return _reservationFrom(response);
+  /// Add participants to a reservation, all of them or none. Participants added to a confirmed
+  /// reservation are confirmed with it, and their complementary payment comes with the reservation.
+  Future<ReservationWithPayment> addParticipants(int id, List<ParticipantRequest> participants, {required String token}) async {
+    final response = await _client.post(Uri.parse('$_serviceUrl/$id/participants'), headers: _headers(token), body: jsonEncode({'participants': participants.map((p) => p.toJson()).toList()}));
+    return _reservationWithPaymentFrom(response);
+  }
+
+  /// Confirm the reservation, for its booker only. When online payment is enabled, the payment of the
+  /// amount due comes with the reservation; confirming again a confirmed reservation gives what is still due.
+  Future<ReservationWithPayment> confirmReservation(int id, {required String token}) async {
+    final response = await _client.put(Uri.parse('$_serviceUrl/$id/confirm'), headers: _headers(token));
+    return _reservationWithPaymentFrom(response);
   }
 
   /// Change the name and tariff of a participant, as long as the reservation is not paid
@@ -97,6 +133,13 @@ class ReservationsService {
   Reservation _reservationFrom(http.Response response) {
     if (response.statusCode == 200) {
       return Reservation.fromJson(jsonDecode(response.body) as Map<String, Object?>);
+    }
+    throw _exceptionFrom(response);
+  }
+
+  ReservationWithPayment _reservationWithPaymentFrom(http.Response response) {
+    if (response.statusCode == 200) {
+      return ReservationWithPayment.fromJson(jsonDecode(response.body) as Map<String, Object?>);
     }
     throw _exceptionFrom(response);
   }
