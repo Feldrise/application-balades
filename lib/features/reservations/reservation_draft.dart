@@ -3,8 +3,12 @@ import 'package:balade/features/reservations/models/reservation/create_reservati
 
 /// A participant line of the reservation being filled in.
 class DraftParticipant {
-  const DraftParticipant({this.firstName = '', this.lastName = '', this.priceLabel = '', this.isBooker = false});
+  DraftParticipant({this.firstName = '', this.lastName = '', this.priceLabel = '', this.isBooker = false, int? key}) : key = key ?? _nextKey++;
 
+  static int _nextKey = 0;
+
+  /// Identifies the line across edits, so the form keeps the right fields when lines are removed.
+  final int key;
   final String firstName;
   final String lastName;
   final String priceLabel;
@@ -13,7 +17,7 @@ class DraftParticipant {
   bool get isBlank => firstName.trim().isEmpty && lastName.trim().isEmpty;
 
   DraftParticipant copyWith({String? firstName, String? lastName, String? priceLabel, bool? isBooker}) =>
-      DraftParticipant(firstName: firstName ?? this.firstName, lastName: lastName ?? this.lastName, priceLabel: priceLabel ?? this.priceLabel, isBooker: isBooker ?? this.isBooker);
+      DraftParticipant(key: key, firstName: firstName ?? this.firstName, lastName: lastName ?? this.lastName, priceLabel: priceLabel ?? this.priceLabel, isBooker: isBooker ?? this.isBooker);
 }
 
 /// The reservation being filled in: one line per participant, with the counters per
