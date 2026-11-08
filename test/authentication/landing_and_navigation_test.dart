@@ -65,7 +65,7 @@ void main() {
   testWidgets('the root opens the balades catalogue', (tester) async {
     final api = LoginApi(rambles: [balade(1, inDays: 10)]);
     await withFakeApi(api, () async {
-      await ignoringCatalogueOverflows(() => pumpSignedOutApp(tester, api: api, location: '/', size: desktop));
+      await pumpSignedOutApp(tester, api: api, location: '/', size: desktop);
       expect(currentLocation(tester), '/balades');
     });
   });
@@ -90,10 +90,8 @@ void main() {
         expect(find.text('Administration'), findsNothing);
         expect(find.text('claire@example.com'), findsWidgets);
 
-        await ignoringCatalogueOverflows(() async {
-          await tester.tap(find.text('Déconnexion'));
-          await tester.pumpAndSettle();
-        });
+        await tester.tap(find.text('Déconnexion'));
+        await tester.pumpAndSettle();
         if (size == phone) {
           await tester.tap(find.byIcon(Icons.menu));
           await tester.pumpAndSettle();
@@ -108,7 +106,7 @@ void main() {
     final api = LoginApi(accounts: [guideUser], rambles: [balade(1, inDays: 10)]);
     await withFakeApi(api, () async {
       await pumpSignedOutApp(tester, api: api, location: '/connexion?redirection=%2Fbalades', size: desktop);
-      await ignoringCatalogueOverflows(() => _logIn(tester, 'vera@example.com'));
+      await _logIn(tester, 'vera@example.com');
 
       expect(currentLocation(tester), '/balades');
       expect(find.text('Espace guide'), findsOneWidget);

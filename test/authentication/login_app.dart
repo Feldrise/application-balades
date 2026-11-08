@@ -17,7 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../management/management_app.dart';
 
-export '../management/management_app.dart' show withFakeApi, currentLocation, ignoringCatalogueOverflows, phone, desktop;
+export '../management/management_app.dart' show withFakeApi, currentLocation, phone, desktop;
 
 /// The code the fake API accepts.
 const goodCode = '123456';

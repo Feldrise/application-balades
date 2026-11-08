@@ -85,10 +85,8 @@ void main() {
     await withFakeApi(api, () async {
       await pumpManagementApp(tester, api: api, location: '/admin', user: admin, size: phone);
 
-      await ignoringCatalogueOverflows(() async {
-        await tester.tap(find.byTooltip('Voir le site public'));
-        await tester.pumpAndSettle();
-      });
+      await tester.tap(find.byTooltip('Voir le site public'));
+      await tester.pumpAndSettle();
 
       expect(find.byType(NavigationBar), findsNothing);
       expect(currentLocation(tester), '/balades');

@@ -240,20 +240,3 @@ Future<void> pumpManagementApp(WidgetTester tester, {required FakeApi api, requi
   );
   await tester.pumpAndSettle();
 }
-
-/// The catalogue does not lay out yet under the test font (its restyle is ticket #14): while [body] runs,
-/// its overflows are ignored, every other error still fails the test.
-Future<void> ignoringCatalogueOverflows(Future<void> Function() body) async {
-  final original = FlutterError.onError;
-  FlutterError.onError = (details) {
-    final isOverflow = details.exceptionAsString().contains('overflowed');
-    final inCatalogue = details.toDiagnosticsNode().toStringDeep().contains('public_rambles_page');
-    if (isOverflow && inCatalogue) return;
-    original?.call(details);
-  };
-  try {
-    await body();
-  } finally {
-    FlutterError.onError = original;
-  }
-}
