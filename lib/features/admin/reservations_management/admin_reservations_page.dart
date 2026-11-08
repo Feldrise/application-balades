@@ -1,13 +1,19 @@
+import 'package:balade/features/admin/design/design.dart';
 import 'package:balade/features/admin/reservations_management/providers/admin_reservations_provider.dart';
-import 'package:balade/features/admin/reservations_management/widgets/admin_reservations_data_table.dart';
-import 'package:balade/features/admin/reservations_management/widgets/admin_reservations_filters.dart';
+import 'package:balade/features/admin/reservations_management/providers/bulk_actions_provider.dart';
 import 'package:balade/features/admin/reservations_management/widgets/bulk_actions_toolbar.dart';
-import 'package:balade/features/admin/reservations_management/widgets/reservations_stats_cards.dart';
+import 'package:balade/features/admin/reservations_management/widgets/reservation_detail_sheet.dart';
+import 'package:balade/features/admin/reservations_management/widgets/reservation_filters_sheet.dart';
+import 'package:balade/features/admin/reservations_management/widgets/reservation_row.dart';
+import 'package:balade/features/admin/reservations_management/widgets/reservation_stat_chips.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
-import 'package:balade/themes/screen_helper.dart';
+import 'package:balade/features/reservations/models/reservation/reservation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+/// The reservations of the management area: a green header with the search and the stat chips that filter the list,
+/// rows on a phone and a tablet, a full table with bulk actions on desktop. A guide only sees the reservations of their balades.
 class AdminReservationsPage extends ConsumerStatefulWidget {
   const AdminReservationsPage({super.key});
 
@@ -16,515 +22,240 @@ class AdminReservationsPage extends ConsumerStatefulWidget {
 }
 
 class _AdminReservationsPageState extends ConsumerState<AdminReservationsPage> {
-  late TextEditingController searchController;
-  bool showFilters = false;
+  late final TextEditingController _search = TextEditingController(text: ref.read(adminReservationsProvider).filters.search ?? '');
 
   @override
   void initState() {
     super.initState();
-    searchController = TextEditingController();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadInitialData();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _reload());
   }
 
   @override
   void dispose() {
-    searchController.dispose();
+    _search.dispose();
     super.dispose();
   }
 
-  void _loadInitialData() {
-    final auth = ref.read(authenticationProvider);
-    if (auth == null) return;
+  String? get _token => ref.read(authenticationProvider)?.token;
 
-    ref.read(adminReservationsProvider.notifier).loadReservations(token: auth.token);
+  void _reload() {
+    if (_token == null) return;
+    ref.read(adminReservationsProvider.notifier).loadReservations(token: _token);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth >= ScreenHelper.breakpointPC;
-    final isTablet = screenWidth >= ScreenHelper.breakpointTablet && screenWidth < ScreenHelper.breakpointPC;
-
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Stack(
-        children: [
-          // Main scrollable content
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: isDesktop ? ScreenHelper.instance.horizontalPadding : 16.0, // Reduced padding on mobile/tablet for more table space
-            ),
-            child: CustomScrollView(
-              slivers: [
-                // Header with integrated controls
-                SliverToBoxAdapter(child: _buildCompactHeader(theme, isDesktop)),
-
-                // Stats section (only on desktop and tablet)
-                if (isDesktop || isTablet) SliverToBoxAdapter(child: _buildStatsSection()),
-
-                // Mobile search bar (only on mobile now)
-                if (screenWidth < ScreenHelper.breakpointTablet) SliverToBoxAdapter(child: _buildMobileSearchBar()),
-
-                // Filters (collapsible on mobile/tablet)
-                if (showFilters || isDesktop) SliverToBoxAdapter(child: _buildFiltersSection()),
-
-                // Results summary and actions
-                SliverToBoxAdapter(child: _buildResultsToolbar()),
-
-                // Main data content
-                SliverFillRemaining(hasScrollBody: false, child: _buildDataContent(isDesktop, isTablet)),
-              ],
-            ),
-          ),
-
-          // Floating bulk actions toolbar
-          Positioned(bottom: 16, left: 16, right: 16, child: const BulkActionsToolbar()),
-        ],
-      ),
-    );
+  void _onSearchChanged(String value) {
+    final filters = ref.read(adminReservationsProvider).filters;
+    ref.read(adminReservationsProvider.notifier).updateFilters(filters.copyWith(search: value.isEmpty ? null : value), token: _token);
   }
 
-  Widget _buildCompactHeader(ThemeData theme, bool isDesktop) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < ScreenHelper.breakpointTablet;
-    final isTablet = screenWidth >= ScreenHelper.breakpointTablet && screenWidth < ScreenHelper.breakpointPC;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Card(
-        child: Padding(
-          padding: EdgeInsets.all(isMobile ? 16 : 20),
-          child: Column(
-            children: [
-              // First row: Title and main actions
-              Row(
-                children: [
-                  // Title and subtitle
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Réservations',
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.onSurface,
-                            fontSize: isMobile ? 20 : null, // Smaller title on mobile
-                          ),
-                        ),
-                        if (!isMobile) ...[
-                          const SizedBox(height: 4),
-                          Text('Gérez toutes les réservations', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-                        ],
-                      ],
-                    ),
-                  ),
-
-                  // Action buttons - always on the right
-                  _buildActionButtons(theme, isDesktop, isMobile),
-                ],
-              ),
-
-              // Second row: Search bar (tablet/desktop) or spacing
-              if (isTablet || isDesktop) ...[const SizedBox(height: 16), _buildSearchBar(theme, isDesktop)],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButtons(ThemeData theme, bool isDesktop, bool isMobile) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Filter toggle (mobile/tablet only)
-        if (!isDesktop)
-          IconButton.outlined(
-            onPressed: () => setState(() => showFilters = !showFilters),
-            icon: Icon(showFilters ? Icons.tune : Icons.tune),
-            tooltip: showFilters ? 'Masquer les filtres' : 'Afficher les filtres',
-            iconSize: isMobile ? 20 : 24,
-          ),
-
-        if (!isDesktop) SizedBox(width: isMobile ? 6 : 8),
-
-        // Refresh button
-        IconButton.outlined(onPressed: _refreshData, icon: const Icon(Icons.refresh), tooltip: 'Actualiser', iconSize: isMobile ? 20 : 24),
-
-        SizedBox(width: isMobile ? 6 : 8),
-
-        // Export button - responsive sizing
-        if (isMobile)
-          // Mobile: Icon only
-          IconButton.outlined(onPressed: _exportReservations, icon: const Icon(Icons.download), tooltip: 'Exporter', iconSize: 20)
-        else
-          // Tablet/Desktop: Icon + text
-          OutlinedButton.icon(
-            onPressed: _exportReservations,
-            icon: const Icon(Icons.download),
-            label: const Text('Exporter'),
-            style: OutlinedButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: isDesktop ? 16 : 12, vertical: isDesktop ? 12 : 8),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildSearchBar(ThemeData theme, bool isDesktop) {
-    return Row(
-      children: [
-        Expanded(
-          child: TextField(
-            controller: searchController,
-            decoration: InputDecoration(
-              hintText: isDesktop ? 'Rechercher par participant, email...' : 'Rechercher...',
-              prefixIcon: const Icon(Icons.search, size: 20),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: theme.colorScheme.outline),
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-              suffixIcon: searchController.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear, size: 20),
-                      onPressed: () {
-                        searchController.clear();
-                        _onSearchChanged();
-                      },
-                    )
-                  : null,
-            ),
-            onChanged: (_) => _onSearchChanged(),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMobileSearchBar() {
-    final theme = Theme.of(context);
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: TextField(
-            controller: searchController,
-            decoration: InputDecoration(
-              hintText: 'Rechercher par participant, email...',
-              prefixIcon: const Icon(Icons.search, size: 20),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: theme.colorScheme.outline),
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-              suffixIcon: searchController.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear, size: 20),
-                      onPressed: () {
-                        searchController.clear();
-                        _onSearchChanged();
-                      },
-                    )
-                  : null,
-            ),
-            onChanged: (_) => _onSearchChanged(),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatsSection() {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Consumer(
-        builder: (context, ref, child) {
-          final state = ref.watch(adminReservationsProvider);
-
-          return ReservationsStatsCards(reservations: state.reservations, totalCount: state.pagination.total);
-        },
-      ),
-    );
-  }
-
-  Widget _buildFiltersSection() {
-    return Container(margin: const EdgeInsets.only(bottom: 16), child: const AdminReservationsFilters());
-  }
-
-  Widget _buildResultsToolbar() {
-    return Consumer(
-      builder: (context, ref, child) {
-        final state = ref.watch(adminReservationsProvider);
-        final theme = Theme.of(context);
-
-        return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              child: Row(
-                children: [
-                  // Results count
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Text(
-                          '${state.pagination.total} résultat${state.pagination.total > 1 ? 's' : ''}',
-                          style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500, color: theme.colorScheme.onSurface),
-                        ),
-                        if (state.filters.hasActiveFilters) ...[
-                          const SizedBox(width: 12),
-                          ActionChip(
-                            label: const Text('Filtres actifs'),
-                            onPressed: _clearFilters,
-                            avatar: Icon(Icons.filter_list, size: 16, color: theme.colorScheme.primary),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-
-                  // Loading indicator
-                  if (state.isLoading)
-                    Container(
-                      margin: const EdgeInsets.only(left: 16),
-                      child: const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildDataContent(bool isDesktop, bool isTablet) {
-    return Consumer(
-      builder: (context, ref, child) {
-        final state = ref.watch(adminReservationsProvider);
-        final auth = ref.watch(authenticationProvider);
-
-        if (auth == null) {
-          return _buildStateCard(
-            icon: Icons.lock_outline,
-            title: 'Authentification requise',
-            message: 'Vous devez être connecté en tant qu\'administrateur.',
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          );
-        }
-
-        if (state.isLoading && state.reservations.isEmpty) {
-          return _buildStateCard(icon: Icons.hourglass_empty, title: 'Chargement...', message: 'Récupération des réservations en cours.', showLoading: true);
-        }
-
-        if (state.error != null) {
-          return _buildStateCard(
-            icon: Icons.error_outline,
-            title: 'Erreur de chargement',
-            message: state.error!,
-            color: Theme.of(context).colorScheme.error,
-            action: FilledButton.icon(onPressed: _refreshData, icon: const Icon(Icons.refresh), label: const Text('Réessayer')),
-          );
-        }
-
-        if (state.reservations.isEmpty) {
-          return _buildStateCard(
-            icon: Icons.assignment_outlined,
-            title: 'Aucune réservation',
-            message: 'Aucune réservation ne correspond à vos critères de recherche.',
-            action: OutlinedButton.icon(onPressed: _clearFilters, icon: const Icon(Icons.clear_all), label: const Text('Effacer les filtres')),
-          );
-        }
-
-        // Main data table with pagination
-        return Column(
-          children: [
-            // Data table
-            Expanded(
-              child: Card(
-                margin: EdgeInsets.zero,
-                child: AdminReservationsDataTable(reservations: state.reservations, onSort: _onSort, sortBy: state.sort.sortBy, sortAscending: state.sort.sortAscending),
-              ),
-            ),
-
-            // Pagination (if needed)
-            if (state.pagination.totalPages > 1) ...[const SizedBox(height: 16), _buildPaginationCard(state)],
-
-            // Bottom padding for floating toolbar
-            const SizedBox(height: 80),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildStateCard({required IconData icon, required String title, required String message, Color? color, Widget? action, bool showLoading = false}) {
-    final theme = Theme.of(context);
-    final effectiveColor = color ?? theme.colorScheme.onSurfaceVariant;
-
-    return Center(
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(48),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (showLoading) ...[const CircularProgressIndicator(), const SizedBox(height: 24)] else ...[Icon(icon, size: 48, color: effectiveColor), const SizedBox(height: 16)],
-              Text(
-                title,
-                style: theme.textTheme.headlineSmall?.copyWith(color: effectiveColor, fontWeight: FontWeight.w600),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                message,
-                style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                textAlign: TextAlign.center,
-              ),
-              if (action != null) ...[const SizedBox(height: 24), action],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPaginationCard(AdminReservationsState state) {
-    final theme = Theme.of(context);
-    final pagination = state.pagination;
-
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        child: Row(
-          children: [
-            Text('Page ${pagination.page} sur ${pagination.totalPages}', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-            const Spacer(),
-
-            // Pagination controls
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(onPressed: pagination.hasPreviousPage ? _previousPage : null, icon: const Icon(Icons.chevron_left), tooltip: 'Page précédente'),
-
-                // Page numbers (simplified for mobile)
-                _buildPageNumbers(pagination, theme),
-
-                IconButton(onPressed: pagination.hasNextPage ? _nextPage : null, icon: const Icon(Icons.chevron_right), tooltip: 'Page suivante'),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPageNumbers(AdminReservationsPaginationState pagination, ThemeData theme) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < ScreenHelper.breakpointTablet;
-
-    if (isMobile && pagination.totalPages > 5) {
-      // Simplified pagination for mobile
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (pagination.page > 2) ...[_buildPageButton(1, pagination.page, theme), if (pagination.page > 3) const Text('...')],
-          if (pagination.page > 1) _buildPageButton(pagination.page - 1, pagination.page, theme),
-          _buildPageButton(pagination.page, pagination.page, theme),
-          if (pagination.page < pagination.totalPages) _buildPageButton(pagination.page + 1, pagination.page, theme),
-          if (pagination.page < pagination.totalPages - 1) ...[
-            if (pagination.page < pagination.totalPages - 2) const Text('...'),
-            _buildPageButton(pagination.totalPages, pagination.page, theme),
-          ],
-        ],
-      );
-    }
-
-    // Full pagination for desktop/tablet
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (int i = 1; i <= pagination.totalPages; i++)
-          if (i == 1 || i == pagination.totalPages || (i >= pagination.page - 2 && i <= pagination.page + 2)) ...[
-            if (i > 1 && i == pagination.page - 3) const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('...')),
-            _buildPageButton(i, pagination.page, theme),
-            if (i < pagination.totalPages && i == pagination.page + 3) const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('...')),
-          ],
-      ],
-    );
-  }
-
-  Widget _buildPageButton(int pageNumber, int currentPage, ThemeData theme) {
-    final isCurrentPage = pageNumber == currentPage;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 2),
-      child: TextButton(
-        onPressed: isCurrentPage ? null : () => _goToPage(pageNumber),
-        style: TextButton.styleFrom(
-          backgroundColor: isCurrentPage ? theme.colorScheme.primaryContainer : null,
-          foregroundColor: isCurrentPage ? theme.colorScheme.onPrimaryContainer : null,
-          minimumSize: const Size(40, 40),
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-        ),
-        child: Text(pageNumber.toString(), style: TextStyle(fontWeight: isCurrentPage ? FontWeight.w600 : FontWeight.normal)),
-      ),
-    );
-  }
-
-  void _onSearchChanged() {
-    final auth = ref.read(authenticationProvider);
-    final currentFilters = ref.read(adminReservationsProvider).filters;
-    final newFilters = currentFilters.copyWith(search: searchController.text.isEmpty ? null : searchController.text);
-    ref.read(adminReservationsProvider.notifier).updateFilters(newFilters, token: auth?.token);
+  Future<void> _openFilters() async {
+    final filters = ref.read(adminReservationsProvider).filters;
+    final chosen = await showReservationFiltersSheet(context, current: filters);
+    if (chosen != null) ref.read(adminReservationsProvider.notifier).updateFilters(chosen, token: _token, debounce: false);
   }
 
   void _onSort(String sortBy) {
-    final auth = ref.read(authenticationProvider);
-    final currentSort = ref.read(adminReservationsProvider).sort;
-    final newSort = currentSort.copyWith(sortBy: sortBy, sortAscending: currentSort.sortBy == sortBy ? !currentSort.sortAscending : false);
-    ref.read(adminReservationsProvider.notifier).updateSort(newSort, token: auth?.token);
+    final sort = ref.read(adminReservationsProvider).sort;
+    final next = sort.copyWith(sortBy: sortBy, sortAscending: sort.sortBy == sortBy ? !sort.sortAscending : false);
+    ref.read(adminReservationsProvider.notifier).updateSort(next, token: _token);
   }
 
   void _clearFilters() {
-    searchController.clear();
-    final auth = ref.read(authenticationProvider);
-    ref.read(adminReservationsProvider.notifier).clearFilters(token: auth?.token);
+    _search.clear();
+    ref.read(adminReservationsProvider.notifier).clearFilters(token: _token);
   }
 
-  void _refreshData() {
-    final auth = ref.read(authenticationProvider);
-    if (auth != null) {
-      ref.read(adminReservationsProvider.notifier).loadReservations(token: auth.token);
-    }
-  }
-
-  void _exportReservations() {
+  void _export() {
     // TODO: Implement export functionality
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Export en cours de développement')));
   }
 
-  void _nextPage() {
-    final auth = ref.read(authenticationProvider);
-    ref.read(adminReservationsProvider.notifier).nextPage(token: auth?.token);
+  void _open(Reservation reservation) {
+    showReservationDetailSheet(context, reservation: reservation, onChanged: _reload, onOpenRamble: () => context.go('/admin/balade/${reservation.rambleId}'));
   }
 
-  void _previousPage() {
-    final auth = ref.read(authenticationProvider);
-    ref.read(adminReservationsProvider.notifier).previousPage(token: auth?.token);
-  }
+  @override
+  Widget build(BuildContext context) {
+    final isPhone = ManagementBreakpoints.isPhone(context);
+    final isDesktop = ManagementBreakpoints.isDesktop(context);
 
-  void _goToPage(int page) {
-    final auth = ref.read(authenticationProvider);
-    ref.read(adminReservationsProvider.notifier).goToPage(page, token: auth?.token);
+    return Column(
+      children: [
+        ManagementPageHeader(
+          title: 'Réservations',
+          actions: [
+            if (!isPhone)
+              IconButton(
+                tooltip: 'Actualiser',
+                onPressed: _reload,
+                icon: const Icon(Icons.refresh, color: Colors.white70),
+              ),
+            if (isPhone)
+              IconButton(
+                tooltip: 'Exporter',
+                onPressed: _export,
+                icon: const Icon(Icons.download, color: Colors.white),
+              )
+            else
+              ManagementHeaderButton(label: 'Exporter', icon: Icons.download, onPressed: _export),
+          ],
+          bottom: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ManagementHeaderSearchField(hint: 'Personne qui réserve, email, balade', controller: _search, onChanged: _onSearchChanged),
+              const SizedBox(height: 10),
+              const ReservationStatChips(),
+            ],
+          ),
+        ),
+        Expanded(
+          child: _Content(onOpen: _open, onReload: _reload, onSort: _onSort, onFilters: _openFilters, onClearFilters: _clearFilters, table: isDesktop),
+        ),
+        if (isDesktop) const BulkActionsToolbar(),
+      ],
+    );
+  }
+}
+
+class _Content extends ConsumerWidget {
+  const _Content({required this.onOpen, required this.onReload, required this.onSort, required this.onFilters, required this.onClearFilters, required this.table});
+
+  final ValueChanged<Reservation> onOpen;
+  final VoidCallback onReload;
+  final ValueChanged<String> onSort;
+  final VoidCallback onFilters;
+  final VoidCallback onClearFilters;
+  final bool table;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(adminReservationsProvider);
+    final reservations = state.reservations;
+
+    if (state.isLoading && reservations.isEmpty) return const Center(child: CircularProgressIndicator());
+
+    if (state.error != null) {
+      return Center(
+        child: ManagementEmptyState(
+          icon: Icons.cloud_off,
+          title: 'Impossible de charger les réservations',
+          message: state.error,
+          action: FilledButton(onPressed: onReload, child: const Text('Réessayer')),
+        ),
+      );
+    }
+
+    final gutter = ManagementBreakpoints.gutter(context);
+    final selectable = table && canBulkReservations(ref);
+    final bulk = selectable ? ref.watch(bulkActionsProvider) : null;
+    final notifier = ref.read(bulkActionsProvider.notifier);
+    final activeFilters = activeSheetFilters(state.filters);
+
+    void changed(Reservation updated) {
+      ref.read(adminReservationsProvider.notifier).refreshReservation(updated);
+      onReload();
+    }
+
+    final allSelected = reservations.isNotEmpty && reservations.every((r) => bulk?.selectedReservationIds.contains(r.id) ?? false);
+    final selectAll = selectable
+        ? Checkbox(
+            key: const ValueKey('select-all-reservations'),
+            value: allSelected,
+            onChanged: (_) => allSelected ? notifier.clearSelection() : notifier.selectAll([for (final r in reservations) r.id]),
+          )
+        : null;
+
+    return RefreshIndicator(
+      onRefresh: () async => onReload(),
+      child: ListView(
+        padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 32),
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text('${state.pagination.total} réservation${state.pagination.total > 1 ? 's' : ''}', style: Theme.of(context).textTheme.bodySmall)),
+              if (state.isLoading)
+                const Padding(
+                  padding: EdgeInsets.only(right: 12),
+                  child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                ),
+              TextButton.icon(
+                onPressed: onFilters,
+                style: TextButton.styleFrom(foregroundColor: ManagementColors.green, visualDensity: VisualDensity.compact),
+                icon: const Icon(Icons.tune, size: 18),
+                label: Text(activeFilters == 0 ? 'Filtres' : 'Filtres · $activeFilters'),
+              ),
+            ],
+          ),
+          if (reservations.isEmpty)
+            ManagementPanel(
+              children: [
+                ManagementEmptyState(
+                  icon: Icons.assignment_outlined,
+                  title: 'Aucune réservation',
+                  message: state.filters.hasActiveFilters
+                      ? 'Aucune réservation ne correspond à ces filtres.'
+                      : 'Les réservations apparaîtront ici dès qu\'une personne aura réservé.',
+                  action: state.filters.hasActiveFilters ? OutlinedButton(onPressed: onClearFilters, child: const Text('Effacer les filtres')) : null,
+                ),
+              ],
+            )
+          else
+            ManagementPanel(
+              children: [
+                if (table) ReservationTableHeader(selection: selectAll, sortBy: state.sort.sortBy, sortAscending: state.sort.sortAscending, onSort: onSort),
+                for (final reservation in reservations)
+                  if (table)
+                    ReservationTableRow(
+                      reservation: reservation,
+                      selection: selectable
+                          ? Checkbox(
+                              key: ValueKey('select-reservation-${reservation.id}'),
+                              value: bulk!.selectedReservationIds.contains(reservation.id),
+                              onChanged: (_) => notifier.toggleSelection(reservation.id),
+                            )
+                          : null,
+                      selected: bulk?.selectedReservationIds.contains(reservation.id) ?? false,
+                      onOpen: () => onOpen(reservation),
+                      onChanged: changed,
+                    )
+                  else
+                    ReservationRow(reservation: reservation, onOpen: () => onOpen(reservation), onChanged: changed),
+              ],
+            ),
+          if (state.pagination.totalPages > 1) _Pagination(pagination: state.pagination),
+        ],
+      ),
+    );
+  }
+}
+
+class _Pagination extends ConsumerWidget {
+  const _Pagination({required this.pagination});
+
+  final AdminReservationsPaginationState pagination;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifier = ref.read(adminReservationsProvider.notifier);
+    final token = ref.read(authenticationProvider)?.token;
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            tooltip: 'Page précédente',
+            onPressed: pagination.hasPreviousPage ? () => notifier.previousPage(token: token) : null,
+            icon: const Icon(Icons.chevron_left),
+          ),
+          Text('Page ${pagination.page} sur ${pagination.totalPages}', style: Theme.of(context).textTheme.bodySmall),
+          IconButton(
+            tooltip: 'Page suivante',
+            onPressed: pagination.hasNextPage ? () => notifier.nextPage(token: token) : null,
+            icon: const Icon(Icons.chevron_right),
+          ),
+        ],
+      ),
+    );
   }
 }

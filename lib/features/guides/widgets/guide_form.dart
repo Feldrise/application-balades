@@ -94,7 +94,6 @@ class GuideFormState extends ConsumerState<GuideForm> {
       key: _formKey,
       child: SingleChildScrollView(
         child: FormLayout(
-          key: UniqueKey(),
           children: [
             // Photo de profil
             FormSection(
@@ -115,9 +114,6 @@ class GuideFormState extends ConsumerState<GuideForm> {
                 ),
               ],
             ),
-
-            const SizedBox(height: 32),
-
             // Informations personnelles
             FormSection(
               title: 'Informations personnelles',
@@ -159,15 +155,12 @@ class GuideFormState extends ConsumerState<GuideForm> {
                   ),
               ],
             ),
-
-            const SizedBox(height: 24),
-
             // Compétences et certification
             FormSection(
               title: 'Compétences et certification',
               children: [
                 DropdownButtonFormField<String>(
-                  value: _selectedCertificationLevel,
+                  initialValue: _selectedCertificationLevel,
                   decoration: const InputDecoration(labelText: 'Niveau de certification'),
                   items: [
                     for (final level in kCertificationLevelLabels.keys)
@@ -214,9 +207,6 @@ class GuideFormState extends ConsumerState<GuideForm> {
                 ),
               ],
             ),
-
-            const SizedBox(height: 24),
-
             // Présentation
             FormSection(
               title: 'Présentation',
@@ -230,9 +220,6 @@ class GuideFormState extends ConsumerState<GuideForm> {
                 ),
               ],
             ),
-
-            const SizedBox(height: 24),
-
             // Contact d'urgence
             FormSection(
               title: 'Contact d\'urgence',
@@ -249,8 +236,6 @@ class GuideFormState extends ConsumerState<GuideForm> {
                 ),
               ],
             ),
-
-            const SizedBox(height: 40),
           ],
         ),
       ),

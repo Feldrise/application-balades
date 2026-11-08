@@ -6,14 +6,18 @@ import 'package:balade/features/admin/reservations_management/models/admin_reser
 import 'package:balade/features/admin/reservations_management/models/bulk_reservation_action_result.dart';
 import 'package:balade/features/reservations/models/reservation/create_reservation_request.dart';
 import 'package:balade/features/reservations/models/reservation/reservation.dart';
+import 'package:balade/features/reservations/presence.dart';
 import 'package:http/http.dart' as http;
 
 /// A reservation refused by the API, with its machine-readable reason when it has one.
 class ReservationException implements Exception {
-  const ReservationException(this.message, {this.reason});
+  const ReservationException(this.message, {this.reason, this.statusCode});
 
   final String message;
   final String? reason;
+
+  /// The HTTP status of the refusal, when the API answered.
+  final int? statusCode;
 
   @override
   String toString() => message;
@@ -229,6 +233,22 @@ class ReservationsService {
     return _reservationFrom(response);
   }
 
+  /// Record the presence changes of the participants of a balade, from its day on. The latest change wins:
+  /// changes made offline can be sent again safely. Each change gets its own outcome.
+  Future<List<PresenceOutcome>> markPresence(int rambleId, List<PresenceChange> changes, {required String token}) async {
+    final response = await _client.put(
+      Uri.parse('$_serviceUrl/admin/rambles/$rambleId/presence'),
+      headers: _headers(token),
+      body: jsonEncode({'changes': [for (final change in changes) change.toJson()]}),
+    );
+
+    if (response.statusCode == 200) {
+      final participants = (jsonDecode(response.body) as Map<String, Object?>)['participants'] as List;
+      return [for (final json in participants) PresenceOutcome.fromJson(json as Map<String, Object?>)];
+    }
+    throw _exceptionFrom(response);
+  }
+
   Reservation _reservationFrom(http.Response response) {
     if (response.statusCode == 200) {
       return Reservation.fromJson(jsonDecode(response.body) as Map<String, Object?>);
@@ -258,7 +278,7 @@ class ReservationsService {
     if (reason == 'reservation_already_exists' && reservationId is int) {
       return ReservationAlreadyExistsException(message, reservationId: reservationId);
     }
-    return ReservationException(message, reason: reason);
+    return ReservationException(message, reason: reason, statusCode: response.statusCode);
   }
 
   Map<String, String> _headers(String? token) => {'Content-Type': 'application/json', if (token != null) 'Authorization': 'Bearer $token'};

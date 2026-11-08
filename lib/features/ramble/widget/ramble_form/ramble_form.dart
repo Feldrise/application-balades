@@ -3,10 +3,11 @@ import 'dart:convert';
 import 'package:balade/core/api_error_message.dart';
 import 'package:balade/core/constants.dart';
 import 'package:balade/core/forms/duration_picker.dart';
+import 'package:balade/core/map_location.dart';
 import 'package:balade/core/widgets/error_snackbar.dart';
 import 'package:balade/core/widgets/loading_overlay.dart';
 import 'package:balade/core/widgets/searchable_dropdown.dart';
-import 'package:balade/features/admin/admin_home_page/providers/rambles_provider.dart';
+import 'package:balade/features/admin/rambles_management/managed_rambles.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/authentication/permission_provider.dart';
 import 'package:balade/features/guides/providers/current_guide_provider.dart';
@@ -44,6 +45,7 @@ class RambleFormState extends ConsumerState<RambleForm> {
   final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();
   final _meetingPointController = TextEditingController();
+  final _meetingLocationController = TextEditingController();
   final _meetingLatitudeController = TextEditingController();
   final _meetingLongitudeController = TextEditingController();
   final _maxParticipantsController = TextEditingController();
@@ -159,6 +161,7 @@ class RambleFormState extends ConsumerState<RambleForm> {
     _descriptionController.dispose();
     _locationController.dispose();
     _meetingPointController.dispose();
+    _meetingLocationController.dispose();
     _meetingLatitudeController.dispose();
     _meetingLongitudeController.dispose();
     _maxParticipantsController.dispose();
@@ -183,7 +186,6 @@ class RambleFormState extends ConsumerState<RambleForm> {
       key: _formKey,
       child: SingleChildScrollView(
         child: FormLayout(
-          key: UniqueKey(),
           children: [
             // Image de couverture
             FormSection(
@@ -203,9 +205,6 @@ class RambleFormState extends ConsumerState<RambleForm> {
                 ),
               ],
             ),
-
-            const SizedBox(height: 32),
-
             if (!isGuideOnly) ...[
               FormSection(
                 title: 'Informations sur le(s) guide(s)',
@@ -240,7 +239,6 @@ class RambleFormState extends ConsumerState<RambleForm> {
                     fakeOnCreate: (value) => Guide(0, firstName: "", lastName: "", email: "", isActive: true),
                     shouldResetOnTap: true,
                   ),
-                  SizedBox(),
                   FormLargeField(
                     child: Wrap(
                       spacing: 8,
@@ -261,7 +259,6 @@ class RambleFormState extends ConsumerState<RambleForm> {
                   ),
                 ],
               ),
-              const SizedBox(height: 32),
             ],
 
             // Informations générales
@@ -275,7 +272,7 @@ class RambleFormState extends ConsumerState<RambleForm> {
                 ),
 
                 DropdownButtonFormField<String>(
-                  value: _selectedType,
+                  initialValue: _selectedType,
                   decoration: const InputDecoration(labelText: 'Type de balade'),
                   items: [
                     for (final type in rambleTypeLabels.keys)
@@ -315,9 +312,6 @@ class RambleFormState extends ConsumerState<RambleForm> {
                 ),
               ],
             ),
-
-            const SizedBox(height: 24),
-
             // Date et horaires
             FormSection(
               title: 'Date et horaires',
@@ -344,9 +338,6 @@ class RambleFormState extends ConsumerState<RambleForm> {
                 ),
               ],
             ),
-
-            const SizedBox(height: 24),
-
             // Lieu et logistique
             FormSection(
               title: 'Lieu et logistique',
@@ -363,26 +354,34 @@ class RambleFormState extends ConsumerState<RambleForm> {
                   validator: FormValidator.requiredValidator,
                 ),
 
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _meetingLatitudeController,
-                        decoration: const InputDecoration(labelText: 'Latitude', hintText: '48.8566'),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-                        validator: _validateMeetingCoordinate,
-                      ),
+                FormLargeField(
+                  child: TextFormField(
+                    controller: _meetingLocationController,
+                    decoration: InputDecoration(
+                      labelText: 'Coller un lien Google Maps ou des coordonnées',
+                      hintText: 'https://maps.google.com/… ou 48.8566, 2.3522',
+                      helperText: _meetingLatitudeController.text.isNotEmpty && _meetingLongitudeController.text.isNotEmpty ? 'Latitude et longitude renseignées ci-dessous' : null,
+                      prefixIcon: const Icon(Icons.place_outlined),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _meetingLongitudeController,
-                        decoration: const InputDecoration(labelText: 'Longitude', hintText: '2.3522'),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-                        validator: _validateMeetingCoordinate,
-                      ),
-                    ),
-                  ],
+                    keyboardType: TextInputType.url,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    onChanged: _readMeetingLocation,
+                    validator: (value) => (value ?? '').trim().isEmpty || parseMapLocation(value!) != null ? null : 'Lien ou coordonnées non reconnus',
+                  ),
+                ),
+
+                TextFormField(
+                  controller: _meetingLatitudeController,
+                  decoration: const InputDecoration(labelText: 'Latitude', hintText: '48.8566'),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                  validator: _validateMeetingCoordinate,
+                ),
+
+                TextFormField(
+                  controller: _meetingLongitudeController,
+                  decoration: const InputDecoration(labelText: 'Longitude', hintText: '2.3522'),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                  validator: _validateMeetingCoordinate,
                 ),
 
                 TextFormField(
@@ -393,7 +392,7 @@ class RambleFormState extends ConsumerState<RambleForm> {
                 ),
 
                 DropdownButtonFormField<String>(
-                  value: _selectedDifficulty,
+                  initialValue: _selectedDifficulty,
                   decoration: const InputDecoration(labelText: 'Niveau de difficulté'),
                   items: rambleDifficultyLabels.keys.map((difficulty) {
                     return DropdownMenuItem(
@@ -421,9 +420,6 @@ class RambleFormState extends ConsumerState<RambleForm> {
                 ),
               ],
             ),
-
-            const SizedBox(height: 24),
-
             // Tarifs
             FormSection(
               title: 'Tarifs',
@@ -465,28 +461,30 @@ class RambleFormState extends ConsumerState<RambleForm> {
                 ),
               ],
             ),
-
-            const SizedBox(height: 24),
-
             // Publication
             FormSection(
               title: 'Publication',
               children: [
-                SegmentedButton<PublicationMode>(
-                  segments: const [
-                    ButtonSegment(value: PublicationMode.publishNow, label: Text('Publier maintenant'), icon: Icon(Icons.publish)),
-                    ButtonSegment(value: PublicationMode.draft, label: Text('Brouillon'), icon: Icon(Icons.edit_note)),
-                    ButtonSegment(value: PublicationMode.scheduled, label: Text('Planifier'), icon: Icon(Icons.schedule)),
-                  ],
-                  selected: {_publicationMode},
-                  onSelectionChanged: (selection) {
-                    setState(() {
-                      _publicationMode = selection.first;
-                    });
-                  },
+                FormLargeField(
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final (mode, label, icon) in [
+                        (PublicationMode.publishNow, 'Publier maintenant', Icons.publish),
+                        (PublicationMode.draft, 'Brouillon', Icons.edit_note),
+                        (PublicationMode.scheduled, 'Planifier', Icons.schedule),
+                      ])
+                        ChoiceChip(
+                          avatar: Icon(icon, size: 18),
+                          label: Text(label),
+                          selected: _publicationMode == mode,
+                          onSelected: (_) => setState(() => _publicationMode = mode),
+                        ),
+                    ],
+                  ),
                 ),
                 if (_publicationMode == PublicationMode.scheduled) ...[
-                  const SizedBox(height: 16),
                   DateTimeFormField(
                     initialValue: _scheduledPublishDate,
                     dateFormat: DateFormat('EEEE d MMMM yyyy à HH:mm', 'fr_FR'),
@@ -501,103 +499,114 @@ class RambleFormState extends ConsumerState<RambleForm> {
                 ],
               ],
             ),
-
-            const SizedBox(height: 24),
-
             // Configuration des paiements
             FormSection(
               title: 'Configuration des paiements',
               children: [
-                SwitchListTile(
-                  title: const Text('Activer les paiements'),
-                  subtitle: const Text('Permettre aux participants de payer en ligne'),
-                  value: _paymentEnabled,
-                  onChanged: (value) {
-                    setState(() {
-                      _paymentEnabled = value;
-                      if (!value) {
-                        _paymentRequired = false;
-                        _paymentGuideId = null;
-                      }
-                    });
-                  },
+                FormLargeField(
+                  child: SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Activer les paiements'),
+                    subtitle: const Text('Permettre aux participants de payer en ligne'),
+                    value: _paymentEnabled,
+                    onChanged: (value) {
+                      setState(() {
+                        _paymentEnabled = value;
+                        if (!value) {
+                          _paymentRequired = false;
+                          _paymentGuideId = null;
+                        }
+                      });
+                    },
+                  ),
                 ),
 
                 if (_paymentEnabled) ...[
-                  const SizedBox(height: 16),
-
-                  SwitchListTile(
-                    title: const Text('Paiement obligatoire'),
-                    subtitle: const Text('Rendre le paiement obligatoire pour finaliser l\'inscription'),
-                    value: _paymentRequired,
-                    onChanged: (value) {
-                      setState(() {
-                        _paymentRequired = value;
-                      });
-                    },
+                  FormLargeField(
+                    child: SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Paiement obligatoire'),
+                      subtitle: const Text('Rendre le paiement obligatoire pour finaliser l\'inscription'),
+                      value: _paymentRequired,
+                      onChanged: (value) {
+                        setState(() {
+                          _paymentRequired = value;
+                        });
+                      },
+                    ),
                   ),
 
-                  const SizedBox(height: 16),
-
-                  DropdownButtonFormField<int>(
-                    value: _paymentGuideId,
-                    decoration: InputDecoration(
-                      labelText: 'Guide recevant les paiements *',
-                      helperText: 'Seuls les guides avec Stripe configuré apparaissent',
-                      suffixIcon: IconButton(icon: const Icon(Icons.refresh), tooltip: 'Actualiser la liste des guides', onPressed: _loadAvailablePaymentGuides),
+                  FormLargeField(
+                    child: DropdownButtonFormField<int>(
+                      isExpanded: true,
+                      initialValue: _paymentGuideId,
+                      decoration: InputDecoration(
+                        labelText: 'Guide recevant les paiements *',
+                        helperText: 'Seuls les guides avec Stripe configuré apparaissent',
+                        suffixIcon: IconButton(icon: const Icon(Icons.refresh), tooltip: 'Actualiser la liste des guides', onPressed: _loadAvailablePaymentGuides),
+                      ),
+                      items: _availablePaymentGuides.map((guide) {
+                        return DropdownMenuItem<int>(
+                          value: guide.id,
+                          child: Row(
+                            children: [
+                              Icon(Icons.person, size: 20),
+                              const SizedBox(width: 8),
+                              Text('${guide.firstName} ${guide.lastName}'),
+                              if (guide.paymentEnabled == true) ...[const SizedBox(width: 8), Icon(Icons.verified, size: 16, color: Colors.green)],
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _paymentGuideId = value;
+                        });
+                      },
+                      validator: _paymentEnabled ? (value) => value == null ? 'Veuillez sélectionner un guide pour les paiements' : null : null,
                     ),
-                    items: _availablePaymentGuides.map((guide) {
-                      return DropdownMenuItem<int>(
-                        value: guide.id,
-                        child: Row(
-                          children: [
-                            Icon(Icons.person, size: 20),
-                            const SizedBox(width: 8),
-                            Text('${guide.firstName} ${guide.lastName}'),
-                            if (guide.paymentEnabled == true) ...[const SizedBox(width: 8), Icon(Icons.verified, size: 16, color: Colors.green)],
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _paymentGuideId = value;
-                      });
-                    },
-                    validator: _paymentEnabled ? (value) => value == null ? 'Veuillez sélectionner un guide pour les paiements' : null : null,
                   ),
 
                   if (_availablePaymentGuides.isEmpty)
-                    Container(
-                      margin: const EdgeInsets.only(top: 8),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.orange.withOpacity(0.3)),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.warning, color: Colors.orange, size: 20),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Aucun guide n\'a configuré Stripe pour recevoir des paiements. Ajoutez la configuration de paiement aux guides d\'abord.',
-                              style: TextStyle(color: Colors.orange.shade700),
+                    FormLargeField(
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.warning, color: Colors.orange, size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Aucun guide n\'a configuré Stripe pour recevoir des paiements. Ajoutez la configuration de paiement aux guides d\'abord.',
+                                style: TextStyle(color: Colors.orange.shade700),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                 ],
               ],
             ),
-
-            const SizedBox(height: 40),
           ],
         ),
       ),
     );
+  }
+
+  /// Fills the latitude and the longitude from what was pasted, when it is a Google Maps link or coordinates.
+  void _readMeetingLocation(String value) {
+    final location = parseMapLocation(value);
+    if (location == null) return;
+    setState(() {
+      _meetingLatitudeController.text = location.latitude.toString();
+      _meetingLongitudeController.text = location.longitude.toString();
+    });
   }
 
   String? _validateMeetingCoordinate(String? value) {
@@ -704,7 +713,7 @@ class RambleFormState extends ConsumerState<RambleForm> {
       }
 
       if (mounted) {
-        ref.read(ramblesProvider.notifier).loadRambles(authorization: ref.read(authenticationProvider)!.token);
+        ref.invalidate(managedRamblesProvider);
 
         Navigator.of(context).pop(true);
       }

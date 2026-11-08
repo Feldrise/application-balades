@@ -1,5 +1,5 @@
+import 'package:balade/features/admin/design/design.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
-import 'package:balade/features/ramble/models/ramble/ramble.dart';
 import 'package:balade/features/ramble/rambles_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,44 +22,32 @@ class _EditRamblePageState extends ConsumerState<EditRamblePage> {
     return FutureBuilder(
       future: RamblesService.instance.fetchRamble(int.parse(widget.id), includeUnpublished: true, authorization: ref.read(authenticationProvider)!.token),
       builder: (context, snapshot) {
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Modifier la Balade'),
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            actions: [
-              OutlinedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
+        final loaded = snapshot.connectionState == ConnectionState.done && !snapshot.hasError;
+        return Column(
+          children: [
+            const ManagementPageHeader(title: 'Modifier la balade', leading: ManagementBackButton()),
+            Expanded(
+              child: Builder(
+                builder: (context) {
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Erreur lors de la récupération de la balade : ${snapshot.error}'));
+                  }
+
+                  return RambleForm(key: _formKey, initialRamble: snapshot.data!);
                 },
-                child: const Text('Annuler'),
               ),
-              const SizedBox(width: 12),
-              FilledButton(
-                onPressed: snapshot.connectionState != ConnectionState.done
-                    ? null
-                    : () async {
-                        await _formKey.currentState?.save();
-                      },
-                child: Text('Modifier la balade'),
-              ),
-              const SizedBox(width: 12),
-            ],
-          ),
-          body: Builder(
-            builder: (context) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              if (snapshot.hasError) {
-                return Center(child: Text('Erreur lors de la récupération de la balade : ${snapshot.error}'));
-              }
-
-              final Ramble ramble = snapshot.data!;
-
-              return RambleForm(key: _formKey, initialRamble: ramble);
-            },
-          ),
+            ),
+            ManagementActionBar(
+              actions: [
+                OutlinedButton(onPressed: () => leaveManagementForm(context), child: const Text('Annuler')),
+                FilledButton(onPressed: loaded ? () async => await _formKey.currentState?.save() : null, child: const Text('Enregistrer')),
+              ],
+            ),
+          ],
         );
       },
     );

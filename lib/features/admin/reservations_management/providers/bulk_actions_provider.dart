@@ -1,5 +1,6 @@
 import 'package:balade/features/admin/reservations_management/models/bulk_reservation_action_result.dart';
 import 'package:balade/features/admin/reservations_management/providers/admin_reservations_provider.dart';
+import 'package:balade/features/reservations/providers/reservation_providers.dart';
 import 'package:balade/features/reservations/reservations_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -94,5 +95,5 @@ class BulkActionsNotifier extends StateNotifier<BulkActionsState> {
 
 // Provider for bulk actions
 final bulkActionsProvider = StateNotifierProvider<BulkActionsNotifier, BulkActionsState>((ref) {
-  return BulkActionsNotifier(ReservationsService.instance, ref.read(adminReservationsProvider.notifier));
+  return BulkActionsNotifier(ref.read(reservationsServiceProvider), ref.read(adminReservationsProvider.notifier));
 });

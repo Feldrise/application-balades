@@ -1,4 +1,6 @@
+import 'package:balade/core/constants.dart';
 import 'package:balade/core/widgets/loading_overlay.dart';
+import 'package:balade/features/admin/design/design.dart';
 import 'package:balade/features/admin/layout/admin_access_denied_page.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/authentication/permission_provider.dart';
@@ -17,34 +19,27 @@ class AdminGuidesPage extends ConsumerStatefulWidget {
 }
 
 class _AdminGuidesPageState extends ConsumerState<AdminGuidesPage> {
-  final _searchController = TextEditingController();
   List<Guide> _guides = [];
   bool _isLoading = true;
   String? _error;
+  String _search = '';
   bool? _activeFilter;
 
   @override
   void initState() {
     super.initState();
     _loadGuides();
-    _searchController.addListener(_loadGuides);
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 
   Future<void> _loadGuides() async {
     setState(() {
-      _isLoading = true;
+      _isLoading = _guides.isEmpty;
       _error = null;
     });
 
     try {
       final token = ref.read(authenticationProvider)?.token;
-      final guides = await GuidesService.instance.fetchGuides(_searchController.text, isActive: _activeFilter, authorization: token);
+      final guides = await GuidesService.instance.fetchGuides(_search, isActive: _activeFilter, authorization: token);
       if (mounted) {
         setState(() {
           _guides = guides;
@@ -62,12 +57,18 @@ class _AdminGuidesPageState extends ConsumerState<AdminGuidesPage> {
   }
 
   Future<void> _addGuide() async {
-    await showDialog(context: context, builder: (context) => const LoadingOverlay(child: AddGuideDialog()));
+    await showDialog(
+      context: context,
+      builder: (context) => const LoadingOverlay(child: AddGuideDialog()),
+    );
     _loadGuides();
   }
 
   Future<void> _editGuide(int guideId) async {
-    await showDialog(context: context, builder: (context) => LoadingOverlay(child: EditGuideDialog(guideId: guideId)));
+    await showDialog(
+      context: context,
+      builder: (context) => LoadingOverlay(child: EditGuideDialog(guideId: guideId)),
+    );
     _loadGuides();
   }
 
@@ -78,92 +79,154 @@ class _AdminGuidesPageState extends ConsumerState<AdminGuidesPage> {
       return const AdminAccessDeniedPage();
     }
 
-    final theme = Theme.of(context);
+    final gutter = ManagementBreakpoints.gutter(context);
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Gestion des guides', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 4),
-                        Text('Gérez les profils et les compétences de vos guides naturalistes', style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  SizedBox(
-                    width: 280,
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: const InputDecoration(prefixIcon: Icon(Icons.search), labelText: 'Rechercher', border: OutlineInputBorder()),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  DropdownButton<bool?>(
-                    value: _activeFilter,
-                    items: const [
-                      DropdownMenuItem(value: null, child: Text('Tous')),
-                      DropdownMenuItem(value: true, child: Text('Actifs')),
-                      DropdownMenuItem(value: false, child: Text('Inactifs')),
+    return Column(
+      children: [
+        ManagementPageHeader(
+          title: 'Guides',
+          subtitle: _isLoading || _error != null ? null : '${_guides.length} ${_guides.length > 1 ? 'guides' : 'guide'}',
+          actions: [ManagementHeaderButton(label: 'Nouveau guide', icon: Icons.add, onPressed: _addGuide)],
+          bottom: ManagementHeaderSearchField(
+            hint: 'Rechercher un guide',
+            onChanged: (value) {
+              _search = value;
+              _loadGuides();
+            },
+          ),
+        ),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: _loadGuides,
+            child: ListView(
+              padding: EdgeInsets.fromLTRB(gutter, 12, gutter, 32),
+              children: [
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    for (final (label, value) in [('Tous', null), ('Actifs', true), ('Inactifs', false)])
+                      ChoiceChip(
+                        label: Text(label),
+                        selected: _activeFilter == value,
+                        onSelected: (_) {
+                          setState(() => _activeFilter = value);
+                          _loadGuides();
+                        },
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                if (_isLoading)
+                  const Padding(
+                    padding: EdgeInsets.all(48),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (_error != null)
+                  ManagementPanel(
+                    children: [
+                      ManagementEmptyState(
+                        icon: Icons.cloud_off,
+                        title: 'Impossible de charger les guides',
+                        message: 'Vérifiez votre connexion puis réessayez.',
+                        action: FilledButton(onPressed: _loadGuides, child: const Text('Réessayer')),
+                      ),
                     ],
-                    onChanged: (value) {
-                      setState(() => _activeFilter = value);
-                      _loadGuides();
-                    },
+                  )
+                else if (_guides.isEmpty)
+                  const ManagementPanel(
+                    children: [ManagementEmptyState(icon: Icons.groups_outlined, title: 'Aucun guide trouvé', message: 'Aucun guide ne correspond à cette recherche.')],
+                  )
+                else
+                  ManagementPanel(
+                    children: [for (final guide in _guides) _GuideRow(guide: guide, onTap: () => _editGuide(guide.id))],
                   ),
-                  const SizedBox(width: 12),
-                  IconButton.outlined(onPressed: _loadGuides, icon: const Icon(Icons.refresh)),
-                  const SizedBox(width: 12),
-                  FilledButton.icon(onPressed: _addGuide, icon: const Icon(Icons.add), label: const Text('Nouveau guide')),
-                ],
-              ),
+              ],
             ),
           ),
-          const SizedBox(height: 24),
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _error != null
-                ? Center(child: Text('Erreur : $_error'))
-                : _guides.isEmpty
-                ? const Center(child: Text('Aucun guide trouvé'))
-                : Card(
-                    child: ListView.separated(
-                      padding: const EdgeInsets.all(8),
-                      itemCount: _guides.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final guide = _guides[index];
-                        return ListTile(
-                          leading: CircleAvatar(child: Text(guide.firstName.isNotEmpty ? guide.firstName[0].toUpperCase() : '?')),
-                          title: Text('${guide.firstName} ${guide.lastName}'),
-                          subtitle: Text('${guide.email}${guide.specialties != null ? ' · ${guide.specialties}' : ''}'),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Chip(
-                                label: Text(guide.isActive ? 'Actif' : 'Inactif'),
-                                backgroundColor: guide.isActive ? theme.colorScheme.primaryContainer : theme.colorScheme.errorContainer,
-                              ),
-                              IconButton(icon: const Icon(Icons.edit_outlined), tooltip: 'Modifier', onPressed: () => _editGuide(guide.id)),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+        ),
+      ],
+    );
+  }
+}
+
+/// What a guide without a first or last name is called in the list.
+const unnamedGuideLabel = 'Guide sans nom';
+
+String guideDisplayName(Guide guide) {
+  final name = '${guide.firstName} ${guide.lastName}'.trim();
+  return name.isEmpty ? unnamedGuideLabel : name;
+}
+
+class _GuideRow extends StatelessWidget {
+  const _GuideRow({required this.guide, required this.onTap});
+
+  final Guide guide;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final name = guideDisplayName(guide);
+    final hasAvatar = guide.avatar != null && guide.avatar!.isNotEmpty;
+    final specialties = guide.specialties?.trim() ?? '';
+
+    return ManagementRow(
+      onTap: onTap,
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: ManagementColors.mint,
+            foregroundColor: ManagementColors.green,
+            backgroundImage: hasAvatar ? NetworkImage('$kBaseUrl/uploads/guide/${guide.id}/${guide.avatar!}') : null,
+            child: hasAvatar
+                ? null
+                : (guide.firstName.isEmpty
+                      ? const Icon(Icons.person_outline, size: 20)
+                      : Text(guide.firstName[0].toUpperCase(), style: theme.textTheme.titleSmall?.copyWith(color: ManagementColors.green))),
           ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: guide.firstName.isEmpty && guide.lastName.isEmpty ? ManagementColors.muted : null,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(guide.email, style: theme.textTheme.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+                if (specialties.isNotEmpty) Text(specialties, style: theme.textTheme.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          _ActiveBadge(isActive: guide.isActive),
+          const Icon(Icons.chevron_right, color: ManagementColors.muted),
         ],
+      ),
+    );
+  }
+}
+
+class _ActiveBadge extends StatelessWidget {
+  const _ActiveBadge({required this.isActive});
+
+  final bool isActive;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isActive ? ManagementColors.confirmed : ManagementColors.draft;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.11), borderRadius: BorderRadius.circular(4)),
+      child: Text(
+        isActive ? 'Actif' : 'Inactif',
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(color: color, fontWeight: FontWeight.w800),
       ),
     );
   }

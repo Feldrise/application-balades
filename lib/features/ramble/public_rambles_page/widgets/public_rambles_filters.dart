@@ -117,7 +117,7 @@ class PublicRamblesFilters extends ConsumerWidget {
 
   Widget _buildTypeFilter(PublicRamblesState state, PublicRamblesNotifier notifier) {
     return DropdownButtonFormField<String>(
-      value: state.filterState.type,
+      initialValue: state.filterState.type,
       decoration: const InputDecoration(labelText: 'Type de balade', border: OutlineInputBorder(), isDense: true),
       items: [
         const DropdownMenuItem(value: null, child: Text('Tous les types')),
@@ -134,7 +134,7 @@ class PublicRamblesFilters extends ConsumerWidget {
 
   Widget _buildDifficultyFilter(PublicRamblesState state, PublicRamblesNotifier notifier) {
     return DropdownButtonFormField<String>(
-      value: state.filterState.difficulty,
+      initialValue: state.filterState.difficulty,
       decoration: const InputDecoration(labelText: 'Difficulté', border: OutlineInputBorder(), isDense: true),
       items: [
         const DropdownMenuItem(value: null, child: Text('Toutes difficultés')),
@@ -164,7 +164,7 @@ class PublicRamblesFilters extends ConsumerWidget {
     final sortOptions = {'date': 'Date', 'title': 'Titre', 'difficulty': 'Difficulté'};
 
     return DropdownButtonFormField<String>(
-      value: state.sortState.sortBy,
+      initialValue: state.sortState.sortBy,
       decoration: const InputDecoration(labelText: 'Trier par', border: OutlineInputBorder(), isDense: true),
       items: sortOptions.entries
           .map(

@@ -1,106 +1,75 @@
-import 'package:flutter/material.dart';
 import 'package:balade/core/forms/form_large_field.dart';
+import 'package:balade/features/admin/design/design.dart';
 import 'package:balade/themes/screen_helper.dart';
+import 'package:flutter/material.dart';
 
-class FormSection extends StatefulWidget {
-  const FormSection({super.key, this.title, required this.children, this.actions = const [], this.isSmall = false});
+/// A section of a form, drawn as a card with a sober title. Its [children] are laid out in two columns
+/// when there is room and in one otherwise; a [FormLargeField] always takes a whole line.
+class FormSection extends StatelessWidget {
+  const FormSection({super.key, this.title, required this.children, this.actions = const []});
 
   final String? title;
-  final bool isSmall;
-
   final List<Widget> children;
   final List<Widget> actions;
 
   @override
-  State<FormSection> createState() => _FormSectionState();
-}
-
-class _FormSectionState extends State<FormSection> {
-  final List<Widget> _children = [];
-
-  @override
-  void initState() {
-    super.initState();
-
-    if (widget.children.length.isOdd) {
-      _children.addAll([...widget.children, Container()]);
-    } else {
-      _children.addAll(widget.children);
-    }
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final twoColumns = constraints.maxWidth > ScreenHelper.breakpointTablet;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if ((title ?? '').isNotEmpty) ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(title!, style: theme.textTheme.titleMedium?.copyWith(color: ManagementColors.green)),
+                      ),
+                      ...actions,
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                ],
+                for (final line in _lines(twoColumns)) ...[line, const SizedBox(height: 16)],
+              ]..removeLast(),
+            );
+          },
+        ),
+      ),
+    );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    int i = 0;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+  List<Widget> _lines(bool twoColumns) {
+    if (!twoColumns) return children;
+
+    final lines = <Widget>[];
+    var i = 0;
+    while (i < children.length) {
+      final first = children[i];
+      if (first is FormLargeField) {
+        lines.add(first);
+        i++;
+        continue;
+      }
+      final second = i + 1 < children.length && children[i + 1] is! FormLargeField ? children[i + 1] : null;
+      lines.add(
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if ((widget.title ?? "").isNotEmpty) ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      widget.title!,
-                      style: widget.isSmall ? Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.bold) : Theme.of(context).textTheme.displaySmall,
-                    ),
-                  ),
-                  ...widget.actions,
-                ],
-              ),
-              SizedBox(height: widget.isSmall ? 12 : 24),
-            ],
-
-            // The form fields
-            Builder(
-              builder: (context) {
-                final List<Widget> children = [];
-
-                while (i < _children.length) {
-                  if (i == _children.length - 1) {
-                    children.add(_children[i]);
-                  } else if (_children[i] is FormLargeField) {
-                    i--;
-                    children.add(_children[i + 1]);
-                  } else if (_children[i + 1] is FormLargeField) {
-                    i--;
-                    children.add(
-                      Flex(
-                        direction: constraints.maxWidth > ScreenHelper.breakpointTablet ? Axis.horizontal : Axis.vertical,
-                        crossAxisAlignment: constraints.maxWidth > ScreenHelper.breakpointTablet ? CrossAxisAlignment.start : CrossAxisAlignment.stretch,
-                        children: [
-                          Expanded(flex: constraints.maxWidth > ScreenHelper.breakpointTablet ? 1 : 0, child: _children[i + 1]),
-                          const SizedBox(width: 20, height: 20),
-                          Expanded(flex: constraints.maxWidth > ScreenHelper.breakpointTablet ? 1 : 0, child: Container()),
-                        ],
-                      ),
-                    );
-                  } else {
-                    children.add(
-                      Flex(
-                        direction: constraints.maxWidth > ScreenHelper.breakpointTablet ? Axis.horizontal : Axis.vertical,
-                        crossAxisAlignment: constraints.maxWidth > ScreenHelper.breakpointTablet ? CrossAxisAlignment.start : CrossAxisAlignment.stretch,
-                        children: [
-                          Expanded(flex: constraints.maxWidth > ScreenHelper.breakpointTablet ? 1 : 0, child: _children[i]),
-                          const SizedBox(width: 20, height: 20),
-                          Expanded(flex: constraints.maxWidth > ScreenHelper.breakpointTablet ? 1 : 0, child: _children[i + 1]),
-                        ],
-                      ),
-                    );
-                  }
-
-                  children.add(const SizedBox(height: 20));
-                  i += 2;
-                }
-
-                return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: children);
-              },
-            ),
+            Expanded(child: first),
+            const SizedBox(width: 16),
+            Expanded(child: second ?? const SizedBox.shrink()),
           ],
-        );
-      },
-    );
+        ),
+      );
+      i += second == null ? 1 : 2;
+    }
+    return lines;
   }
 }

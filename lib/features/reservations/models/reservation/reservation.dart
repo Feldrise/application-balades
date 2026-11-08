@@ -13,6 +13,8 @@ abstract class Reservation with _$Reservation {
     @JsonKey(name: 'ramble_id') required int rambleId,
     @JsonKey(name: 'user_id') required int userId,
     @JsonKey(name: 'contact_email') required String contactEmail,
+    // The booker's phone, from their profile: only in the reservations seen by the admin and the guide, null when not given
+    @JsonKey(name: 'contact_phone') String? contactPhone,
     required String status,
     @JsonKey(name: 'confirmation_deadline') @DateSerializer() DateTime? confirmationDeadline,
     @JsonKey(name: 'confirmation_date') @DateSerializer() DateTime? confirmationDate,
@@ -48,6 +50,8 @@ abstract class Participant with _$Participant {
     // The ramble has tariffs but this participant's is unknown (migrated participants)
     @JsonKey(name: 'price_missing') @Default(false) bool priceMissing,
     @JsonKey(name: 'is_booker') @Default(false) bool isBooker,
+    // Roll call, in the reservations seen by the admin and the guide: null until marked
+    bool? present,
   }) = _Participant;
 
   factory Participant.fromJson(Map<String, Object?> json) => _$ParticipantFromJson(json);
