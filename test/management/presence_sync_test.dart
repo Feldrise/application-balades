@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:balade/features/admin/ramble_details_page/presence/presence_sync.dart';
@@ -17,7 +18,15 @@ class _PresenceApi {
   final Map<int, Map<String, Object?>> outcomes = {};
   final List<List<Map<String, Object?>>> batches = [];
 
+  /// When set, the next answer waits for it: the batch is on its way.
+  Completer<void>? onTheWay;
+
   Future<http.Response> handle(http.Request request) async {
+    final wait = onTheWay;
+    if (wait != null) {
+      onTheWay = null;
+      await wait.future;
+    }
     if (!online) throw http.ClientException('no network');
     expect(request.method, 'PUT');
     expect(request.url.path, '/api/v1/reservations/admin/rambles/1/presence');
@@ -40,7 +49,7 @@ void main() {
   late _PresenceApi api;
   late DateTime now;
 
-  PresenceSync openSync({Duration retryDelay = const Duration(minutes: 1)}) {
+  PresenceSync openSync({Duration retryDelay = const Duration(minutes: 1), bool disposedByTest = false}) {
     final sync = PresenceSync(
       rambleId: 1,
       retryDelay: retryDelay,
@@ -48,7 +57,7 @@ void main() {
       token: 'guide-token',
       clock: () => now,
     );
-    addTearDown(sync.dispose);
+    if (!disposedByTest) addTearDown(sync.dispose);
     return sync;
   }
 
@@ -172,5 +181,30 @@ void main() {
 
     expect(sync.pendingCount, 0);
     expect(api.batches, hasLength(1));
+  });
+
+  test('a batch answered after the feuille was closed does not lose the changes made since it reopened', () async {
+    final closed = openSync(disposedByTest: true);
+    await closed.load();
+    api.online = true;
+    api.onTheWay = Completer<void>();
+    final answer = api.onTheWay!;
+    final sending = closed.mark(_claire, true);
+    await pumpEventQueue();
+    closed.dispose();
+
+    final reopened = openSync();
+    await reopened.load();
+    api.online = false;
+    await reopened.mark(_leo, true);
+
+    api.online = true;
+    answer.complete();
+    await sending;
+
+    final restarted = openSync();
+    await restarted.load();
+    expect(restarted.presenceOf(_leo), isTrue, reason: 'the change made after reopening is still on the phone');
+    expect(restarted.pendingCount, 1, reason: 'only the change the API recorded left the phone');
   });
 }

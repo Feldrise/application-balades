@@ -100,6 +100,13 @@ class PresenceSync extends ChangeNotifier {
       return false;
     }
 
+    // The feuille was closed meanwhile: another roll call may own the phone's queue now. Only the changes the API
+    // answered leave it.
+    if (_disposed) {
+      await _forget([for (final outcome in outcomes) ...sent.where((c) => c.participantId == outcome.participantId)]);
+      return true;
+    }
+
     for (final outcome in outcomes) {
       final change = sent.where((c) => c.participantId == outcome.participantId).firstOrNull;
       // A change made while this batch was on its way is newer: it stays to be sent.
@@ -120,6 +127,23 @@ class PresenceSync extends ChangeNotifier {
       await preferences.remove(_key);
     } else {
       await preferences.setString(_key, jsonEncode([for (final change in _pending.values) change.toJson()]));
+    }
+  }
+
+  /// Takes [answered] out of the changes left on the phone, keeping any other.
+  Future<void> _forget(List<PresenceChange> answered) async {
+    final preferences = await SharedPreferences.getInstance();
+    final saved = preferences.getString(_key);
+    if (saved == null) return;
+    bool isAnswered(PresenceChange change) => answered.any((a) => a.participantId == change.participantId && a.markedAt == change.markedAt);
+    final left = [
+      for (final json in jsonDecode(saved) as List)
+        if (!isAnswered(PresenceChange.fromJson(json as Map<String, Object?>))) json,
+    ];
+    if (left.isEmpty) {
+      await preferences.remove(_key);
+    } else {
+      await preferences.setString(_key, jsonEncode(left));
     }
   }
 
