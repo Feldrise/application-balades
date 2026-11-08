@@ -38,14 +38,10 @@ class AuthenticationService {
   }
 
   Future<LoginResult> verifyAuthentication(String email, String code) async {
-    final http.Response response = await http.post(
-      Uri.parse('$serviceBaseUrl/verify-authentication'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email, 'code': code}),
-    );
+    final http.Response response = await http.post(Uri.parse('$serviceBaseUrl/verify-authentication'), headers: {'Content-Type': 'application/json'}, body: jsonEncode({'email': email, 'code': code}));
 
     if (response.statusCode != 200) {
-      throw PlatformException(code: response.statusCode.toString(), message: 'Failed to verify authentication: ${response.reasonPhrase}');
+      throw PlatformException(code: response.statusCode.toString(), message: 'Failed to verify authentication: ${response.reasonPhrase}', details: response.body);
     }
 
     return LoginResult.fromJson(jsonDecode(response.body) as Map<String, Object?>);

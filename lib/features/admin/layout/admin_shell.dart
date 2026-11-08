@@ -1,7 +1,6 @@
 import 'package:balade/features/admin/layout/admin_access_denied_page.dart';
 import 'package:balade/features/admin/layout/management_layout.dart';
 import 'package:balade/features/admin/layout/management_navigation.dart';
-import 'package:balade/features/authentication/admin_login_page.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/authentication/permission_provider.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +16,12 @@ class AdminShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authedUser = ref.watch(authenticationProvider);
     if (authedUser == null) {
-      return const AdminLoginPage();
+      // Signed out while in the management area: the router sends to the single login screen on the next navigation
+      final location = GoRouterState.of(context).uri.toString();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) context.go(location);
+      });
+      return const SizedBox.shrink();
     }
 
     final permission = ref.watch(permissionProvider);
