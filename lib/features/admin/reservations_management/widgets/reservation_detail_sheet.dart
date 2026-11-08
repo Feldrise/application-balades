@@ -63,6 +63,13 @@ class _ReservationDetail extends ConsumerWidget {
           ],
         ),
         if (reservation.contactPhone?.isNotEmpty ?? false) Text(reservation.contactPhone!, style: theme.textTheme.bodySmall),
+        if (reservation.ramble != null) ...[
+          const SizedBox(height: 12),
+          Text('BALADE', style: theme.textTheme.labelSmall),
+          const SizedBox(height: 4),
+          Text(reservation.ramble!.title, style: theme.textTheme.bodyMedium),
+          if (reservation.ramble!.date != null) Text(DateFormat("d MMMM yyyy · HH'h'mm", 'fr').format(reservation.ramble!.date!.toLocal()), style: theme.textTheme.bodySmall),
+        ],
         const SizedBox(height: 12),
         Text('PARTICIPANTS · ${reservation.participants.length}', style: theme.textTheme.labelSmall),
         for (final participant in reservation.participants) ManagedParticipantRow(participant: participant),

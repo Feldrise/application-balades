@@ -89,6 +89,7 @@ Map<String, Object?> reservation(
   int estimatedAmount = 1200,
   int amountPaid = 0,
   bool hasMissingPrices = false,
+  Map<String, Object?>? ramble,
 }) => {
   'id': id,
   'created_at': '2026-11-02T10:00:00Z',
@@ -105,6 +106,7 @@ Map<String, Object?> reservation(
   'amount_due': estimatedAmount - amountPaid,
   'has_successful_payment': amountPaid > 0,
   'payments': [],
+  if (ramble != null) 'ramble': ramble,
 };
 
 /// The fake API behind the management area: what it serves and the requests it received.
@@ -153,11 +155,21 @@ class FakeApi {
     final rambleId = RegExp(r'/rambles/(\d+)$').firstMatch(path)?.group(1);
     final ramble = rambles.where((r) => '${r.id}' == rambleId).firstOrNull;
     if (ramble != null) return _json(ramble.toJson());
+    if (request.method == 'POST' && path.endsWith('/reservations/admin/bulk-action')) {
+      final ids = ((jsonDecode(request.body) as Map<String, Object?>)['reservation_ids'] as List).length;
+      return _json({'success_count': ids, 'failure_count': 0});
+    }
     if (path.endsWith('/reservations/admin')) {
-      final rambleId = request.url.queryParameters['ramble_id'];
+      final query = request.url.queryParametersAll;
+      final rambleId = query['ramble_id']?.single;
+      final statuses = query['statuses'];
+      final search = query['search']?.single.toLowerCase();
       final served = [
         for (final r in reservations)
-          if (rambleId == null || '${r['ramble_id']}' == rambleId) r,
+          if ((rambleId == null || '${r['ramble_id']}' == rambleId) &&
+              (statuses == null || statuses.contains(r['status'])) &&
+              (search == null || jsonEncode(r).toLowerCase().contains(search)))
+            r,
       ];
       return _json({'reservations': served, 'total': served.length, 'page': 1, 'per_page': 500, 'total_pages': 1});
     }

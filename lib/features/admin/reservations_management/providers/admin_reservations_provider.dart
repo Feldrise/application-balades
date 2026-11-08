@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:balade/core/api_error_message.dart';
 import 'package:balade/features/admin/reservations_management/models/admin_reservation_filter.dart';
+import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/reservations/models/reservation/reservation.dart';
+import 'package:balade/features/reservations/providers/reservation_providers.dart';
 import 'package:balade/features/reservations/reservations_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -16,7 +18,6 @@ class AdminReservationsSortState {
   AdminReservationsSortState copyWith({String? sortBy, bool? sortAscending}) {
     return AdminReservationsSortState(sortBy: sortBy ?? this.sortBy, sortAscending: sortAscending ?? this.sortAscending);
   }
-
 }
 
 // Pagination state
@@ -45,6 +46,7 @@ class AdminReservationsState {
     this.filters = const AdminReservationFilter(),
     this.sort = const AdminReservationsSortState(),
     this.pagination = const AdminReservationsPaginationState(),
+    this.loadCount = 0,
   });
 
   final List<Reservation> reservations;
@@ -54,6 +56,9 @@ class AdminReservationsState {
   final AdminReservationsSortState sort;
   final AdminReservationsPaginationState pagination;
 
+  /// How many loads succeeded: what the status counts follow to refresh.
+  final int loadCount;
+
   AdminReservationsState copyWith({
     List<Reservation>? reservations,
     bool? isLoading,
@@ -61,6 +66,7 @@ class AdminReservationsState {
     AdminReservationFilter? filters,
     AdminReservationsSortState? sort,
     AdminReservationsPaginationState? pagination,
+    int? loadCount,
   }) {
     return AdminReservationsState(
       reservations: reservations ?? this.reservations,
@@ -69,6 +75,7 @@ class AdminReservationsState {
       filters: filters ?? this.filters,
       sort: sort ?? this.sort,
       pagination: pagination ?? this.pagination,
+      loadCount: loadCount ?? this.loadCount,
     );
   }
 }
@@ -97,19 +104,24 @@ class AdminReservationsNotifier extends StateNotifier<AdminReservationsState> {
 
       final newPagination = state.pagination.copyWith(total: response.total, totalPages: response.totalPages);
 
-      state = state.copyWith(reservations: response.reservations, isLoading: false, pagination: newPagination);
+      state = state.copyWith(reservations: response.reservations, isLoading: false, pagination: newPagination, loadCount: state.loadCount + 1);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: parseApiErrorMessage(e));
     }
   }
 
-  void updateFilters(AdminReservationFilter filters, {String? token}) {
+  /// Changes what is looked for. The load is debounced while the user types ([debounce]), immediate for a tap.
+  void updateFilters(AdminReservationFilter filters, {String? token, bool debounce = true}) {
     // Reset pagination when filters change
     final newPagination = state.pagination.copyWith(page: 1);
     state = state.copyWith(filters: filters, pagination: newPagination);
 
-    // Debounce the search to avoid too many API calls
     _debounceTimer?.cancel();
+    if (!debounce) {
+      loadReservations(token: token);
+      return;
+    }
+    // Debounce the search to avoid too many API calls
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
       loadReservations(token: token);
     });
@@ -174,5 +186,27 @@ class AdminReservationsNotifier extends StateNotifier<AdminReservationsState> {
 
 // Provider for admin reservations
 final adminReservationsProvider = StateNotifierProvider<AdminReservationsNotifier, AdminReservationsState>((ref) {
-  return AdminReservationsNotifier(ReservationsService.instance);
+  return AdminReservationsNotifier(ref.read(reservationsServiceProvider));
+});
+
+/// How many reservations each status has under the filters of the list but the status one: the figures of the stat chips.
+/// Counted by the API, since the list only holds one page. Follows every load of the list, so a change of status updates them.
+final reservationStatusCountsProvider = FutureProvider.autoDispose<Map<ReservationStatus, int>>((ref) async {
+  final loads = ref.watch(adminReservationsProvider.select((s) => s.loadCount));
+  final token = ref.read(authenticationProvider)?.token;
+  if (loads == 0 || token == null) return const {};
+
+  final service = ref.read(reservationsServiceProvider);
+  final filter = ref.read(adminReservationsProvider).filters;
+  final counts = await Future.wait([
+    for (final status in ReservationStatus.values)
+      service
+          .fetchAdminReservations(
+            token: token,
+            filter: filter.copyWith(statuses: [status.apiValue]),
+            perPage: 1,
+          )
+          .then((list) => MapEntry(status, list.total)),
+  ]);
+  return Map.fromEntries(counts);
 });
