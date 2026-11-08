@@ -28,3 +28,16 @@ String bookerName(Reservation reservation) {
   }
   return reservation.contactEmail;
 }
+
+/// The reservation is paid in full: something was paid and nothing is left to pay.
+bool isReservationPaid(Reservation reservation) => reservation.amountPaid > 0 && reservation.amountDue <= 0;
+
+/// The payment of a reservation as the management area shows it: « Payé 24 € » once paid, else the amount.
+String formatReservationPayment(Reservation reservation) => isReservationPaid(reservation) ? 'Payé ${formatCents(reservation.amountPaid)}' : formatReservationAmount(reservation);
+
+/// The tariff of a participant, e.g. « Adulte · 12 € », or « tarif à préciser » when it is unknown (migrated data).
+String formatParticipantTariff(Participant participant) {
+  if (participant.priceMissing) return 'tarif à préciser';
+  if (participant.priceLabel.isEmpty) return '';
+  return '${participant.priceLabel} · ${formatEuros(participant.priceAmount)}';
+}

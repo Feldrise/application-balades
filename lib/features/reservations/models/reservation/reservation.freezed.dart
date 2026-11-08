@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Reservation {
 
- int get id;@JsonKey(name: 'created_at')@DateSerializer() DateTime get createdAt;@JsonKey(name: 'updated_at')@DateSerializer() DateTime get updatedAt;@JsonKey(name: 'ramble_id') int get rambleId;@JsonKey(name: 'user_id') int get userId;@JsonKey(name: 'contact_email') String get contactEmail; String get status;@JsonKey(name: 'confirmation_deadline')@DateSerializer() DateTime? get confirmationDeadline;@JsonKey(name: 'confirmation_date')@DateSerializer() DateTime? get confirmationDate;@JsonKey(name: 'cancellation_date')@DateSerializer() DateTime? get cancellationDate;@JsonKey(name: 'cancellation_reason') String? get cancellationReason; List<Participant> get participants;// Amount in cents, computed by the API from the participants' prices
+ int get id;@JsonKey(name: 'created_at')@DateSerializer() DateTime get createdAt;@JsonKey(name: 'updated_at')@DateSerializer() DateTime get updatedAt;@JsonKey(name: 'ramble_id') int get rambleId;@JsonKey(name: 'user_id') int get userId;@JsonKey(name: 'contact_email') String get contactEmail;// The booker's phone, from their profile: only in the reservations seen by the admin and the guide, null when not given
+@JsonKey(name: 'contact_phone') String? get contactPhone; String get status;@JsonKey(name: 'confirmation_deadline')@DateSerializer() DateTime? get confirmationDeadline;@JsonKey(name: 'confirmation_date')@DateSerializer() DateTime? get confirmationDate;@JsonKey(name: 'cancellation_date')@DateSerializer() DateTime? get cancellationDate;@JsonKey(name: 'cancellation_reason') String? get cancellationReason; List<Participant> get participants;// Amount in cents, computed by the API from the participants' prices
 @JsonKey(name: 'estimated_amount') int get estimatedAmount;// A participant's tariff is unknown (migrated reservations): the estimated amount leaves it out
 @JsonKey(name: 'has_missing_prices') bool get hasMissingPrices; List<ReservationPayment> get payments;// After a removal or a cancellation, the booker is invited to contact the guide for a refund
 @JsonKey(name: 'has_successful_payment') bool get hasSuccessfulPayment;// Amount in cents paid and kept: the succeeded payments minus their refunds
@@ -33,16 +34,16 @@ $ReservationCopyWith<Reservation> get copyWith => _$ReservationCopyWithImpl<Rese
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Reservation&&(identical(other.id, id) || other.id == id)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.rambleId, rambleId) || other.rambleId == rambleId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.contactEmail, contactEmail) || other.contactEmail == contactEmail)&&(identical(other.status, status) || other.status == status)&&(identical(other.confirmationDeadline, confirmationDeadline) || other.confirmationDeadline == confirmationDeadline)&&(identical(other.confirmationDate, confirmationDate) || other.confirmationDate == confirmationDate)&&(identical(other.cancellationDate, cancellationDate) || other.cancellationDate == cancellationDate)&&(identical(other.cancellationReason, cancellationReason) || other.cancellationReason == cancellationReason)&&const DeepCollectionEquality().equals(other.participants, participants)&&(identical(other.estimatedAmount, estimatedAmount) || other.estimatedAmount == estimatedAmount)&&(identical(other.hasMissingPrices, hasMissingPrices) || other.hasMissingPrices == hasMissingPrices)&&const DeepCollectionEquality().equals(other.payments, payments)&&(identical(other.hasSuccessfulPayment, hasSuccessfulPayment) || other.hasSuccessfulPayment == hasSuccessfulPayment)&&(identical(other.amountPaid, amountPaid) || other.amountPaid == amountPaid)&&(identical(other.amountDue, amountDue) || other.amountDue == amountDue)&&(identical(other.ramble, ramble) || other.ramble == ramble));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Reservation&&(identical(other.id, id) || other.id == id)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.rambleId, rambleId) || other.rambleId == rambleId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.contactEmail, contactEmail) || other.contactEmail == contactEmail)&&(identical(other.contactPhone, contactPhone) || other.contactPhone == contactPhone)&&(identical(other.status, status) || other.status == status)&&(identical(other.confirmationDeadline, confirmationDeadline) || other.confirmationDeadline == confirmationDeadline)&&(identical(other.confirmationDate, confirmationDate) || other.confirmationDate == confirmationDate)&&(identical(other.cancellationDate, cancellationDate) || other.cancellationDate == cancellationDate)&&(identical(other.cancellationReason, cancellationReason) || other.cancellationReason == cancellationReason)&&const DeepCollectionEquality().equals(other.participants, participants)&&(identical(other.estimatedAmount, estimatedAmount) || other.estimatedAmount == estimatedAmount)&&(identical(other.hasMissingPrices, hasMissingPrices) || other.hasMissingPrices == hasMissingPrices)&&const DeepCollectionEquality().equals(other.payments, payments)&&(identical(other.hasSuccessfulPayment, hasSuccessfulPayment) || other.hasSuccessfulPayment == hasSuccessfulPayment)&&(identical(other.amountPaid, amountPaid) || other.amountPaid == amountPaid)&&(identical(other.amountDue, amountDue) || other.amountDue == amountDue)&&(identical(other.ramble, ramble) || other.ramble == ramble));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,createdAt,updatedAt,rambleId,userId,contactEmail,status,confirmationDeadline,confirmationDate,cancellationDate,cancellationReason,const DeepCollectionEquality().hash(participants),estimatedAmount,hasMissingPrices,const DeepCollectionEquality().hash(payments),hasSuccessfulPayment,amountPaid,amountDue,ramble]);
+int get hashCode => Object.hashAll([runtimeType,id,createdAt,updatedAt,rambleId,userId,contactEmail,contactPhone,status,confirmationDeadline,confirmationDate,cancellationDate,cancellationReason,const DeepCollectionEquality().hash(participants),estimatedAmount,hasMissingPrices,const DeepCollectionEquality().hash(payments),hasSuccessfulPayment,amountPaid,amountDue,ramble]);
 
 @override
 String toString() {
-  return 'Reservation(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, rambleId: $rambleId, userId: $userId, contactEmail: $contactEmail, status: $status, confirmationDeadline: $confirmationDeadline, confirmationDate: $confirmationDate, cancellationDate: $cancellationDate, cancellationReason: $cancellationReason, participants: $participants, estimatedAmount: $estimatedAmount, hasMissingPrices: $hasMissingPrices, payments: $payments, hasSuccessfulPayment: $hasSuccessfulPayment, amountPaid: $amountPaid, amountDue: $amountDue, ramble: $ramble)';
+  return 'Reservation(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, rambleId: $rambleId, userId: $userId, contactEmail: $contactEmail, contactPhone: $contactPhone, status: $status, confirmationDeadline: $confirmationDeadline, confirmationDate: $confirmationDate, cancellationDate: $cancellationDate, cancellationReason: $cancellationReason, participants: $participants, estimatedAmount: $estimatedAmount, hasMissingPrices: $hasMissingPrices, payments: $payments, hasSuccessfulPayment: $hasSuccessfulPayment, amountPaid: $amountPaid, amountDue: $amountDue, ramble: $ramble)';
 }
 
 
@@ -53,7 +54,7 @@ abstract mixin class $ReservationCopyWith<$Res>  {
   factory $ReservationCopyWith(Reservation value, $Res Function(Reservation) _then) = _$ReservationCopyWithImpl;
 @useResult
 $Res call({
- int id,@JsonKey(name: 'created_at')@DateSerializer() DateTime createdAt,@JsonKey(name: 'updated_at')@DateSerializer() DateTime updatedAt,@JsonKey(name: 'ramble_id') int rambleId,@JsonKey(name: 'user_id') int userId,@JsonKey(name: 'contact_email') String contactEmail, String status,@JsonKey(name: 'confirmation_deadline')@DateSerializer() DateTime? confirmationDeadline,@JsonKey(name: 'confirmation_date')@DateSerializer() DateTime? confirmationDate,@JsonKey(name: 'cancellation_date')@DateSerializer() DateTime? cancellationDate,@JsonKey(name: 'cancellation_reason') String? cancellationReason, List<Participant> participants,@JsonKey(name: 'estimated_amount') int estimatedAmount,@JsonKey(name: 'has_missing_prices') bool hasMissingPrices, List<ReservationPayment> payments,@JsonKey(name: 'has_successful_payment') bool hasSuccessfulPayment,@JsonKey(name: 'amount_paid') int amountPaid,@JsonKey(name: 'amount_due') int amountDue, ReservationRambleSummary? ramble
+ int id,@JsonKey(name: 'created_at')@DateSerializer() DateTime createdAt,@JsonKey(name: 'updated_at')@DateSerializer() DateTime updatedAt,@JsonKey(name: 'ramble_id') int rambleId,@JsonKey(name: 'user_id') int userId,@JsonKey(name: 'contact_email') String contactEmail,@JsonKey(name: 'contact_phone') String? contactPhone, String status,@JsonKey(name: 'confirmation_deadline')@DateSerializer() DateTime? confirmationDeadline,@JsonKey(name: 'confirmation_date')@DateSerializer() DateTime? confirmationDate,@JsonKey(name: 'cancellation_date')@DateSerializer() DateTime? cancellationDate,@JsonKey(name: 'cancellation_reason') String? cancellationReason, List<Participant> participants,@JsonKey(name: 'estimated_amount') int estimatedAmount,@JsonKey(name: 'has_missing_prices') bool hasMissingPrices, List<ReservationPayment> payments,@JsonKey(name: 'has_successful_payment') bool hasSuccessfulPayment,@JsonKey(name: 'amount_paid') int amountPaid,@JsonKey(name: 'amount_due') int amountDue, ReservationRambleSummary? ramble
 });
 
 
@@ -70,7 +71,7 @@ class _$ReservationCopyWithImpl<$Res>
 
 /// Create a copy of Reservation
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? createdAt = null,Object? updatedAt = null,Object? rambleId = null,Object? userId = null,Object? contactEmail = null,Object? status = null,Object? confirmationDeadline = freezed,Object? confirmationDate = freezed,Object? cancellationDate = freezed,Object? cancellationReason = freezed,Object? participants = null,Object? estimatedAmount = null,Object? hasMissingPrices = null,Object? payments = null,Object? hasSuccessfulPayment = null,Object? amountPaid = null,Object? amountDue = null,Object? ramble = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? createdAt = null,Object? updatedAt = null,Object? rambleId = null,Object? userId = null,Object? contactEmail = null,Object? contactPhone = freezed,Object? status = null,Object? confirmationDeadline = freezed,Object? confirmationDate = freezed,Object? cancellationDate = freezed,Object? cancellationReason = freezed,Object? participants = null,Object? estimatedAmount = null,Object? hasMissingPrices = null,Object? payments = null,Object? hasSuccessfulPayment = null,Object? amountPaid = null,Object? amountDue = null,Object? ramble = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -78,7 +79,8 @@ as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore
 as DateTime,rambleId: null == rambleId ? _self.rambleId : rambleId // ignore: cast_nullable_to_non_nullable
 as int,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
 as int,contactEmail: null == contactEmail ? _self.contactEmail : contactEmail // ignore: cast_nullable_to_non_nullable
-as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as String,contactPhone: freezed == contactPhone ? _self.contactPhone : contactPhone // ignore: cast_nullable_to_non_nullable
+as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,confirmationDeadline: freezed == confirmationDeadline ? _self.confirmationDeadline : confirmationDeadline // ignore: cast_nullable_to_non_nullable
 as DateTime?,confirmationDate: freezed == confirmationDate ? _self.confirmationDate : confirmationDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,cancellationDate: freezed == cancellationDate ? _self.cancellationDate : cancellationDate // ignore: cast_nullable_to_non_nullable
@@ -188,10 +190,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id, @JsonKey(name: 'created_at')@DateSerializer()  DateTime createdAt, @JsonKey(name: 'updated_at')@DateSerializer()  DateTime updatedAt, @JsonKey(name: 'ramble_id')  int rambleId, @JsonKey(name: 'user_id')  int userId, @JsonKey(name: 'contact_email')  String contactEmail,  String status, @JsonKey(name: 'confirmation_deadline')@DateSerializer()  DateTime? confirmationDeadline, @JsonKey(name: 'confirmation_date')@DateSerializer()  DateTime? confirmationDate, @JsonKey(name: 'cancellation_date')@DateSerializer()  DateTime? cancellationDate, @JsonKey(name: 'cancellation_reason')  String? cancellationReason,  List<Participant> participants, @JsonKey(name: 'estimated_amount')  int estimatedAmount, @JsonKey(name: 'has_missing_prices')  bool hasMissingPrices,  List<ReservationPayment> payments, @JsonKey(name: 'has_successful_payment')  bool hasSuccessfulPayment, @JsonKey(name: 'amount_paid')  int amountPaid, @JsonKey(name: 'amount_due')  int amountDue,  ReservationRambleSummary? ramble)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id, @JsonKey(name: 'created_at')@DateSerializer()  DateTime createdAt, @JsonKey(name: 'updated_at')@DateSerializer()  DateTime updatedAt, @JsonKey(name: 'ramble_id')  int rambleId, @JsonKey(name: 'user_id')  int userId, @JsonKey(name: 'contact_email')  String contactEmail, @JsonKey(name: 'contact_phone')  String? contactPhone,  String status, @JsonKey(name: 'confirmation_deadline')@DateSerializer()  DateTime? confirmationDeadline, @JsonKey(name: 'confirmation_date')@DateSerializer()  DateTime? confirmationDate, @JsonKey(name: 'cancellation_date')@DateSerializer()  DateTime? cancellationDate, @JsonKey(name: 'cancellation_reason')  String? cancellationReason,  List<Participant> participants, @JsonKey(name: 'estimated_amount')  int estimatedAmount, @JsonKey(name: 'has_missing_prices')  bool hasMissingPrices,  List<ReservationPayment> payments, @JsonKey(name: 'has_successful_payment')  bool hasSuccessfulPayment, @JsonKey(name: 'amount_paid')  int amountPaid, @JsonKey(name: 'amount_due')  int amountDue,  ReservationRambleSummary? ramble)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Reservation() when $default != null:
-return $default(_that.id,_that.createdAt,_that.updatedAt,_that.rambleId,_that.userId,_that.contactEmail,_that.status,_that.confirmationDeadline,_that.confirmationDate,_that.cancellationDate,_that.cancellationReason,_that.participants,_that.estimatedAmount,_that.hasMissingPrices,_that.payments,_that.hasSuccessfulPayment,_that.amountPaid,_that.amountDue,_that.ramble);case _:
+return $default(_that.id,_that.createdAt,_that.updatedAt,_that.rambleId,_that.userId,_that.contactEmail,_that.contactPhone,_that.status,_that.confirmationDeadline,_that.confirmationDate,_that.cancellationDate,_that.cancellationReason,_that.participants,_that.estimatedAmount,_that.hasMissingPrices,_that.payments,_that.hasSuccessfulPayment,_that.amountPaid,_that.amountDue,_that.ramble);case _:
   return orElse();
 
 }
@@ -209,10 +211,10 @@ return $default(_that.id,_that.createdAt,_that.updatedAt,_that.rambleId,_that.us
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id, @JsonKey(name: 'created_at')@DateSerializer()  DateTime createdAt, @JsonKey(name: 'updated_at')@DateSerializer()  DateTime updatedAt, @JsonKey(name: 'ramble_id')  int rambleId, @JsonKey(name: 'user_id')  int userId, @JsonKey(name: 'contact_email')  String contactEmail,  String status, @JsonKey(name: 'confirmation_deadline')@DateSerializer()  DateTime? confirmationDeadline, @JsonKey(name: 'confirmation_date')@DateSerializer()  DateTime? confirmationDate, @JsonKey(name: 'cancellation_date')@DateSerializer()  DateTime? cancellationDate, @JsonKey(name: 'cancellation_reason')  String? cancellationReason,  List<Participant> participants, @JsonKey(name: 'estimated_amount')  int estimatedAmount, @JsonKey(name: 'has_missing_prices')  bool hasMissingPrices,  List<ReservationPayment> payments, @JsonKey(name: 'has_successful_payment')  bool hasSuccessfulPayment, @JsonKey(name: 'amount_paid')  int amountPaid, @JsonKey(name: 'amount_due')  int amountDue,  ReservationRambleSummary? ramble)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id, @JsonKey(name: 'created_at')@DateSerializer()  DateTime createdAt, @JsonKey(name: 'updated_at')@DateSerializer()  DateTime updatedAt, @JsonKey(name: 'ramble_id')  int rambleId, @JsonKey(name: 'user_id')  int userId, @JsonKey(name: 'contact_email')  String contactEmail, @JsonKey(name: 'contact_phone')  String? contactPhone,  String status, @JsonKey(name: 'confirmation_deadline')@DateSerializer()  DateTime? confirmationDeadline, @JsonKey(name: 'confirmation_date')@DateSerializer()  DateTime? confirmationDate, @JsonKey(name: 'cancellation_date')@DateSerializer()  DateTime? cancellationDate, @JsonKey(name: 'cancellation_reason')  String? cancellationReason,  List<Participant> participants, @JsonKey(name: 'estimated_amount')  int estimatedAmount, @JsonKey(name: 'has_missing_prices')  bool hasMissingPrices,  List<ReservationPayment> payments, @JsonKey(name: 'has_successful_payment')  bool hasSuccessfulPayment, @JsonKey(name: 'amount_paid')  int amountPaid, @JsonKey(name: 'amount_due')  int amountDue,  ReservationRambleSummary? ramble)  $default,) {final _that = this;
 switch (_that) {
 case _Reservation():
-return $default(_that.id,_that.createdAt,_that.updatedAt,_that.rambleId,_that.userId,_that.contactEmail,_that.status,_that.confirmationDeadline,_that.confirmationDate,_that.cancellationDate,_that.cancellationReason,_that.participants,_that.estimatedAmount,_that.hasMissingPrices,_that.payments,_that.hasSuccessfulPayment,_that.amountPaid,_that.amountDue,_that.ramble);case _:
+return $default(_that.id,_that.createdAt,_that.updatedAt,_that.rambleId,_that.userId,_that.contactEmail,_that.contactPhone,_that.status,_that.confirmationDeadline,_that.confirmationDate,_that.cancellationDate,_that.cancellationReason,_that.participants,_that.estimatedAmount,_that.hasMissingPrices,_that.payments,_that.hasSuccessfulPayment,_that.amountPaid,_that.amountDue,_that.ramble);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -229,10 +231,10 @@ return $default(_that.id,_that.createdAt,_that.updatedAt,_that.rambleId,_that.us
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id, @JsonKey(name: 'created_at')@DateSerializer()  DateTime createdAt, @JsonKey(name: 'updated_at')@DateSerializer()  DateTime updatedAt, @JsonKey(name: 'ramble_id')  int rambleId, @JsonKey(name: 'user_id')  int userId, @JsonKey(name: 'contact_email')  String contactEmail,  String status, @JsonKey(name: 'confirmation_deadline')@DateSerializer()  DateTime? confirmationDeadline, @JsonKey(name: 'confirmation_date')@DateSerializer()  DateTime? confirmationDate, @JsonKey(name: 'cancellation_date')@DateSerializer()  DateTime? cancellationDate, @JsonKey(name: 'cancellation_reason')  String? cancellationReason,  List<Participant> participants, @JsonKey(name: 'estimated_amount')  int estimatedAmount, @JsonKey(name: 'has_missing_prices')  bool hasMissingPrices,  List<ReservationPayment> payments, @JsonKey(name: 'has_successful_payment')  bool hasSuccessfulPayment, @JsonKey(name: 'amount_paid')  int amountPaid, @JsonKey(name: 'amount_due')  int amountDue,  ReservationRambleSummary? ramble)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id, @JsonKey(name: 'created_at')@DateSerializer()  DateTime createdAt, @JsonKey(name: 'updated_at')@DateSerializer()  DateTime updatedAt, @JsonKey(name: 'ramble_id')  int rambleId, @JsonKey(name: 'user_id')  int userId, @JsonKey(name: 'contact_email')  String contactEmail, @JsonKey(name: 'contact_phone')  String? contactPhone,  String status, @JsonKey(name: 'confirmation_deadline')@DateSerializer()  DateTime? confirmationDeadline, @JsonKey(name: 'confirmation_date')@DateSerializer()  DateTime? confirmationDate, @JsonKey(name: 'cancellation_date')@DateSerializer()  DateTime? cancellationDate, @JsonKey(name: 'cancellation_reason')  String? cancellationReason,  List<Participant> participants, @JsonKey(name: 'estimated_amount')  int estimatedAmount, @JsonKey(name: 'has_missing_prices')  bool hasMissingPrices,  List<ReservationPayment> payments, @JsonKey(name: 'has_successful_payment')  bool hasSuccessfulPayment, @JsonKey(name: 'amount_paid')  int amountPaid, @JsonKey(name: 'amount_due')  int amountDue,  ReservationRambleSummary? ramble)?  $default,) {final _that = this;
 switch (_that) {
 case _Reservation() when $default != null:
-return $default(_that.id,_that.createdAt,_that.updatedAt,_that.rambleId,_that.userId,_that.contactEmail,_that.status,_that.confirmationDeadline,_that.confirmationDate,_that.cancellationDate,_that.cancellationReason,_that.participants,_that.estimatedAmount,_that.hasMissingPrices,_that.payments,_that.hasSuccessfulPayment,_that.amountPaid,_that.amountDue,_that.ramble);case _:
+return $default(_that.id,_that.createdAt,_that.updatedAt,_that.rambleId,_that.userId,_that.contactEmail,_that.contactPhone,_that.status,_that.confirmationDeadline,_that.confirmationDate,_that.cancellationDate,_that.cancellationReason,_that.participants,_that.estimatedAmount,_that.hasMissingPrices,_that.payments,_that.hasSuccessfulPayment,_that.amountPaid,_that.amountDue,_that.ramble);case _:
   return null;
 
 }
@@ -244,7 +246,7 @@ return $default(_that.id,_that.createdAt,_that.updatedAt,_that.rambleId,_that.us
 @JsonSerializable()
 
 class _Reservation implements Reservation {
-  const _Reservation(this.id, {@JsonKey(name: 'created_at')@DateSerializer() required this.createdAt, @JsonKey(name: 'updated_at')@DateSerializer() required this.updatedAt, @JsonKey(name: 'ramble_id') required this.rambleId, @JsonKey(name: 'user_id') required this.userId, @JsonKey(name: 'contact_email') required this.contactEmail, required this.status, @JsonKey(name: 'confirmation_deadline')@DateSerializer() this.confirmationDeadline, @JsonKey(name: 'confirmation_date')@DateSerializer() this.confirmationDate, @JsonKey(name: 'cancellation_date')@DateSerializer() this.cancellationDate, @JsonKey(name: 'cancellation_reason') this.cancellationReason, final  List<Participant> participants = const <Participant>[], @JsonKey(name: 'estimated_amount') this.estimatedAmount = 0, @JsonKey(name: 'has_missing_prices') this.hasMissingPrices = false, final  List<ReservationPayment> payments = const <ReservationPayment>[], @JsonKey(name: 'has_successful_payment') this.hasSuccessfulPayment = false, @JsonKey(name: 'amount_paid') this.amountPaid = 0, @JsonKey(name: 'amount_due') this.amountDue = 0, this.ramble}): _participants = participants,_payments = payments;
+  const _Reservation(this.id, {@JsonKey(name: 'created_at')@DateSerializer() required this.createdAt, @JsonKey(name: 'updated_at')@DateSerializer() required this.updatedAt, @JsonKey(name: 'ramble_id') required this.rambleId, @JsonKey(name: 'user_id') required this.userId, @JsonKey(name: 'contact_email') required this.contactEmail, @JsonKey(name: 'contact_phone') this.contactPhone, required this.status, @JsonKey(name: 'confirmation_deadline')@DateSerializer() this.confirmationDeadline, @JsonKey(name: 'confirmation_date')@DateSerializer() this.confirmationDate, @JsonKey(name: 'cancellation_date')@DateSerializer() this.cancellationDate, @JsonKey(name: 'cancellation_reason') this.cancellationReason, final  List<Participant> participants = const <Participant>[], @JsonKey(name: 'estimated_amount') this.estimatedAmount = 0, @JsonKey(name: 'has_missing_prices') this.hasMissingPrices = false, final  List<ReservationPayment> payments = const <ReservationPayment>[], @JsonKey(name: 'has_successful_payment') this.hasSuccessfulPayment = false, @JsonKey(name: 'amount_paid') this.amountPaid = 0, @JsonKey(name: 'amount_due') this.amountDue = 0, this.ramble}): _participants = participants,_payments = payments;
   factory _Reservation.fromJson(Map<String, dynamic> json) => _$ReservationFromJson(json);
 
 @override final  int id;
@@ -253,6 +255,8 @@ class _Reservation implements Reservation {
 @override@JsonKey(name: 'ramble_id') final  int rambleId;
 @override@JsonKey(name: 'user_id') final  int userId;
 @override@JsonKey(name: 'contact_email') final  String contactEmail;
+// The booker's phone, from their profile: only in the reservations seen by the admin and the guide, null when not given
+@override@JsonKey(name: 'contact_phone') final  String? contactPhone;
 @override final  String status;
 @override@JsonKey(name: 'confirmation_deadline')@DateSerializer() final  DateTime? confirmationDeadline;
 @override@JsonKey(name: 'confirmation_date')@DateSerializer() final  DateTime? confirmationDate;
@@ -297,16 +301,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Reservation&&(identical(other.id, id) || other.id == id)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.rambleId, rambleId) || other.rambleId == rambleId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.contactEmail, contactEmail) || other.contactEmail == contactEmail)&&(identical(other.status, status) || other.status == status)&&(identical(other.confirmationDeadline, confirmationDeadline) || other.confirmationDeadline == confirmationDeadline)&&(identical(other.confirmationDate, confirmationDate) || other.confirmationDate == confirmationDate)&&(identical(other.cancellationDate, cancellationDate) || other.cancellationDate == cancellationDate)&&(identical(other.cancellationReason, cancellationReason) || other.cancellationReason == cancellationReason)&&const DeepCollectionEquality().equals(other._participants, _participants)&&(identical(other.estimatedAmount, estimatedAmount) || other.estimatedAmount == estimatedAmount)&&(identical(other.hasMissingPrices, hasMissingPrices) || other.hasMissingPrices == hasMissingPrices)&&const DeepCollectionEquality().equals(other._payments, _payments)&&(identical(other.hasSuccessfulPayment, hasSuccessfulPayment) || other.hasSuccessfulPayment == hasSuccessfulPayment)&&(identical(other.amountPaid, amountPaid) || other.amountPaid == amountPaid)&&(identical(other.amountDue, amountDue) || other.amountDue == amountDue)&&(identical(other.ramble, ramble) || other.ramble == ramble));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Reservation&&(identical(other.id, id) || other.id == id)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.rambleId, rambleId) || other.rambleId == rambleId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.contactEmail, contactEmail) || other.contactEmail == contactEmail)&&(identical(other.contactPhone, contactPhone) || other.contactPhone == contactPhone)&&(identical(other.status, status) || other.status == status)&&(identical(other.confirmationDeadline, confirmationDeadline) || other.confirmationDeadline == confirmationDeadline)&&(identical(other.confirmationDate, confirmationDate) || other.confirmationDate == confirmationDate)&&(identical(other.cancellationDate, cancellationDate) || other.cancellationDate == cancellationDate)&&(identical(other.cancellationReason, cancellationReason) || other.cancellationReason == cancellationReason)&&const DeepCollectionEquality().equals(other._participants, _participants)&&(identical(other.estimatedAmount, estimatedAmount) || other.estimatedAmount == estimatedAmount)&&(identical(other.hasMissingPrices, hasMissingPrices) || other.hasMissingPrices == hasMissingPrices)&&const DeepCollectionEquality().equals(other._payments, _payments)&&(identical(other.hasSuccessfulPayment, hasSuccessfulPayment) || other.hasSuccessfulPayment == hasSuccessfulPayment)&&(identical(other.amountPaid, amountPaid) || other.amountPaid == amountPaid)&&(identical(other.amountDue, amountDue) || other.amountDue == amountDue)&&(identical(other.ramble, ramble) || other.ramble == ramble));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,createdAt,updatedAt,rambleId,userId,contactEmail,status,confirmationDeadline,confirmationDate,cancellationDate,cancellationReason,const DeepCollectionEquality().hash(_participants),estimatedAmount,hasMissingPrices,const DeepCollectionEquality().hash(_payments),hasSuccessfulPayment,amountPaid,amountDue,ramble]);
+int get hashCode => Object.hashAll([runtimeType,id,createdAt,updatedAt,rambleId,userId,contactEmail,contactPhone,status,confirmationDeadline,confirmationDate,cancellationDate,cancellationReason,const DeepCollectionEquality().hash(_participants),estimatedAmount,hasMissingPrices,const DeepCollectionEquality().hash(_payments),hasSuccessfulPayment,amountPaid,amountDue,ramble]);
 
 @override
 String toString() {
-  return 'Reservation(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, rambleId: $rambleId, userId: $userId, contactEmail: $contactEmail, status: $status, confirmationDeadline: $confirmationDeadline, confirmationDate: $confirmationDate, cancellationDate: $cancellationDate, cancellationReason: $cancellationReason, participants: $participants, estimatedAmount: $estimatedAmount, hasMissingPrices: $hasMissingPrices, payments: $payments, hasSuccessfulPayment: $hasSuccessfulPayment, amountPaid: $amountPaid, amountDue: $amountDue, ramble: $ramble)';
+  return 'Reservation(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, rambleId: $rambleId, userId: $userId, contactEmail: $contactEmail, contactPhone: $contactPhone, status: $status, confirmationDeadline: $confirmationDeadline, confirmationDate: $confirmationDate, cancellationDate: $cancellationDate, cancellationReason: $cancellationReason, participants: $participants, estimatedAmount: $estimatedAmount, hasMissingPrices: $hasMissingPrices, payments: $payments, hasSuccessfulPayment: $hasSuccessfulPayment, amountPaid: $amountPaid, amountDue: $amountDue, ramble: $ramble)';
 }
 
 
@@ -317,7 +321,7 @@ abstract mixin class _$ReservationCopyWith<$Res> implements $ReservationCopyWith
   factory _$ReservationCopyWith(_Reservation value, $Res Function(_Reservation) _then) = __$ReservationCopyWithImpl;
 @override @useResult
 $Res call({
- int id,@JsonKey(name: 'created_at')@DateSerializer() DateTime createdAt,@JsonKey(name: 'updated_at')@DateSerializer() DateTime updatedAt,@JsonKey(name: 'ramble_id') int rambleId,@JsonKey(name: 'user_id') int userId,@JsonKey(name: 'contact_email') String contactEmail, String status,@JsonKey(name: 'confirmation_deadline')@DateSerializer() DateTime? confirmationDeadline,@JsonKey(name: 'confirmation_date')@DateSerializer() DateTime? confirmationDate,@JsonKey(name: 'cancellation_date')@DateSerializer() DateTime? cancellationDate,@JsonKey(name: 'cancellation_reason') String? cancellationReason, List<Participant> participants,@JsonKey(name: 'estimated_amount') int estimatedAmount,@JsonKey(name: 'has_missing_prices') bool hasMissingPrices, List<ReservationPayment> payments,@JsonKey(name: 'has_successful_payment') bool hasSuccessfulPayment,@JsonKey(name: 'amount_paid') int amountPaid,@JsonKey(name: 'amount_due') int amountDue, ReservationRambleSummary? ramble
+ int id,@JsonKey(name: 'created_at')@DateSerializer() DateTime createdAt,@JsonKey(name: 'updated_at')@DateSerializer() DateTime updatedAt,@JsonKey(name: 'ramble_id') int rambleId,@JsonKey(name: 'user_id') int userId,@JsonKey(name: 'contact_email') String contactEmail,@JsonKey(name: 'contact_phone') String? contactPhone, String status,@JsonKey(name: 'confirmation_deadline')@DateSerializer() DateTime? confirmationDeadline,@JsonKey(name: 'confirmation_date')@DateSerializer() DateTime? confirmationDate,@JsonKey(name: 'cancellation_date')@DateSerializer() DateTime? cancellationDate,@JsonKey(name: 'cancellation_reason') String? cancellationReason, List<Participant> participants,@JsonKey(name: 'estimated_amount') int estimatedAmount,@JsonKey(name: 'has_missing_prices') bool hasMissingPrices, List<ReservationPayment> payments,@JsonKey(name: 'has_successful_payment') bool hasSuccessfulPayment,@JsonKey(name: 'amount_paid') int amountPaid,@JsonKey(name: 'amount_due') int amountDue, ReservationRambleSummary? ramble
 });
 
 
@@ -334,7 +338,7 @@ class __$ReservationCopyWithImpl<$Res>
 
 /// Create a copy of Reservation
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? createdAt = null,Object? updatedAt = null,Object? rambleId = null,Object? userId = null,Object? contactEmail = null,Object? status = null,Object? confirmationDeadline = freezed,Object? confirmationDate = freezed,Object? cancellationDate = freezed,Object? cancellationReason = freezed,Object? participants = null,Object? estimatedAmount = null,Object? hasMissingPrices = null,Object? payments = null,Object? hasSuccessfulPayment = null,Object? amountPaid = null,Object? amountDue = null,Object? ramble = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? createdAt = null,Object? updatedAt = null,Object? rambleId = null,Object? userId = null,Object? contactEmail = null,Object? contactPhone = freezed,Object? status = null,Object? confirmationDeadline = freezed,Object? confirmationDate = freezed,Object? cancellationDate = freezed,Object? cancellationReason = freezed,Object? participants = null,Object? estimatedAmount = null,Object? hasMissingPrices = null,Object? payments = null,Object? hasSuccessfulPayment = null,Object? amountPaid = null,Object? amountDue = null,Object? ramble = freezed,}) {
   return _then(_Reservation(
 null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -342,7 +346,8 @@ as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore
 as DateTime,rambleId: null == rambleId ? _self.rambleId : rambleId // ignore: cast_nullable_to_non_nullable
 as int,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
 as int,contactEmail: null == contactEmail ? _self.contactEmail : contactEmail // ignore: cast_nullable_to_non_nullable
-as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as String,contactPhone: freezed == contactPhone ? _self.contactPhone : contactPhone // ignore: cast_nullable_to_non_nullable
+as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,confirmationDeadline: freezed == confirmationDeadline ? _self.confirmationDeadline : confirmationDeadline // ignore: cast_nullable_to_non_nullable
 as DateTime?,confirmationDate: freezed == confirmationDate ? _self.confirmationDate : confirmationDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,cancellationDate: freezed == cancellationDate ? _self.cancellationDate : cancellationDate // ignore: cast_nullable_to_non_nullable
@@ -380,7 +385,8 @@ mixin _$Participant {
 
  int get id;@JsonKey(name: 'first_name') String get firstName;@JsonKey(name: 'last_name') String get lastName;@JsonKey(name: 'price_label') String get priceLabel;// Amount in euros
 @JsonKey(name: 'price_amount') double get priceAmount;// The ramble has tariffs but this participant's is unknown (migrated participants)
-@JsonKey(name: 'price_missing') bool get priceMissing;@JsonKey(name: 'is_booker') bool get isBooker;
+@JsonKey(name: 'price_missing') bool get priceMissing;@JsonKey(name: 'is_booker') bool get isBooker;// Roll call, in the reservations seen by the admin and the guide: null until marked
+ bool? get present;
 /// Create a copy of Participant
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -393,16 +399,16 @@ $ParticipantCopyWith<Participant> get copyWith => _$ParticipantCopyWithImpl<Part
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Participant&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.priceLabel, priceLabel) || other.priceLabel == priceLabel)&&(identical(other.priceAmount, priceAmount) || other.priceAmount == priceAmount)&&(identical(other.priceMissing, priceMissing) || other.priceMissing == priceMissing)&&(identical(other.isBooker, isBooker) || other.isBooker == isBooker));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Participant&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.priceLabel, priceLabel) || other.priceLabel == priceLabel)&&(identical(other.priceAmount, priceAmount) || other.priceAmount == priceAmount)&&(identical(other.priceMissing, priceMissing) || other.priceMissing == priceMissing)&&(identical(other.isBooker, isBooker) || other.isBooker == isBooker)&&(identical(other.present, present) || other.present == present));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,firstName,lastName,priceLabel,priceAmount,priceMissing,isBooker);
+int get hashCode => Object.hash(runtimeType,id,firstName,lastName,priceLabel,priceAmount,priceMissing,isBooker,present);
 
 @override
 String toString() {
-  return 'Participant(id: $id, firstName: $firstName, lastName: $lastName, priceLabel: $priceLabel, priceAmount: $priceAmount, priceMissing: $priceMissing, isBooker: $isBooker)';
+  return 'Participant(id: $id, firstName: $firstName, lastName: $lastName, priceLabel: $priceLabel, priceAmount: $priceAmount, priceMissing: $priceMissing, isBooker: $isBooker, present: $present)';
 }
 
 
@@ -413,7 +419,7 @@ abstract mixin class $ParticipantCopyWith<$Res>  {
   factory $ParticipantCopyWith(Participant value, $Res Function(Participant) _then) = _$ParticipantCopyWithImpl;
 @useResult
 $Res call({
- int id,@JsonKey(name: 'first_name') String firstName,@JsonKey(name: 'last_name') String lastName,@JsonKey(name: 'price_label') String priceLabel,@JsonKey(name: 'price_amount') double priceAmount,@JsonKey(name: 'price_missing') bool priceMissing,@JsonKey(name: 'is_booker') bool isBooker
+ int id,@JsonKey(name: 'first_name') String firstName,@JsonKey(name: 'last_name') String lastName,@JsonKey(name: 'price_label') String priceLabel,@JsonKey(name: 'price_amount') double priceAmount,@JsonKey(name: 'price_missing') bool priceMissing,@JsonKey(name: 'is_booker') bool isBooker, bool? present
 });
 
 
@@ -430,7 +436,7 @@ class _$ParticipantCopyWithImpl<$Res>
 
 /// Create a copy of Participant
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? firstName = null,Object? lastName = null,Object? priceLabel = null,Object? priceAmount = null,Object? priceMissing = null,Object? isBooker = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? firstName = null,Object? lastName = null,Object? priceLabel = null,Object? priceAmount = null,Object? priceMissing = null,Object? isBooker = null,Object? present = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,firstName: null == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
@@ -439,7 +445,8 @@ as String,priceLabel: null == priceLabel ? _self.priceLabel : priceLabel // igno
 as String,priceAmount: null == priceAmount ? _self.priceAmount : priceAmount // ignore: cast_nullable_to_non_nullable
 as double,priceMissing: null == priceMissing ? _self.priceMissing : priceMissing // ignore: cast_nullable_to_non_nullable
 as bool,isBooker: null == isBooker ? _self.isBooker : isBooker // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,present: freezed == present ? _self.present : present // ignore: cast_nullable_to_non_nullable
+as bool?,
   ));
 }
 
@@ -524,10 +531,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id, @JsonKey(name: 'first_name')  String firstName, @JsonKey(name: 'last_name')  String lastName, @JsonKey(name: 'price_label')  String priceLabel, @JsonKey(name: 'price_amount')  double priceAmount, @JsonKey(name: 'price_missing')  bool priceMissing, @JsonKey(name: 'is_booker')  bool isBooker)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id, @JsonKey(name: 'first_name')  String firstName, @JsonKey(name: 'last_name')  String lastName, @JsonKey(name: 'price_label')  String priceLabel, @JsonKey(name: 'price_amount')  double priceAmount, @JsonKey(name: 'price_missing')  bool priceMissing, @JsonKey(name: 'is_booker')  bool isBooker,  bool? present)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Participant() when $default != null:
-return $default(_that.id,_that.firstName,_that.lastName,_that.priceLabel,_that.priceAmount,_that.priceMissing,_that.isBooker);case _:
+return $default(_that.id,_that.firstName,_that.lastName,_that.priceLabel,_that.priceAmount,_that.priceMissing,_that.isBooker,_that.present);case _:
   return orElse();
 
 }
@@ -545,10 +552,10 @@ return $default(_that.id,_that.firstName,_that.lastName,_that.priceLabel,_that.p
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id, @JsonKey(name: 'first_name')  String firstName, @JsonKey(name: 'last_name')  String lastName, @JsonKey(name: 'price_label')  String priceLabel, @JsonKey(name: 'price_amount')  double priceAmount, @JsonKey(name: 'price_missing')  bool priceMissing, @JsonKey(name: 'is_booker')  bool isBooker)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id, @JsonKey(name: 'first_name')  String firstName, @JsonKey(name: 'last_name')  String lastName, @JsonKey(name: 'price_label')  String priceLabel, @JsonKey(name: 'price_amount')  double priceAmount, @JsonKey(name: 'price_missing')  bool priceMissing, @JsonKey(name: 'is_booker')  bool isBooker,  bool? present)  $default,) {final _that = this;
 switch (_that) {
 case _Participant():
-return $default(_that.id,_that.firstName,_that.lastName,_that.priceLabel,_that.priceAmount,_that.priceMissing,_that.isBooker);case _:
+return $default(_that.id,_that.firstName,_that.lastName,_that.priceLabel,_that.priceAmount,_that.priceMissing,_that.isBooker,_that.present);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -565,10 +572,10 @@ return $default(_that.id,_that.firstName,_that.lastName,_that.priceLabel,_that.p
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id, @JsonKey(name: 'first_name')  String firstName, @JsonKey(name: 'last_name')  String lastName, @JsonKey(name: 'price_label')  String priceLabel, @JsonKey(name: 'price_amount')  double priceAmount, @JsonKey(name: 'price_missing')  bool priceMissing, @JsonKey(name: 'is_booker')  bool isBooker)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id, @JsonKey(name: 'first_name')  String firstName, @JsonKey(name: 'last_name')  String lastName, @JsonKey(name: 'price_label')  String priceLabel, @JsonKey(name: 'price_amount')  double priceAmount, @JsonKey(name: 'price_missing')  bool priceMissing, @JsonKey(name: 'is_booker')  bool isBooker,  bool? present)?  $default,) {final _that = this;
 switch (_that) {
 case _Participant() when $default != null:
-return $default(_that.id,_that.firstName,_that.lastName,_that.priceLabel,_that.priceAmount,_that.priceMissing,_that.isBooker);case _:
+return $default(_that.id,_that.firstName,_that.lastName,_that.priceLabel,_that.priceAmount,_that.priceMissing,_that.isBooker,_that.present);case _:
   return null;
 
 }
@@ -580,7 +587,7 @@ return $default(_that.id,_that.firstName,_that.lastName,_that.priceLabel,_that.p
 @JsonSerializable()
 
 class _Participant implements Participant {
-  const _Participant(this.id, {@JsonKey(name: 'first_name') required this.firstName, @JsonKey(name: 'last_name') required this.lastName, @JsonKey(name: 'price_label') this.priceLabel = '', @JsonKey(name: 'price_amount') this.priceAmount = 0.0, @JsonKey(name: 'price_missing') this.priceMissing = false, @JsonKey(name: 'is_booker') this.isBooker = false});
+  const _Participant(this.id, {@JsonKey(name: 'first_name') required this.firstName, @JsonKey(name: 'last_name') required this.lastName, @JsonKey(name: 'price_label') this.priceLabel = '', @JsonKey(name: 'price_amount') this.priceAmount = 0.0, @JsonKey(name: 'price_missing') this.priceMissing = false, @JsonKey(name: 'is_booker') this.isBooker = false, this.present});
   factory _Participant.fromJson(Map<String, dynamic> json) => _$ParticipantFromJson(json);
 
 @override final  int id;
@@ -592,6 +599,8 @@ class _Participant implements Participant {
 // The ramble has tariffs but this participant's is unknown (migrated participants)
 @override@JsonKey(name: 'price_missing') final  bool priceMissing;
 @override@JsonKey(name: 'is_booker') final  bool isBooker;
+// Roll call, in the reservations seen by the admin and the guide: null until marked
+@override final  bool? present;
 
 /// Create a copy of Participant
 /// with the given fields replaced by the non-null parameter values.
@@ -606,16 +615,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Participant&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.priceLabel, priceLabel) || other.priceLabel == priceLabel)&&(identical(other.priceAmount, priceAmount) || other.priceAmount == priceAmount)&&(identical(other.priceMissing, priceMissing) || other.priceMissing == priceMissing)&&(identical(other.isBooker, isBooker) || other.isBooker == isBooker));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Participant&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.priceLabel, priceLabel) || other.priceLabel == priceLabel)&&(identical(other.priceAmount, priceAmount) || other.priceAmount == priceAmount)&&(identical(other.priceMissing, priceMissing) || other.priceMissing == priceMissing)&&(identical(other.isBooker, isBooker) || other.isBooker == isBooker)&&(identical(other.present, present) || other.present == present));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,firstName,lastName,priceLabel,priceAmount,priceMissing,isBooker);
+int get hashCode => Object.hash(runtimeType,id,firstName,lastName,priceLabel,priceAmount,priceMissing,isBooker,present);
 
 @override
 String toString() {
-  return 'Participant(id: $id, firstName: $firstName, lastName: $lastName, priceLabel: $priceLabel, priceAmount: $priceAmount, priceMissing: $priceMissing, isBooker: $isBooker)';
+  return 'Participant(id: $id, firstName: $firstName, lastName: $lastName, priceLabel: $priceLabel, priceAmount: $priceAmount, priceMissing: $priceMissing, isBooker: $isBooker, present: $present)';
 }
 
 
@@ -626,7 +635,7 @@ abstract mixin class _$ParticipantCopyWith<$Res> implements $ParticipantCopyWith
   factory _$ParticipantCopyWith(_Participant value, $Res Function(_Participant) _then) = __$ParticipantCopyWithImpl;
 @override @useResult
 $Res call({
- int id,@JsonKey(name: 'first_name') String firstName,@JsonKey(name: 'last_name') String lastName,@JsonKey(name: 'price_label') String priceLabel,@JsonKey(name: 'price_amount') double priceAmount,@JsonKey(name: 'price_missing') bool priceMissing,@JsonKey(name: 'is_booker') bool isBooker
+ int id,@JsonKey(name: 'first_name') String firstName,@JsonKey(name: 'last_name') String lastName,@JsonKey(name: 'price_label') String priceLabel,@JsonKey(name: 'price_amount') double priceAmount,@JsonKey(name: 'price_missing') bool priceMissing,@JsonKey(name: 'is_booker') bool isBooker, bool? present
 });
 
 
@@ -643,7 +652,7 @@ class __$ParticipantCopyWithImpl<$Res>
 
 /// Create a copy of Participant
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? firstName = null,Object? lastName = null,Object? priceLabel = null,Object? priceAmount = null,Object? priceMissing = null,Object? isBooker = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? firstName = null,Object? lastName = null,Object? priceLabel = null,Object? priceAmount = null,Object? priceMissing = null,Object? isBooker = null,Object? present = freezed,}) {
   return _then(_Participant(
 null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,firstName: null == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
@@ -652,7 +661,8 @@ as String,priceLabel: null == priceLabel ? _self.priceLabel : priceLabel // igno
 as String,priceAmount: null == priceAmount ? _self.priceAmount : priceAmount // ignore: cast_nullable_to_non_nullable
 as double,priceMissing: null == priceMissing ? _self.priceMissing : priceMissing // ignore: cast_nullable_to_non_nullable
 as bool,isBooker: null == isBooker ? _self.isBooker : isBooker // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,present: freezed == present ? _self.present : present // ignore: cast_nullable_to_non_nullable
+as bool?,
   ));
 }
 
