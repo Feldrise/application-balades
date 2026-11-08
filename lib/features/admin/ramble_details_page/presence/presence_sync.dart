@@ -59,8 +59,20 @@ class PresenceSync extends ChangeNotifier {
     return participant.present;
   }
 
+  /// The participants were loaded again from the API: for the changes already sent, they now tell the latest presence,
+  /// maybe changed from another device since. The changes waiting still win.
+  void participantsReloaded() {
+    _recorded.clear();
+    _notify();
+  }
+
   /// The number of changes not sent yet.
   int get pendingCount => _pending.length;
+
+  /// Why the API refused the changes waiting, until a batch goes through. They stay on the phone and are sent again
+  /// with the next change, when the feuille reopens or when the app comes back to the foreground.
+  String? get refusal => _refusal;
+  String? _refusal;
 
   /// Marks [participant] present (true), absent (false) or unmarked (null): recorded on the phone, then sent.
   Future<void> mark(Participant participant, bool? present) async {
@@ -81,23 +93,38 @@ class PresenceSync extends ChangeNotifier {
 
   Future<void> _sendUntilDone() async {
     _retry?.cancel();
-    bool sent;
+    _SendResult result;
     do {
       _sendAgain = false;
-      sent = await _sendBatch();
-    } while (sent && _sendAgain && !_disposed);
-    if (!sent && !_disposed) _retry = Timer(retryDelay, send);
+      result = await _sendBatch();
+    } while (result == _SendResult.sent && _sendAgain && !_disposed);
+    // A refusal would be refused again: it waits for the next change, the feuille reopening or the app coming back.
+    if (result == _SendResult.offline && !_disposed) _retry = Timer(retryDelay, send);
   }
 
-  /// Sends the changes waiting; false when they could not reach the API.
-  Future<bool> _sendBatch() async {
-    if (_pending.isEmpty) return true;
+  /// Sends the changes waiting, in one batch.
+  Future<_SendResult> _sendBatch() async {
+    if (_pending.isEmpty) return _SendResult.sent;
     final sent = _pending.values.toList();
     final List<PresenceOutcome> outcomes;
     try {
       outcomes = await _service.markPresence(rambleId, sent, token: _token);
+    } on ReservationException catch (e) {
+      final status = e.statusCode;
+      if (status == null || status < 400 || status >= 500) return _SendResult.offline;
+      _refusal = _refusalMessage(e);
+      _notify();
+      return _SendResult.refused;
     } catch (_) {
-      return false;
+      return _SendResult.offline;
+    }
+    _refusal = null;
+
+    // The feuille was closed meanwhile: another roll call may own the phone's queue now. Only the changes the API
+    // answered leave it.
+    if (_disposed) {
+      await _forget([for (final outcome in outcomes) ...sent.where((c) => c.participantId == outcome.participantId)]);
+      return _SendResult.sent;
     }
 
     for (final outcome in outcomes) {
@@ -111,8 +138,16 @@ class PresenceSync extends ChangeNotifier {
     }
     _notify();
     await _save();
-    return true;
+    return _SendResult.sent;
   }
+
+  static String _refusalMessage(ReservationException refusal) => switch ((refusal.statusCode, refusal.reason)) {
+    (409, 'ramble_not_started') => 'Le pointage n\'est possible qu\'à partir du jour de la balade.',
+    (401, _) => 'Votre session a expiré : reconnectez-vous pour envoyer le pointage.',
+    (403, _) => 'Vous n\'avez pas le droit de pointer cette balade.',
+    (404, _) => 'Cette balade n\'existe plus.',
+    _ => 'Le pointage a été refusé (${refusal.message}).',
+  };
 
   Future<void> _save() async {
     final preferences = await SharedPreferences.getInstance();
@@ -120,6 +155,23 @@ class PresenceSync extends ChangeNotifier {
       await preferences.remove(_key);
     } else {
       await preferences.setString(_key, jsonEncode([for (final change in _pending.values) change.toJson()]));
+    }
+  }
+
+  /// Takes [answered] out of the changes left on the phone, keeping any other.
+  Future<void> _forget(List<PresenceChange> answered) async {
+    final preferences = await SharedPreferences.getInstance();
+    final saved = preferences.getString(_key);
+    if (saved == null) return;
+    bool isAnswered(PresenceChange change) => answered.any((a) => a.participantId == change.participantId && a.markedAt == change.markedAt);
+    final left = [
+      for (final json in jsonDecode(saved) as List)
+        if (!isAnswered(PresenceChange.fromJson(json as Map<String, Object?>))) json,
+    ];
+    if (left.isEmpty) {
+      await preferences.remove(_key);
+    } else {
+      await preferences.setString(_key, jsonEncode(left));
     }
   }
 
@@ -134,3 +186,5 @@ class PresenceSync extends ChangeNotifier {
     super.dispose();
   }
 }
+
+enum _SendResult { sent, offline, refused }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 
 import 'management_app.dart';
 
@@ -111,6 +112,69 @@ void main() {
       expect(_presenceChanges(api), [
         [2, true],
       ]);
+    });
+    semantics.dispose();
+  });
+
+  testWidgets('once the roll call is synced, refreshing the feuille shows the presence changed from another device', (tester) async {
+    final semantics = tester.ensureSemantics();
+    final api = FakeApi(rambles: [balade(1, inDays: 0)], reservations: [_martins], myGuide: vera);
+    await withFakeApi(api, () async {
+      await pumpManagementApp(tester, api: api, location: '/admin/balade/1', user: guide, size: phone);
+      await tester.tap(_box('Claire Martin'));
+      await tester.pumpAndSettle();
+      expect(find.text('1 / 2 présents'), findsOneWidget);
+
+      // An admin unticks Claire from another device.
+      api.reservations[0] = {
+        ...api.reservations[0],
+        'participants': [
+          for (final p in api.reservations[0]['participants'] as List) {...p as Map<String, Object?>, 'present': null},
+        ],
+      };
+      await tester.fling(find.text('1 / 2 présents'), const Offset(0, 400), 1000);
+      await tester.pumpAndSettle();
+
+      expect(find.text('0 / 2 présents'), findsOneWidget);
+      expect(find.text('Synchronisé'), findsOneWidget);
+    });
+    semantics.dispose();
+  });
+
+  testWidgets('unticking a participant already present takes them out of the present ones', (tester) async {
+    final semantics = tester.ensureSemantics();
+    final api = FakeApi(
+      rambles: [balade(1, inDays: 0)],
+      reservations: [
+        reservation(1, participants: [participant(1, 'Claire', 'Martin', isBooker: true, present: true), participant(2, 'Léo', 'Martin')]),
+      ],
+      myGuide: vera,
+    );
+    await withFakeApi(api, () async {
+      await pumpManagementApp(tester, api: api, location: '/admin/balade/1', user: guide, size: phone);
+      expect(find.text('1 / 2 présents'), findsOneWidget);
+
+      await tester.tap(_box('Claire Martin'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('0 / 2 présents'), findsOneWidget);
+      expect(find.text('Synchronisé'), findsOneWidget);
+    });
+    semantics.dispose();
+  });
+
+  testWidgets('a roll call refused by the API is shown, the ticks staying on the phone', (tester) async {
+    final semantics = tester.ensureSemantics();
+    final api = FakeApi(rambles: [balade(1, inDays: 0)], reservations: [_martins], myGuide: vera)..presenceRefusal = http.Response('{"error":"forbidden"}', 403);
+    await withFakeApi(api, () async {
+      await pumpManagementApp(tester, api: api, location: '/admin/balade/1', user: guide, size: phone);
+
+      await tester.tap(_box('Claire Martin'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 / 2 présents'), findsOneWidget);
+      expect(find.text('1 modification en attente'), findsOneWidget);
+      expect(find.text('Vous n\'avez pas le droit de pointer cette balade.'), findsOneWidget);
     });
     semantics.dispose();
   });

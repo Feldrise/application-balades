@@ -102,7 +102,7 @@ class _SheetReservationsState extends State<SheetReservations> {
           ),
         ),
         if (presence != null && sheet.expectedParticipants.isNotEmpty)
-          RollCallBar(present: sheet.presentCount(presence.presenceOf), expected: sheet.placesTaken, pendingCount: presence.pendingCount),
+          RollCallBar(present: sheet.presentCount(presence.presenceOf), expected: sheet.placesTaken, pendingCount: presence.pendingCount, refusal: presence.refusal),
         if (sheet.reservations.isEmpty)
           const ManagementEmptyState(icon: Icons.group_outlined, title: 'Aucune réservation', message: 'Personne n\'a encore réservé cette balade.')
         else if (shown == 0)

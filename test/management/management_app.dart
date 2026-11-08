@@ -10,6 +10,7 @@ import 'package:balade/features/reservations/providers/reservation_providers.dar
 import 'package:balade/features/reservations/reservations_service.dart';
 import 'package:balade/features/users/models/user/user.dart';
 import 'package:balade/themes/theme.dart';
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -38,7 +39,7 @@ final guide = AuthedUser(
   token: 'guide-token',
 );
 
-/// A balade [inDays] days from now, at 10h00.
+/// A balade [inDays] days from now (the test's [clock]), at 10h00.
 Ramble balade(
   int id, {
   required int inDays,
@@ -50,7 +51,7 @@ Ramble balade(
   bool cancelled = false,
   String location = 'Paimpont',
 }) {
-  final today = DateTime.now();
+  final today = clock.now();
   return Ramble(
     id,
     title: title,
@@ -128,6 +129,9 @@ class FakeApi {
   /// Requests whose path matches one of these never get an answer, e.g. to stop on a page while it loads.
   final List<Pattern> unanswered;
 
+  /// When set, the API refuses the roll call with this answer.
+  http.Response? presenceRefusal;
+
   final List<http.Request> requests = [];
 
   Future<http.Response> handle(http.Request request) async {
@@ -153,7 +157,7 @@ class FakeApi {
       reservations[index] = {...reservations[index], 'status': status};
       return _json(reservations[index]);
     }
-    if (request.method == 'PUT' && RegExp(r'/reservations/admin/rambles/\d+/presence$').hasMatch(path)) return _markPresence(request);
+    if (request.method == 'PUT' && RegExp(r'/reservations/admin/rambles/\d+/presence$').hasMatch(path)) return presenceRefusal ?? _markPresence(request);
     final rambleId = RegExp(r'/rambles/(\d+)$').firstMatch(path)?.group(1);
     final ramble = rambles.where((r) => '${r.id}' == rambleId).firstOrNull;
     if (ramble != null) return _json(ramble.toJson());
