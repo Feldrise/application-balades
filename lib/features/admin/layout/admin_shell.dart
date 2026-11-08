@@ -1,6 +1,6 @@
 import 'package:balade/features/admin/layout/admin_access_denied_page.dart';
-import 'package:balade/features/admin/layout/admin_layout.dart';
-import 'package:balade/features/admin/layout/admin_navigation_provider.dart';
+import 'package:balade/features/admin/layout/management_layout.dart';
+import 'package:balade/features/admin/layout/management_navigation.dart';
 import 'package:balade/features/authentication/admin_login_page.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/authentication/permission_provider.dart';
@@ -30,6 +30,6 @@ class AdminShell extends ConsumerWidget {
       return const AdminAccessDeniedPage();
     }
 
-    return AdminLayout(child: child);
+    return ManagementLayout(child: child);
   }
 }
