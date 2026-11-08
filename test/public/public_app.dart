@@ -36,12 +36,11 @@ Future<void> pumpPublicApp(WidgetTester tester, {required FakeApi api, required 
   await tester.pumpAndSettle();
 }
 
-/// Fails when a layout overflowed since the last call. Other framework complaints raised by the shell
-/// (the navigation drawer's ListTile, outside the catalogue) are drained and ignored.
+/// Fails when the last pump raised any framework error (overflows included).
 void expectNoOverflow(WidgetTester tester) {
-  final overflows = <String>[];
+  final errors = <String>[];
   for (Object? error = tester.takeException(); error != null; error = tester.takeException()) {
-    if ('$error'.contains('overflowed')) overflows.add('$error'.split('\n').take(6).join(' / '));
+    errors.add('$error'.split('\n').take(6).join(' / '));
   }
-  expect(overflows, isEmpty);
+  expect(errors, isEmpty);
 }
