@@ -1,13 +1,12 @@
 import 'dart:convert';
 
 import 'package:balade/features/authentication/authentication_provider.dart';
-import 'package:balade/features/navigation/routes.dart';
+import 'package:balade/features/navigation/routed_app.dart';
 import 'package:balade/features/reservations/providers/reservation_providers.dart';
 import 'package:balade/features/reservations/reservations_service.dart';
 import 'package:balade/features/users/models/user/user.dart';
 import 'package:balade/themes/theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -89,13 +88,8 @@ Future<void> pumpSignedOutApp(WidgetTester tester, {required LoginApi api, requi
         authenticationProvider.overrideWith((ref) => AuthenticationNotifier()),
         reservationsServiceProvider.overrideWithValue(ReservationsService(client: MockClient(api.handle))),
       ],
-      child: MaterialApp.router(
-        theme: MaterialTheme(Typography.material2021().black).light(),
-        locale: const Locale('fr'),
-        supportedLocales: const [Locale('fr')],
-        localizationsDelegates: GlobalMaterialLocalizations.delegates,
-        routerConfig: router(null, initialLocation: location),
-      ),
+      // The production routed app, so a login that changes the authentication state behaves as in the app
+      child: RoutedApp(theme: MaterialTheme(Typography.material2021().black).light(), locale: const Locale('fr'), initialLocation: location),
     ),
   );
   await tester.pumpAndSettle();

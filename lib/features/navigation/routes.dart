@@ -48,8 +48,10 @@ String? _loginBeforeManagementArea(BuildContext context, GoRouterState state) {
   return Uri(path: '/connexion', queryParameters: {'redirection': state.uri.toString()}).toString();
 }
 
-GoRouter router(AuthedUser? loggedUser, {String initialLocation = '/'}) => GoRouter(
+/// The routes of the app. [refreshListenable] re-runs the redirections, e.g. on login and logout.
+GoRouter router(AuthedUser? loggedUser, {String initialLocation = '/', Listenable? refreshListenable}) => GoRouter(
   initialLocation: initialLocation,
+  refreshListenable: refreshListenable,
   redirect: _loginBeforeManagementArea,
   routes: [
     ShellRoute(
