@@ -28,7 +28,9 @@ class FormSection extends StatelessWidget {
                 if ((title ?? '').isNotEmpty) ...[
                   Row(
                     children: [
-                      Expanded(child: Text(title!, style: theme.textTheme.titleMedium?.copyWith(color: ManagementColors.green))),
+                      Expanded(
+                        child: Text(title!, style: theme.textTheme.titleMedium?.copyWith(color: ManagementColors.green)),
+                      ),
                       ...actions,
                     ],
                   ),

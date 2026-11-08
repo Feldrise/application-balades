@@ -1,6 +1,7 @@
+import 'package:balade/features/admin/design/design.dart';
+import 'package:balade/features/ramble/widget/ramble_form/ramble_form.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:balade/features/ramble/widget/ramble_form/ramble_form.dart';
 
 class AddRamblePage extends ConsumerStatefulWidget {
   const AddRamblePage({super.key});
@@ -14,28 +15,17 @@ class _AddRamblePageState extends ConsumerState<AddRamblePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Nouvelle Balade'),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        actions: [
-          OutlinedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Annuler'),
-          ),
-          const SizedBox(width: 12),
-          FilledButton(
-            onPressed: () async {
-              await _formKey.currentState?.save();
-            },
-            child: Text('Créer la balade'),
-          ),
-          const SizedBox(width: 12),
-        ],
-      ),
-      body: Center(child: RambleForm(key: _formKey)),
+    return Column(
+      children: [
+        const ManagementPageHeader(title: 'Nouvelle balade', leading: ManagementBackButton()),
+        Expanded(child: RambleForm(key: _formKey)),
+        ManagementActionBar(
+          actions: [
+            OutlinedButton(onPressed: () => leaveManagementForm(context), child: const Text('Annuler')),
+            FilledButton(onPressed: () async => await _formKey.currentState?.save(), child: const Text('Créer la balade')),
+          ],
+        ),
+      ],
     );
   }
 }

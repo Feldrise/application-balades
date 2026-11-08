@@ -50,14 +50,11 @@ class _GuideProfilePageState extends ConsumerState<GuideProfilePage> {
 
     setState(() => _paymentSaving = true);
     try {
-      await GuidesService.instance.updateMyPaymentConfig(
-        {
-          'stripe_account_id': _stripeAccountController.text.trim(),
-          'stripe_public_key': _stripePublicKeyController.text.trim(),
-          'payment_enabled': _paymentEnabled,
-        },
-        authorization: token,
-      );
+      await GuidesService.instance.updateMyPaymentConfig({
+        'stripe_account_id': _stripeAccountController.text.trim(),
+        'stripe_public_key': _stripePublicKeyController.text.trim(),
+        'payment_enabled': _paymentEnabled,
+      }, authorization: token);
       await ref.read(currentGuideProvider.notifier).load();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Configuration de paiement enregistrée')));
@@ -119,7 +116,9 @@ class _GuideProfilePageState extends ConsumerState<GuideProfilePage> {
 
     if (guideState.status == CurrentGuideStatus.error || guideState.guide == null) {
       return _page(
-        body: Center(child: ManagementEmptyState(icon: Icons.cloud_off, title: 'Impossible de charger votre profil guide', message: 'Vérifiez votre connexion puis réessayez.')),
+        body: Center(
+          child: ManagementEmptyState(icon: Icons.cloud_off, title: 'Impossible de charger votre profil guide', message: 'Vérifiez votre connexion puis réessayez.'),
+        ),
       );
     }
 
@@ -141,12 +140,7 @@ class _GuideProfilePageState extends ConsumerState<GuideProfilePage> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  GuideForm(
-                    key: _formKey,
-                    initialGuide: guide,
-                    selfEditMode: true,
-                    onSaved: () => ref.read(currentGuideProvider.notifier).load(),
-                  ),
+                  GuideForm(key: _formKey, initialGuide: guide, selfEditMode: true, onSaved: () => ref.read(currentGuideProvider.notifier).load()),
                   if (permission?.canConfigureGuidePayments() == true)
                     FormLayout(
                       children: [
@@ -161,8 +155,14 @@ class _GuideProfilePageState extends ConsumerState<GuideProfilePage> {
                                 onChanged: (value) => setState(() => _paymentEnabled = value),
                               ),
                             ),
-                            TextField(controller: _stripeAccountController, decoration: const InputDecoration(labelText: 'Stripe Account ID')),
-                            TextField(controller: _stripePublicKeyController, decoration: const InputDecoration(labelText: 'Stripe Public Key')),
+                            TextField(
+                              controller: _stripeAccountController,
+                              decoration: const InputDecoration(labelText: 'Stripe Account ID'),
+                            ),
+                            TextField(
+                              controller: _stripePublicKeyController,
+                              decoration: const InputDecoration(labelText: 'Stripe Public Key'),
+                            ),
                             FormLargeField(
                               child: Align(
                                 alignment: Alignment.centerRight,
@@ -181,7 +181,9 @@ class _GuideProfilePageState extends ConsumerState<GuideProfilePage> {
               ),
             ),
           ),
-          ManagementActionBar(actions: [FilledButton(onPressed: () => _formKey.currentState?.save(), child: const Text('Enregistrer'))]),
+          ManagementActionBar(
+            actions: [FilledButton(onPressed: () => _formKey.currentState?.save(), child: const Text('Enregistrer'))],
+          ),
         ],
       ),
     );

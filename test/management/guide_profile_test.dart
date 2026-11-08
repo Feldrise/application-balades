@@ -8,7 +8,12 @@ import 'management_app.dart';
 
 /// A guide account that may also configure its own payments.
 final _payingGuide = AuthedUser(
-  user: const User(2, email: 'vera@example.com', roles: ['guide'], permissions: ['create:ramble', 'update:ramble:self', 'view:registrations:self', 'configure:guide-payments:self']),
+  user: const User(
+    2,
+    email: 'vera@example.com',
+    roles: ['guide'],
+    permissions: ['create:ramble', 'update:ramble:self', 'view:registrations:self', 'configure:guide-payments:self'],
+  ),
   token: 'guide-token',
 );
 

@@ -57,12 +57,18 @@ class _AdminGuidesPageState extends ConsumerState<AdminGuidesPage> {
   }
 
   Future<void> _addGuide() async {
-    await showDialog(context: context, builder: (context) => const LoadingOverlay(child: AddGuideDialog()));
+    await showDialog(
+      context: context,
+      builder: (context) => const LoadingOverlay(child: AddGuideDialog()),
+    );
     _loadGuides();
   }
 
   Future<void> _editGuide(int guideId) async {
-    await showDialog(context: context, builder: (context) => LoadingOverlay(child: EditGuideDialog(guideId: guideId)));
+    await showDialog(
+      context: context,
+      builder: (context) => LoadingOverlay(child: EditGuideDialog(guideId: guideId)),
+    );
     _loadGuides();
   }
 
@@ -111,7 +117,10 @@ class _AdminGuidesPageState extends ConsumerState<AdminGuidesPage> {
                 ),
                 const SizedBox(height: 10),
                 if (_isLoading)
-                  const Padding(padding: EdgeInsets.all(48), child: Center(child: CircularProgressIndicator()))
+                  const Padding(
+                    padding: EdgeInsets.all(48),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
                 else if (_error != null)
                   ManagementPanel(
                     children: [
@@ -124,9 +133,13 @@ class _AdminGuidesPageState extends ConsumerState<AdminGuidesPage> {
                     ],
                   )
                 else if (_guides.isEmpty)
-                  const ManagementPanel(children: [ManagementEmptyState(icon: Icons.groups_outlined, title: 'Aucun guide trouvé', message: 'Aucun guide ne correspond à cette recherche.')])
+                  const ManagementPanel(
+                    children: [ManagementEmptyState(icon: Icons.groups_outlined, title: 'Aucun guide trouvé', message: 'Aucun guide ne correspond à cette recherche.')],
+                  )
                 else
-                  ManagementPanel(children: [for (final guide in _guides) _GuideRow(guide: guide, onTap: () => _editGuide(guide.id))]),
+                  ManagementPanel(
+                    children: [for (final guide in _guides) _GuideRow(guide: guide, onTap: () => _editGuide(guide.id))],
+                  ),
               ],
             ),
           ),
@@ -166,7 +179,11 @@ class _GuideRow extends StatelessWidget {
             backgroundColor: ManagementColors.mint,
             foregroundColor: ManagementColors.green,
             backgroundImage: hasAvatar ? NetworkImage('$kBaseUrl/uploads/guide/${guide.id}/${guide.avatar!}') : null,
-            child: hasAvatar ? null : (guide.firstName.isEmpty ? const Icon(Icons.person_outline, size: 20) : Text(guide.firstName[0].toUpperCase(), style: theme.textTheme.titleSmall?.copyWith(color: ManagementColors.green))),
+            child: hasAvatar
+                ? null
+                : (guide.firstName.isEmpty
+                      ? const Icon(Icons.person_outline, size: 20)
+                      : Text(guide.firstName[0].toUpperCase(), style: theme.textTheme.titleSmall?.copyWith(color: ManagementColors.green))),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -175,7 +192,10 @@ class _GuideRow extends StatelessWidget {
               children: [
                 Text(
                   name,
-                  style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800, color: guide.firstName.isEmpty && guide.lastName.isEmpty ? ManagementColors.muted : null),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: guide.firstName.isEmpty && guide.lastName.isEmpty ? ManagementColors.muted : null,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -204,7 +224,10 @@ class _ActiveBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(color: color.withValues(alpha: 0.11), borderRadius: BorderRadius.circular(4)),
-      child: Text(isActive ? 'Actif' : 'Inactif', style: Theme.of(context).textTheme.labelMedium?.copyWith(color: color, fontWeight: FontWeight.w800)),
+      child: Text(
+        isActive ? 'Actif' : 'Inactif',
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(color: color, fontWeight: FontWeight.w800),
+      ),
     );
   }
 }
