@@ -157,7 +157,7 @@ class _BulkActionsAdvancedDialogState extends ConsumerState<BulkActionsAdvancedD
             Text('Sélectionnez l\'action à effectuer:', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: selectedAction,
+              initialValue: selectedAction,
               decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
               items: const [
                 DropdownMenuItem(value: 'confirm', child: Text('✅ Confirmer les réservations')),
@@ -179,7 +179,7 @@ class _BulkActionsAdvancedDialogState extends ConsumerState<BulkActionsAdvancedD
             ),
             const SizedBox(height: 16),
             Card(
-              color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+              color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
@@ -201,9 +201,9 @@ class _BulkActionsAdvancedDialogState extends ConsumerState<BulkActionsAdvancedD
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.errorContainer.withOpacity(0.3),
+                  color: theme.colorScheme.errorContainer.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: theme.colorScheme.error.withOpacity(0.3)),
+                  border: Border.all(color: theme.colorScheme.error.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [

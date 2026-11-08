@@ -6,7 +6,7 @@ import 'package:balade/core/forms/duration_picker.dart';
 import 'package:balade/core/widgets/error_snackbar.dart';
 import 'package:balade/core/widgets/loading_overlay.dart';
 import 'package:balade/core/widgets/searchable_dropdown.dart';
-import 'package:balade/features/admin/admin_home_page/providers/rambles_provider.dart';
+import 'package:balade/features/admin/rambles_management/managed_rambles.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/authentication/permission_provider.dart';
 import 'package:balade/features/guides/providers/current_guide_provider.dart';
@@ -275,7 +275,7 @@ class RambleFormState extends ConsumerState<RambleForm> {
                 ),
 
                 DropdownButtonFormField<String>(
-                  value: _selectedType,
+                  initialValue: _selectedType,
                   decoration: const InputDecoration(labelText: 'Type de balade'),
                   items: [
                     for (final type in rambleTypeLabels.keys)
@@ -393,7 +393,7 @@ class RambleFormState extends ConsumerState<RambleForm> {
                 ),
 
                 DropdownButtonFormField<String>(
-                  value: _selectedDifficulty,
+                  initialValue: _selectedDifficulty,
                   decoration: const InputDecoration(labelText: 'Niveau de difficulté'),
                   items: rambleDifficultyLabels.keys.map((difficulty) {
                     return DropdownMenuItem(
@@ -540,7 +540,7 @@ class RambleFormState extends ConsumerState<RambleForm> {
                   const SizedBox(height: 16),
 
                   DropdownButtonFormField<int>(
-                    value: _paymentGuideId,
+                    initialValue: _paymentGuideId,
                     decoration: InputDecoration(
                       labelText: 'Guide recevant les paiements *',
                       helperText: 'Seuls les guides avec Stripe configuré apparaissent',
@@ -572,9 +572,9 @@ class RambleFormState extends ConsumerState<RambleForm> {
                       margin: const EdgeInsets.only(top: 8),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.1),
+                        color: Colors.orange.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         children: [
@@ -704,7 +704,7 @@ class RambleFormState extends ConsumerState<RambleForm> {
       }
 
       if (mounted) {
-        ref.read(ramblesProvider.notifier).loadRambles(authorization: ref.read(authenticationProvider)!.token);
+        ref.invalidate(managedRamblesProvider);
 
         Navigator.of(context).pop(true);
       }

@@ -38,7 +38,7 @@ class GuideSmallCard extends StatelessWidget {
                 // Avatar
                 CircleAvatar(
                   radius: 20,
-                  backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                   backgroundImage: guide.avatar != null && guide.avatar!.isNotEmpty ? NetworkImage("$kBaseUrl/uploads/guide/$guideId/${guide.avatar!}") : null,
                   child: guide.avatar == null || guide.avatar!.isEmpty ? Icon(Icons.person, color: Theme.of(context).colorScheme.primary, size: 20) : null,
                 ),

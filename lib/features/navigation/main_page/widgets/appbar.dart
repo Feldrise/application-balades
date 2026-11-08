@@ -56,22 +56,4 @@ class BeAppbar extends StatelessWidget implements PreferredSizeWidget {
       ],
     );
   }
-
-  Widget _buildNavAction(BuildContext context, IconData icon, String tooltip, VoidCallback onPressed) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: IconButton(
-        icon: Icon(icon),
-        onPressed: onPressed,
-        tooltip: tooltip,
-        style: IconButton.styleFrom(
-          foregroundColor: theme.colorScheme.onPrimary,
-          backgroundColor: theme.colorScheme.onPrimary.withAlpha(25),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      ),
-    );
-  }
 }

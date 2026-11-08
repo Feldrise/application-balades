@@ -78,7 +78,7 @@ class _AdminReservationsDataTableState extends ConsumerState<AdminReservationsDa
                     sortAscending: widget.sortAscending,
                     showCheckboxColumn: true,
                     columnSpacing: screenWidth > 1200 ? 24 : 16, // Responsive column spacing
-                    headingRowColor: WidgetStateProperty.all(colorScheme.surfaceContainerHighest.withOpacity(0.3)),
+                    headingRowColor: WidgetStateProperty.all(colorScheme.surfaceContainerHighest.withValues(alpha: 0.3)),
                     headingTextStyle: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600, color: colorScheme.onSurface),
                     dataTextStyle: theme.textTheme.bodyMedium,
                     columns: _buildColumns(screenWidth),
@@ -150,7 +150,7 @@ class _AdminReservationsDataTableState extends ConsumerState<AdminReservationsDa
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer.withOpacity(0.3),
+        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
         border: Border(bottom: BorderSide(color: theme.dividerColor)),
       ),
       child: Row(
@@ -362,7 +362,7 @@ class _BulkActionsDialogState extends ConsumerState<BulkActionsDialog> {
             Text('Action à effectuer:', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              value: selectedAction,
+              initialValue: selectedAction,
               decoration: const InputDecoration(border: OutlineInputBorder()),
               items: const [
                 DropdownMenuItem(value: 'confirm', child: Text('✅ Confirmer les réservations')),

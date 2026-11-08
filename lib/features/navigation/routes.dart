@@ -39,7 +39,8 @@ CustomTransitionPage<dynamic> _buildPageWithDefaultTransition<T>({required Build
   );
 }
 
-GoRouter router(AuthedUser? loggedUser) => GoRouter(
+GoRouter router(AuthedUser? loggedUser, {String initialLocation = '/'}) => GoRouter(
+  initialLocation: initialLocation,
   routes: [
     ShellRoute(
       builder: (context, state, child) => MainPage(child: LoadingOverlay(child: child)),
@@ -113,57 +114,57 @@ GoRouter router(AuthedUser? loggedUser) => GoRouter(
           path: "/mon-compte",
           pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const _AccountPage()),
         ),
-        // Admin routes with nested layout
-        ShellRoute(
-          builder: (context, state, child) => AdminShell(child: child),
+        GoRoute(
+          path: "/aide",
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const _HelpPage()),
+        ),
+      ],
+    ),
+    // Management area: its own shell, separate from the public site
+    ShellRoute(
+      builder: (context, state, child) => LoadingOverlay(child: AdminShell(child: child)),
+      routes: [
+        GoRoute(
+          path: "/admin",
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const AdminRamblesPage()),
           routes: [
             GoRoute(
-              path: "/admin",
-              pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const AdminRamblesPage()),
-              routes: [
-                GoRoute(
-                  path: "nouvelle-balade",
-                  pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const AddRamblePage()),
-                ),
-                GoRoute(
-                  path: "modifier-balade/:id",
-                  pageBuilder: (context, state) => _buildPageWithDefaultTransition(
-                    context: context,
-                    state: state,
-                    child: EditRamblePage(id: state.pathParameters['id'] ?? ''),
-                  ),
-                ),
-                GoRoute(
-                  path: "balade/:id",
-                  pageBuilder: (context, state) {
-                    final id = int.tryParse(state.pathParameters['id'] ?? '');
-                    final child = id == null ? const Scaffold(body: Center(child: Text('ID de balade invalide'))) : AdminRambleDetailsPage(rambleId: id);
-                    return _buildPageWithDefaultTransition(context: context, state: state, child: child);
-                  },
-                ),
-              ],
+              path: "nouvelle-balade",
+              pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const AddRamblePage()),
             ),
             GoRoute(
-              path: "/admin/guides",
-              pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const AdminGuidesPage()),
+              path: "modifier-balade/:id",
+              pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+                context: context,
+                state: state,
+                child: EditRamblePage(id: state.pathParameters['id'] ?? ''),
+              ),
             ),
             GoRoute(
-              path: "/admin/reservations",
-              pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const AdminReservationsPage()),
-            ),
-            GoRoute(
-              path: "/admin/mon-profil",
-              pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const GuideProfilePage()),
-            ),
-            GoRoute(
-              path: "/admin/parametres",
-              pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const AdminSettingsPage()),
+              path: "balade/:id",
+              pageBuilder: (context, state) {
+                final id = int.tryParse(state.pathParameters['id'] ?? '');
+                final child = id == null ? const Scaffold(body: Center(child: Text('ID de balade invalide'))) : AdminRambleDetailsPage(rambleId: id);
+                return _buildPageWithDefaultTransition(context: context, state: state, child: child);
+              },
             ),
           ],
         ),
         GoRoute(
-          path: "/aide",
-          pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const _HelpPage()),
+          path: "/admin/guides",
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const AdminGuidesPage()),
+        ),
+        GoRoute(
+          path: "/admin/reservations",
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const AdminReservationsPage()),
+        ),
+        GoRoute(
+          path: "/admin/mon-profil",
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const GuideProfilePage()),
+        ),
+        GoRoute(
+          path: "/admin/parametres",
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const AdminSettingsPage()),
         ),
       ],
     ),
@@ -193,7 +194,7 @@ class _HomePage extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Découvrez la nature à travers nos balades guidées',
-              style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.7)),
+              style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.7)),
               textAlign: TextAlign.center,
             ),
           ],

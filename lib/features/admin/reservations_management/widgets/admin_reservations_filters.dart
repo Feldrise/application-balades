@@ -166,7 +166,7 @@ class _AdminReservationsFiltersState extends ConsumerState<AdminReservationsFilt
         Expanded(
           flex: 2,
           child: DropdownButtonFormField<int>(
-            value: selectedRambleId,
+            initialValue: selectedRambleId,
             decoration: InputDecoration(
               labelText: 'Balade',
               border: const OutlineInputBorder(),

@@ -36,7 +36,7 @@ class ReservationsStatsCards extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
               child: Icon(icon, size: 24, color: color),
             ),
             const SizedBox(width: 16),

@@ -29,7 +29,7 @@ class _DurationPickerState extends State<DurationPicker> {
       children: [
         Expanded(
           child: DropdownButtonFormField<int>(
-            value: _selectedHours,
+            initialValue: _selectedHours,
             decoration: InputDecoration(labelText: widget.label, suffixText: 'heures', icon: const Icon(Icons.schedule)),
             items: List.generate(widget.maxHours, (index) => index + 1).map((hours) => DropdownMenuItem(value: hours, child: Text('$hours heure${hours > 1 ? 's' : ''}'))).toList(),
             onChanged: (value) {
@@ -43,7 +43,7 @@ class _DurationPickerState extends State<DurationPicker> {
         const SizedBox(width: 12),
         Expanded(
           child: DropdownButtonFormField<int>(
-            value: _selectedMinutes,
+            initialValue: _selectedMinutes,
             decoration: const InputDecoration(labelText: 'Minutes', suffixText: 'min'),
             items: const [0, 15, 30, 45].map((min) => DropdownMenuItem(value: min, child: Text('$min min'))).toList(),
             onChanged: (value) {
