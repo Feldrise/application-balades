@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
+import '../support/fake_url_launcher.dart';
+
 Reservation _reservation({
   String status = 'pending',
   bool paid = false,
@@ -54,12 +56,12 @@ Ramble _freeRamble() => Ramble(3, title: 'Sortie champignons', type: 'champignon
 /// Before the confirmation period of the ramble of the reservations, on 1 December 2026 at 9:00.
 final _beforeConfirmation = DateTime.utc(2026, 11, 20, 9);
 
-Future<void> _pump(WidgetTester tester, Reservation reservation, {bool paymentEnabled = false, DateTime? now}) async {
+Future<void> _pump(WidgetTester tester, Reservation reservation, {bool paymentEnabled = false, DateTime? now, Ramble? ramble}) async {
   await initializeDateFormatting('fr');
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        reservationRambleProvider.overrideWith((ref, id) async => paymentEnabled ? _payingRamble() : _freeRamble()),
+        reservationRambleProvider.overrideWith((ref, id) async => ramble ?? (paymentEnabled ? _payingRamble() : _freeRamble())),
         reservationClockProvider.overrideWithValue(() => now ?? _beforeConfirmation),
       ],
       child: MaterialApp(
@@ -198,5 +200,18 @@ void main() {
 
     expect(find.byTooltip('Préciser le tarif'), findsOneWidget);
     expect(find.byTooltip('Modifier'), findsNothing);
+  });
+
+  testWidgets('opens the place of the balade in Maps when the meeting point is left blank', (tester) async {
+    final launcher = FakeUrlLauncher.install();
+    final ramble = Ramble(3, title: 'Sortie champignons', type: 'champignons', difficulty: 'facile', meetingPoint: '', location: 'Forêt de Paimpont');
+    await _pump(tester, _reservation(), ramble: ramble);
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Ouvrir dans Maps'));
+    await tester.tap(find.text('Ouvrir dans Maps'));
+    await tester.pumpAndSettle();
+
+    expect(launcher.launched, ['https://www.google.com/maps/search/?api=1&query=For%C3%AAt+de+Paimpont']);
   });
 }

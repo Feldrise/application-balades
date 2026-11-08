@@ -37,6 +37,8 @@ dev_dependencies:
     sdk: flutter
   freezed: ^3.2.0
   json_serializable: ^6.10.0
+  plugin_platform_interface: ^2.1.8
+  url_launcher_platform_interface: ^2.3.2
 
 flutter_launcher_icons:
   android: true
