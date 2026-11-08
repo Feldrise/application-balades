@@ -10,6 +10,7 @@ import 'package:balade/features/reservations/providers/reservation_providers.dar
 import 'package:balade/features/reservations/reservations_service.dart';
 import 'package:balade/features/users/models/user/user.dart';
 import 'package:balade/themes/theme.dart';
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -38,7 +39,7 @@ final guide = AuthedUser(
   token: 'guide-token',
 );
 
-/// A balade [inDays] days from now, at 10h00.
+/// A balade [inDays] days from now (the test's [clock]), at 10h00.
 Ramble balade(
   int id, {
   required int inDays,
@@ -50,7 +51,7 @@ Ramble balade(
   bool cancelled = false,
   String location = 'Paimpont',
 }) {
-  final today = DateTime.now();
+  final today = clock.now();
   return Ramble(
     id,
     title: title,

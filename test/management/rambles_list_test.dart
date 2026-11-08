@@ -1,4 +1,5 @@
 import 'package:balade/features/admin/design/design.dart';
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -9,30 +10,57 @@ const _months = ['JANV', 'FÉVR', 'MARS', 'AVR', 'MAI', 'JUIN', 'JUIL', 'AOÛT',
 /// The feuille de balade is redone by another ticket: tests stop on it while it loads.
 final _feuilleLoading = [RegExp(r'/rambles/\d+$')];
 
+/// A Wednesday: tomorrow is in this week, and the 12th day from it in this month.
+final _wednesday = DateTime(2026, 11, 4, 8);
+
 double _top(WidgetTester tester, String text) => tester.getTopLeft(find.text(text)).dy;
 
 void main() {
+  testWidgets('« Cette semaine » ends on Sunday and « Ce mois-ci » with the calendar month', (tester) async {
+    // Sunday 8 November 2026
+    await withClock(Clock.fixed(DateTime(2026, 11, 8, 8)), () async {
+      final api = FakeApi(
+        rambles: [
+          balade(1, inDays: 0, title: 'Ce dimanche'),
+          balade(2, inDays: 1, title: 'Lundi prochain'),
+          balade(3, inDays: 22, title: 'Fin novembre'),
+          balade(4, inDays: 23, title: 'Début décembre'),
+        ],
+      );
+      await withFakeApi(api, () async {
+        await pumpManagementApp(tester, api: api, location: '/admin', user: admin, size: phone);
+
+        final order = ['CETTE SEMAINE · 1', 'Ce dimanche', 'CE MOIS-CI · 2', 'Lundi prochain', 'Fin novembre', 'PLUS TARD · 1', 'Début décembre'];
+        for (var i = 1; i < order.length; i++) {
+          expect(_top(tester, order[i]), greaterThan(_top(tester, order[i - 1])), reason: '${order[i]} comes after ${order[i - 1]}');
+        }
+      });
+    });
+  });
+
   testWidgets('balades are grouped by period, soonest first, past ones hidden', (tester) async {
-    final api = FakeApi(
-      rambles: [
-        balade(3, inDays: 60, title: 'Brame du cerf'),
-        balade(1, inDays: 1, title: 'Champignons de Paimpont'),
-        balade(2, inDays: 12, title: 'Petits fruits du bocage'),
-        balade(4, inDays: -3, title: 'Balade passée'),
-      ],
-    );
-    await withFakeApi(api, () async {
-      await pumpManagementApp(tester, api: api, location: '/admin', user: admin, size: phone);
+    await withClock(Clock.fixed(_wednesday), () async {
+      final api = FakeApi(
+        rambles: [
+          balade(3, inDays: 60, title: 'Brame du cerf'),
+          balade(1, inDays: 1, title: 'Champignons de Paimpont'),
+          balade(2, inDays: 12, title: 'Petits fruits du bocage'),
+          balade(4, inDays: -3, title: 'Balade passée'),
+        ],
+      );
+      await withFakeApi(api, () async {
+        await pumpManagementApp(tester, api: api, location: '/admin', user: admin, size: phone);
 
-      expect(find.text('CETTE SEMAINE · 1'), findsOneWidget);
-      expect(find.text('CE MOIS-CI · 1'), findsOneWidget);
-      expect(find.text('PLUS TARD · 1'), findsOneWidget);
-      expect(find.text('Balade passée'), findsNothing);
+        expect(find.text('CETTE SEMAINE · 1'), findsOneWidget);
+        expect(find.text('CE MOIS-CI · 1'), findsOneWidget);
+        expect(find.text('PLUS TARD · 1'), findsOneWidget);
+        expect(find.text('Balade passée'), findsNothing);
 
-      final order = ['CETTE SEMAINE · 1', 'Champignons de Paimpont', 'CE MOIS-CI · 1', 'Petits fruits du bocage', 'PLUS TARD · 1', 'Brame du cerf'];
-      for (var i = 1; i < order.length; i++) {
-        expect(_top(tester, order[i]), greaterThan(_top(tester, order[i - 1])), reason: '${order[i]} comes after ${order[i - 1]}');
-      }
+        final order = ['CETTE SEMAINE · 1', 'Champignons de Paimpont', 'CE MOIS-CI · 1', 'Petits fruits du bocage', 'PLUS TARD · 1', 'Brame du cerf'];
+        for (var i = 1; i < order.length; i++) {
+          expect(_top(tester, order[i]), greaterThan(_top(tester, order[i - 1])), reason: '${order[i]} comes after ${order[i - 1]}');
+        }
+      });
     });
   });
 
@@ -63,26 +91,28 @@ void main() {
   });
 
   testWidgets('on desktop, balades are a table with the same grouping', (tester) async {
-    final api = FakeApi(
-      rambles: [
-        balade(1, inDays: 1, title: 'Champignons de Paimpont'),
-        balade(2, inDays: 40, title: 'Brame du cerf', guides: [val]),
-      ],
-      unanswered: _feuilleLoading,
-    );
-    await withFakeApi(api, () async {
-      await pumpManagementApp(tester, api: api, location: '/admin', user: admin, size: desktop);
+    await withClock(Clock.fixed(_wednesday), () async {
+      final api = FakeApi(
+        rambles: [
+          balade(1, inDays: 1, title: 'Champignons de Paimpont'),
+          balade(2, inDays: 40, title: 'Brame du cerf', guides: [val]),
+        ],
+        unanswered: _feuilleLoading,
+      );
+      await withFakeApi(api, () async {
+        await pumpManagementApp(tester, api: api, location: '/admin', user: admin, size: desktop);
 
-      for (final column in ['DATE', 'BALADE', 'GUIDE', 'PLACES', 'STATUT']) {
-        expect(find.text(column), findsOneWidget);
-      }
-      expect(find.text('CETTE SEMAINE · 1'), findsOneWidget);
-      expect(find.text('PLUS TARD · 1'), findsOneWidget);
-      expect(find.text('Val'), findsOneWidget);
+        for (final column in ['DATE', 'BALADE', 'GUIDE', 'PLACES', 'STATUT']) {
+          expect(find.text(column), findsOneWidget);
+        }
+        expect(find.text('CETTE SEMAINE · 1'), findsOneWidget);
+        expect(find.text('PLUS TARD · 1'), findsOneWidget);
+        expect(find.text('Val'), findsOneWidget);
 
-      await tester.tap(find.text('Brame du cerf'));
-      await tester.pump();
-      expect(currentLocation(tester), '/admin/balade/2');
+        await tester.tap(find.text('Brame du cerf'));
+        await tester.pump();
+        expect(currentLocation(tester), '/admin/balade/2');
+      });
     });
   });
 

@@ -5,6 +5,7 @@ import 'package:balade/features/authentication/permission_provider.dart';
 import 'package:balade/features/guides/providers/current_guide_provider.dart';
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
 import 'package:balade/features/ramble/rambles_service.dart';
+import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// The balades the signed-in account manages: all of them for an admin, their own for a guide (as before the redesign).
@@ -81,10 +82,12 @@ bool _matches(Ramble ramble, RambleListQuery query, DateTime today) {
   return haystack.contains(search);
 }
 
-/// The balades matching [query], grouped by period: the next 7 days (« Cette semaine »), the next 31 days
-/// (« Ce mois-ci ») and later, soonest first. Past balades form a single group, most recent first.
+/// The balades matching [query], grouped by calendar period: until Sunday (« Cette semaine »), until the end of the
+/// month (« Ce mois-ci ») and later, soonest first. Past balades form a single group, most recent first.
 List<RambleGroup> groupRambles(List<Ramble> rambles, RambleListQuery query, {DateTime? now}) {
-  final today = _day(now ?? DateTime.now());
+  final today = _day(now ?? clock.now());
+  final nextMonday = DateTime(today.year, today.month, today.day + 8 - today.weekday);
+  final nextMonth = DateTime(today.year, today.month + 1);
   final kept = rambles.where((r) => _matches(r, query, today)).toList();
   final far = DateTime(9999);
   kept.sort((a, b) => (a.date ?? far).compareTo(b.date ?? far));
@@ -95,10 +98,10 @@ List<RambleGroup> groupRambles(List<Ramble> rambles, RambleListQuery query, {Dat
 
   final week = <Ramble>[], month = <Ramble>[], later = <Ramble>[];
   for (final r in kept) {
-    final days = r.date == null ? null : _day(r.date!).difference(today).inDays;
-    if (days != null && days < 7) {
+    final day = r.date == null ? null : _day(r.date!);
+    if (day != null && day.isBefore(nextMonday)) {
       week.add(r);
-    } else if (days != null && days < 31) {
+    } else if (day != null && day.isBefore(nextMonth)) {
       month.add(r);
     } else {
       later.add(r);
