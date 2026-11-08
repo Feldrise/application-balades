@@ -1,4 +1,6 @@
+import 'package:balade/core/forms/form_layout.dart';
 import 'package:balade/core/widgets/error_snackbar.dart';
+import 'package:balade/features/admin/design/design.dart';
 import 'package:balade/core/widgets/loading_overlay.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/authentication/permission_provider.dart';
@@ -7,6 +9,7 @@ import 'package:balade/core/phone_utils.dart';
 import 'package:balade/features/guides/models/guide/guide.dart';
 import 'package:balade/features/guides/providers/current_guide_provider.dart';
 import 'package:balade/features/guides/widgets/guide_form.dart';
+import 'package:balade/core/forms/form_large_field.dart';
 import 'package:balade/core/forms/form_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -81,144 +84,105 @@ class _GuideProfilePageState extends ConsumerState<GuideProfilePage> {
     }
   }
 
+  Widget _page({required Widget body, List<Widget> actions = const [], String? subtitle}) {
+    return Column(
+      children: [
+        ManagementPageHeader(title: 'Mon profil', subtitle: subtitle, actions: actions),
+        Expanded(child: body),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final guideState = ref.watch(currentGuideProvider);
     final permission = ref.watch(permissionProvider);
 
     if (guideState.status == CurrentGuideStatus.loading) {
-      return const Scaffold(backgroundColor: Colors.transparent, body: Center(child: CircularProgressIndicator()));
+      return _page(body: const Center(child: CircularProgressIndicator()));
     }
 
     if (guideState.status == CurrentGuideStatus.unlinked) {
-      return Scaffold(
-        backgroundColor: Colors.transparent,
+      return _page(
         body: Center(
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(48),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.link_off, size: 64, color: theme.colorScheme.error),
-                  const SizedBox(height: 16),
-                  Text('Profil non lié', style: theme.textTheme.headlineSmall),
-                  const SizedBox(height: 8),
-                  const Text('Votre compte n\'est pas encore associé à un profil guide.'),
-                  const SizedBox(height: 24),
-                  OutlinedButton.icon(onPressed: _refreshRights, icon: const Icon(Icons.refresh), label: const Text('Rafraîchir mes droits')),
-                ],
-              ),
+          child: SingleChildScrollView(
+            child: ManagementEmptyState(
+              icon: Icons.link_off,
+              title: 'Profil non lié',
+              message: 'Votre compte n\'est pas encore associé à un profil guide.',
+              action: OutlinedButton.icon(onPressed: _refreshRights, icon: const Icon(Icons.refresh), label: const Text('Rafraîchir mes droits')),
             ),
           ),
         ),
       );
     }
 
-    if (guideState.guide == null) {
-      return Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Center(child: Text('Impossible de charger votre profil guide.', style: theme.textTheme.bodyLarge)),
+    if (guideState.status == CurrentGuideStatus.error || guideState.guide == null) {
+      return _page(
+        body: Center(child: ManagementEmptyState(icon: Icons.cloud_off, title: 'Impossible de charger votre profil guide', message: 'Vérifiez votre connexion puis réessayez.')),
       );
     }
 
     final guide = guideState.guide!;
     _syncPaymentFields(guide);
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Mon profil guide', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 4),
-                          Text('Gérez vos informations et votre configuration de paiement', style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-                          if (hasStoredPhone(guide.phone)) ...[
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Icon(Icons.phone, size: 16, color: theme.colorScheme.onSurfaceVariant),
-                                const SizedBox(width: 6),
-                                Text(formatStoredPhone(guide.phone)!, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-                              ],
+    return _page(
+      subtitle: hasStoredPhone(guide.phone) ? formatStoredPhone(guide.phone) : null,
+      actions: [
+        IconButton(
+          tooltip: 'Rafraîchir mes droits',
+          onPressed: _refreshRights,
+          icon: const Icon(Icons.refresh, color: Colors.white),
+        ),
+      ],
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  GuideForm(
+                    key: _formKey,
+                    initialGuide: guide,
+                    selfEditMode: true,
+                    onSaved: () => ref.read(currentGuideProvider.notifier).load(),
+                  ),
+                  if (permission?.canConfigureGuidePayments() == true)
+                    FormLayout(
+                      children: [
+                        FormSection(
+                          title: 'Configuration Stripe',
+                          children: [
+                            FormLargeField(
+                              child: SwitchListTile(
+                                contentPadding: EdgeInsets.zero,
+                                title: const Text('Paiements activés'),
+                                value: _paymentEnabled,
+                                onChanged: (value) => setState(() => _paymentEnabled = value),
+                              ),
+                            ),
+                            TextField(controller: _stripeAccountController, decoration: const InputDecoration(labelText: 'Stripe Account ID')),
+                            TextField(controller: _stripePublicKeyController, decoration: const InputDecoration(labelText: 'Stripe Public Key')),
+                            FormLargeField(
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: FilledButton.icon(
+                                  onPressed: _paymentSaving ? null : _savePaymentConfig,
+                                  icon: _paymentSaving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.payment),
+                                  label: const Text('Enregistrer la configuration de paiement'),
+                                ),
+                              ),
                             ),
                           ],
-                        ],
-                      ),
-                    ),
-                    OutlinedButton.icon(onPressed: _refreshRights, icon: const Icon(Icons.refresh), label: const Text('Rafraîchir mes droits')),
-                    const SizedBox(width: 12),
-                    FilledButton.icon(
-                      onPressed: () => _formKey.currentState?.save(),
-                      icon: const Icon(Icons.save),
-                      label: const Text('Enregistrer le profil'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: GuideForm(
-                  key: _formKey,
-                  initialGuide: guide,
-                  selfEditMode: true,
-                  onSaved: () => ref.read(currentGuideProvider.notifier).load(),
-                ),
-              ),
-            ),
-            if (permission?.canConfigureGuidePayments() == true) ...[
-              const SizedBox(height: 24),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: FormSection(
-                    title: 'Configuration Stripe',
-                    children: [
-                      SwitchListTile(
-                        title: const Text('Paiements activés'),
-                        value: _paymentEnabled,
-                        onChanged: (value) => setState(() => _paymentEnabled = value),
-                      ),
-                      TextField(
-                        controller: _stripeAccountController,
-                        decoration: const InputDecoration(labelText: 'Stripe Account ID', border: OutlineInputBorder()),
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: _stripePublicKeyController,
-                        decoration: const InputDecoration(labelText: 'Stripe Public Key', border: OutlineInputBorder()),
-                      ),
-                      const SizedBox(height: 24),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: FilledButton.icon(
-                          onPressed: _paymentSaving ? null : _savePaymentConfig,
-                          icon: _paymentSaving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.payment),
-                          label: const Text('Enregistrer la configuration de paiement'),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
+                      ],
+                    ),
+                ],
               ),
-            ],
-          ],
-        ),
+            ),
+          ),
+          ManagementActionBar(actions: [FilledButton(onPressed: () => _formKey.currentState?.save(), child: const Text('Enregistrer'))]),
+        ],
       ),
     );
   }

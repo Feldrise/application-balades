@@ -183,7 +183,6 @@ class RambleFormState extends ConsumerState<RambleForm> {
       key: _formKey,
       child: SingleChildScrollView(
         child: FormLayout(
-          key: UniqueKey(),
           children: [
             // Image de couverture
             FormSection(
@@ -203,9 +202,6 @@ class RambleFormState extends ConsumerState<RambleForm> {
                 ),
               ],
             ),
-
-            const SizedBox(height: 32),
-
             if (!isGuideOnly) ...[
               FormSection(
                 title: 'Informations sur le(s) guide(s)',
@@ -261,7 +257,6 @@ class RambleFormState extends ConsumerState<RambleForm> {
                   ),
                 ],
               ),
-              const SizedBox(height: 32),
             ],
 
             // Informations générales
@@ -315,9 +310,6 @@ class RambleFormState extends ConsumerState<RambleForm> {
                 ),
               ],
             ),
-
-            const SizedBox(height: 24),
-
             // Date et horaires
             FormSection(
               title: 'Date et horaires',
@@ -344,9 +336,6 @@ class RambleFormState extends ConsumerState<RambleForm> {
                 ),
               ],
             ),
-
-            const SizedBox(height: 24),
-
             // Lieu et logistique
             FormSection(
               title: 'Lieu et logistique',
@@ -421,9 +410,6 @@ class RambleFormState extends ConsumerState<RambleForm> {
                 ),
               ],
             ),
-
-            const SizedBox(height: 24),
-
             // Tarifs
             FormSection(
               title: 'Tarifs',
@@ -465,9 +451,6 @@ class RambleFormState extends ConsumerState<RambleForm> {
                 ),
               ],
             ),
-
-            const SizedBox(height: 24),
-
             // Publication
             FormSection(
               title: 'Publication',
@@ -501,9 +484,6 @@ class RambleFormState extends ConsumerState<RambleForm> {
                 ],
               ],
             ),
-
-            const SizedBox(height: 24),
-
             // Configuration des paiements
             FormSection(
               title: 'Configuration des paiements',
@@ -592,8 +572,6 @@ class RambleFormState extends ConsumerState<RambleForm> {
                 ],
               ],
             ),
-
-            const SizedBox(height: 40),
           ],
         ),
       ),

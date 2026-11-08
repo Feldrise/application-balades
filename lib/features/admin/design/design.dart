@@ -3,6 +3,7 @@
 library;
 
 export 'calendar_date_block.dart';
+export 'management_action_bar.dart';
 export 'management_bottom_sheet.dart';
 export 'management_empty_state.dart';
 export 'management_page_header.dart';
