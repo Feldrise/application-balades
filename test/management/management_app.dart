@@ -67,9 +67,12 @@ Ramble balade(
 
 /// The fake API behind the management area: what it serves and the requests it received.
 class FakeApi {
-  FakeApi({this.rambles = const [], this.myGuide, this.unanswered = const []});
+  FakeApi({this.rambles = const [], this.guides = const [], this.myGuide, this.unanswered = const []});
 
   final List<Ramble> rambles;
+
+  /// The guides of the platform, served by the guides list.
+  final List<Guide> guides;
 
   /// The guide profile linked to the signed-in guide, or null when the account is not linked.
   final Guide? myGuide;
@@ -83,9 +86,12 @@ class FakeApi {
     requests.add(request);
     final path = request.url.path;
     if (unanswered.any((p) => p.allMatches(path).isNotEmpty)) return Completer<http.Response>().future;
-    if (path.endsWith('/guides/me')) {
+    if (request.method == 'GET' && path.endsWith('/guides/me')) {
       return myGuide == null ? http.Response('{"error":"not found"}', 404) : _json(myGuide!.toJson());
     }
+    if (request.method == 'PUT' && path.endsWith('/guides/me')) return _json({});
+    if (request.method == 'POST' && path.endsWith('/rambles')) return http.Response('{"id":99}', 201, headers: {'content-type': 'application/json'});
+    if (path.endsWith('/guides')) return _json([for (final g in guides) g.toJson()]);
     if (path.endsWith('/rambles')) return _json([for (final r in rambles) r.toJson()]);
     final rambleId = RegExp(r'/rambles/(\d+)$').firstMatch(path)?.group(1);
     final ramble = rambles.where((r) => '${r.id}' == rambleId).firstOrNull;
