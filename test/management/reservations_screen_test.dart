@@ -290,6 +290,58 @@ void main() {
       });
     });
 
+    testWidgets('« Plus d\'options » asks the same confirmation as the quick actions, and the bookers are told', (tester) async {
+      final api = _api();
+      await withFakeApi(api, () async {
+        await pumpManagementApp(tester, api: api, location: '/admin/reservations', user: admin, size: desktop);
+        await tester.tap(find.byKey(const ValueKey('select-reservation-1')));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Plus d\'options'));
+        await tester.pumpAndSettle();
+        expect(find.text('Prévenir les personnes qui réservent par email'), findsNothing, reason: 'a status change always tells the booker');
+        await tester.tap(find.text('Confirmer les réservations'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Annuler les réservations').last);
+        await tester.pumpAndSettle();
+        await tester.enterText(find.widgetWithText(TextField, 'Motif (optionnel)'), 'Météo');
+        await tester.tap(find.widgetWithText(FilledButton, 'Appliquer'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Annuler cette réservation ?'), findsOneWidget);
+        expect(find.textContaining('aucun remboursement automatique'), findsOneWidget);
+        expect(api.requests.where((r) => r.url.path.endsWith('/bulk-action')), isEmpty, reason: 'nothing is sent before the confirmation');
+
+        await tester.tap(find.widgetWithText(FilledButton, 'Confirmer'));
+        await tester.pumpAndSettle(const Duration(seconds: 1));
+
+        final post = api.requests.singleWhere((r) => r.method == 'POST' && r.url.path.endsWith('/bulk-action'));
+        expect(jsonDecode(post.body), {
+          'reservation_ids': [1],
+          'action': 'cancel',
+          'reason': 'Météo',
+          'send_email': true,
+        });
+      });
+    });
+
+    testWidgets('« Modifier » corrects the participants; the status changes only through « Changer le statut »', (tester) async {
+      final api = _api();
+      await withFakeApi(api, () async {
+        await pumpManagementApp(tester, api: api, location: '/admin/reservations', user: admin, size: desktop);
+        await tester.tap(find.text('Claire Martin'));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.widgetWithText(OutlinedButton, 'Modifier'));
+        await tester.pumpAndSettle();
+
+        final dialog = find.byType(AlertDialog);
+        expect(find.descendant(of: dialog, matching: find.widgetWithText(TextField, 'Prénom')), findsNWidgets(2));
+        expect(find.descendant(of: dialog, matching: find.text('Statut')), findsNothing);
+        expect(find.descendant(of: dialog, matching: find.text('Confirmée')), findsNothing);
+      });
+    });
+
     testWidgets('the header checkbox selects the whole list', (tester) async {
       final api = _api();
       await withFakeApi(api, () async {

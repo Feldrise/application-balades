@@ -8,8 +8,8 @@ import 'package:balade/features/reservations/reservation_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Lets an admin or a guide set the status of a reservation and correct its participants.
-/// It pops the reservation as saved when something changed.
+/// Lets an admin or a guide correct the participants of a reservation. It pops the reservation as saved when something
+/// changed. The status changes with « Changer le statut », which confirms its consequences and tells the booker.
 class ReservationEditDialog extends ConsumerStatefulWidget {
   const ReservationEditDialog({super.key, required this.reservation});
 
@@ -38,9 +38,6 @@ class _ParticipantEdit {
 
 class _ReservationEditDialogState extends ConsumerState<ReservationEditDialog> {
   late final List<_ParticipantEdit> _participants = widget.reservation.participants.map(_ParticipantEdit.new).toList();
-  final TextEditingController _reason = TextEditingController();
-  late String _status = widget.reservation.status;
-  bool _sendEmail = false;
   bool _isLoading = false;
   String? _error;
 
@@ -49,7 +46,6 @@ class _ReservationEditDialogState extends ConsumerState<ReservationEditDialog> {
     for (final participant in _participants) {
       participant.dispose();
     }
-    _reason.dispose();
     super.dispose();
   }
 
@@ -72,48 +68,17 @@ class _ReservationEditDialogState extends ConsumerState<ReservationEditDialog> {
               Text(reservation.contactEmail, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
               if (reservation.ramble != null) Text(reservation.ramble!.title, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
               const SizedBox(height: 16),
-              Text('Statut', style: theme.textTheme.titleSmall),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                initialValue: _status,
-                decoration: const InputDecoration(border: OutlineInputBorder()),
-                items: [for (final status in ReservationStatus.values) DropdownMenuItem(value: status.apiValue, child: Text(status.label))],
-                onChanged: _isLoading ? null : (value) => setState(() => _status = value!),
-              ),
-              if (_status != reservation.status) ...[
-                const SizedBox(height: 12),
-                if (_status == 'cancelled') ...[
-                  TextField(
-                    controller: _reason,
-                    decoration: const InputDecoration(labelText: 'Motif (optionnel)', border: OutlineInputBorder()),
-                    maxLines: 2,
-                  ),
-                  const SizedBox(height: 4),
-                ],
-                CheckboxListTile(
-                  title: const Text('Prévenir la personne qui réserve par email'),
-                  value: _sendEmail,
-                  onChanged: _isLoading ? null : (value) => setState(() => _sendEmail = value ?? false),
-                  controlAffinity: ListTileControlAffinity.leading,
-                  contentPadding: EdgeInsets.zero,
-                ),
-                Text(
-                  'La réservation n\'est jamais scindée : pour la remettre en attente ou confirmée, tous ses participants doivent tenir dans les places restantes.',
-                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                ),
-              ],
-              const SizedBox(height: 20),
               Text('Participants', style: theme.textTheme.titleSmall),
               if (reservation.hasSuccessfulPayment) ...[
                 const SizedBox(height: 4),
-                Text('La réservation est payée : les tarifs sont figés, les noms peuvent être corrigés.', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                Text(
+                  'La réservation est payée : les tarifs sont figés, les noms peuvent être corrigés.',
+                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                ),
               ],
               const SizedBox(height: 8),
               for (final participant in _participants) _buildParticipant(theme, participant, ramble),
-              if (_error != null) ...[
-                const SizedBox(height: 12),
-                Text(_error!, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error)),
-              ],
+              if (_error != null) ...[const SizedBox(height: 12), Text(_error!, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error))],
             ],
           ),
         ),
@@ -206,17 +171,6 @@ class _ReservationEditDialogState extends ConsumerState<ReservationEditDialog> {
           firstName: firstName != edit.participant.firstName ? firstName : null,
           lastName: lastName != edit.participant.lastName ? lastName : null,
           priceLabel: changesPrice ? edit.priceLabel : null,
-          token: token,
-        );
-      }
-
-      if (_status != reservation.status) {
-        final reason = _reason.text.trim();
-        saved = await service.updateReservationStatus(
-          reservation.id,
-          status: _status,
-          reason: _status == 'cancelled' && reason.isNotEmpty ? reason : null,
-          sendEmail: _sendEmail,
           token: token,
         );
       }

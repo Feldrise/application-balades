@@ -126,36 +126,21 @@ void main() {
     expect(jsonDecode(requests.single.body), {'price_label': 'Adulte'});
   });
 
-  testWidgets('cancels the reservation with a reason and tells the booker', (tester) async {
-    final requests = await _pump(tester, (_) async => http.Response(jsonEncode({..._json, 'status': 'cancelled'}), 200));
+  testWidgets('offers no status: it changes with « Changer le statut », which confirms it and tells the booker', (tester) async {
+    await _pump(tester, (_) async => http.Response('{}', 500));
 
-    await tester.tap(find.text('En attente de confirmation'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Annulée').last);
-    await tester.pumpAndSettle();
-    await tester.enterText(find.widgetWithText(TextField, 'Motif (optionnel)'), 'Doublon');
-    await tester.tap(find.text('Prévenir la personne qui réserve par email'));
-    await tester.pump();
-    await tester.tap(find.widgetWithText(FilledButton, 'Enregistrer'));
-    await tester.pumpAndSettle();
-
-    final request = requests.single;
-    expect(request.url.toString(), 'http://api.test/reservations/admin/12/status');
-    expect(jsonDecode(request.body), {'status': 'cancelled', 'reason': 'Doublon', 'send_email': true});
-    expect(find.byType(ReservationEditDialog), findsNothing);
+    expect(find.text('Statut'), findsNothing);
+    expect(find.text('En attente de confirmation'), findsNothing);
   });
 
   testWidgets('keeps the dialog open and tells why when the API refuses', (tester) async {
-    await _pump(tester, (_) async => http.Response(jsonEncode({'status': 'conflict', 'reason': 'not_enough_places', 'error': 'the participants do not fit in the 1 places left'}), 409));
+    await _pump(tester, (_) async => http.Response(jsonEncode({'error': 'the reservation is cancelled', 'reason': 'reservation_cancelled'}), 409));
 
-    await tester.tap(find.text('En attente de confirmation'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Confirmée').last);
-    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, 'Prénom').last, 'Léo');
     await tester.tap(find.widgetWithText(FilledButton, 'Enregistrer'));
     await tester.pumpAndSettle();
 
     expect(find.byType(ReservationEditDialog), findsOneWidget);
-    expect(find.textContaining('Pas assez de places restantes'), findsOneWidget);
+    expect(find.textContaining('Cette réservation est annulée'), findsOneWidget);
   });
 }

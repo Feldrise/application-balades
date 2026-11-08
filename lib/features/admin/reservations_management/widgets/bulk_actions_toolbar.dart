@@ -90,33 +90,38 @@ class _QuickButton extends ConsumerWidget {
         side: const BorderSide(color: Colors.white54),
       ),
       onPressed: () async {
-        final count = ref.read(bulkActionsProvider).selectionCount;
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('${action.label} ${count > 1 ? 'ces $count réservations' : 'cette réservation'} ?'),
-            content: Text('Vous allez ${action.verb} ${_selection(count)}. ${action.consequence}'),
-            actions: [
-              TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Retour')),
-              FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Confirmer')),
-            ],
-          ),
-        );
-        if (confirmed == true && context.mounted) await _perform(context, ref, action.api, sendEmail: true);
+        if (await _confirm(context, action, ref.read(bulkActionsProvider).selectionCount) && context.mounted) await _perform(context, ref, action.api);
       },
       child: Text(action.label),
     );
   }
 }
 
-/// Applies [action] to the selection and tells how it went.
-Future<void> _perform(BuildContext context, WidgetRef ref, String action, {String? reason, required bool sendEmail}) async {
+/// Asks to confirm a status change of [count] reservations, stating its consequences.
+Future<bool> _confirm(BuildContext context, _BulkAction action, int count) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text('${action.label} ${count > 1 ? 'ces $count réservations' : 'cette réservation'} ?'),
+      content: Text('Vous allez ${action.verb} ${_selection(count)}. ${action.consequence}'),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Retour')),
+        FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Confirmer')),
+      ],
+    ),
+  );
+  return confirmed == true;
+}
+
+/// Applies [action] to the selection and tells how it went. The bookers are always told by email, as with a status
+/// changed one reservation at a time.
+Future<void> _perform(BuildContext context, WidgetRef ref, String action, {String? reason}) async {
   final token = ref.read(authenticationProvider)?.token;
   if (token == null) return;
   final messenger = ScaffoldMessenger.of(context);
   final errorColor = Theme.of(context).colorScheme.error;
 
-  final success = await ref.read(bulkActionsProvider.notifier).performBulkAction(action: action, token: token, reason: reason, sendEmail: sendEmail);
+  final success = await ref.read(bulkActionsProvider.notifier).performBulkAction(action: action, token: token, reason: reason, sendEmail: true);
 
   final result = ref.read(bulkActionsProvider).lastResult;
   if (success && result != null) {
@@ -128,7 +133,8 @@ Future<void> _perform(BuildContext context, WidgetRef ref, String action, {Strin
   }
 }
 
-/// The actions that need more than a tap: with a reason, whether to tell the bookers, and the deletion.
+/// The actions that need more than a tap: a status change with a reason, and the deletion. A status change is confirmed
+/// as with the quick buttons.
 class _MoreOptionsDialog extends ConsumerStatefulWidget {
   const _MoreOptionsDialog();
 
@@ -139,7 +145,6 @@ class _MoreOptionsDialog extends ConsumerStatefulWidget {
 class _MoreOptionsDialogState extends ConsumerState<_MoreOptionsDialog> {
   String _action = 'confirm';
   String? _reason;
-  bool _sendEmail = true;
 
   @override
   Widget build(BuildContext context) {
@@ -172,18 +177,13 @@ class _MoreOptionsDialogState extends ConsumerState<_MoreOptionsDialog> {
               maxLines: 2,
               onChanged: (value) => _reason = value.trim().isEmpty ? null : value.trim(),
             ),
-            CheckboxListTile(
-              title: const Text('Prévenir les personnes qui réservent par email'),
-              value: _sendEmail,
-              onChanged: (value) => setState(() => _sendEmail = value ?? false),
-              controlAffinity: ListTileControlAffinity.leading,
-              contentPadding: EdgeInsets.zero,
-            ),
-            if (deleting)
+            if (deleting) ...[
+              const SizedBox(height: 12),
               Text(
                 'Les réservations seront définitivement supprimées : les places qu\'elles occupent iront à la liste d\'attente.',
                 style: theme.textTheme.bodySmall?.copyWith(color: ManagementColors.cancelled),
               ),
+            ],
           ],
         ),
       ),
@@ -195,7 +195,10 @@ class _MoreOptionsDialogState extends ConsumerState<_MoreOptionsDialog> {
               ? null
               : () async {
                   final navigator = Navigator.of(context);
-                  await _perform(context, ref, _action, reason: _reason, sendEmail: _sendEmail);
+                  final statusChange = _BulkAction.values.where((a) => a.api == _action).firstOrNull;
+                  if (statusChange != null && !await _confirm(context, statusChange, bulk.selectionCount)) return;
+                  if (!context.mounted) return;
+                  await _perform(context, ref, _action, reason: _reason);
                   navigator.pop();
                 },
           child: bulk.isLoading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : Text(deleting ? 'Supprimer' : 'Appliquer'),
