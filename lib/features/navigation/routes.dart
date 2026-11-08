@@ -5,17 +5,19 @@ import 'package:balade/features/admin/guides_management/admin_guides_page.dart';
 import 'package:balade/features/admin/layout/admin_shell.dart';
 import 'package:balade/features/admin/ramble_details_page/admin_ramble_details_page.dart';
 import 'package:balade/features/admin/rambles_management/admin_rambles_page.dart';
-import 'package:balade/features/admin/registrations_management/admin_registrations_page.dart';
+import 'package:balade/features/admin/reservations_management/admin_reservations_page.dart';
 import 'package:balade/features/admin/settings/admin_settings_page.dart';
 import 'package:balade/features/authentication/data/models/authed_user/authed_user.dart';
 import 'package:balade/features/authentication/login_page.dart';
 import 'package:balade/features/navigation/main_page/main_page.dart';
-import 'package:balade/features/payments/payment_page.dart';
 import 'package:balade/features/ramble/add_ramble_page/add_ramble_page.dart';
 import 'package:balade/features/ramble/edit_ramble_page/edit_ramble_page.dart';
 import 'package:balade/features/ramble/public_ramble_details_page/public_ramble_details_page.dart';
 import 'package:balade/features/ramble/public_rambles_page/public_rambles_page.dart';
-import 'package:balade/features/registrations/user_registrations_page.dart';
+import 'package:balade/features/reservations/reservation_details_page.dart';
+import 'package:balade/features/reservations/reservation_payment_page.dart';
+import 'package:balade/features/reservations/reservations_service.dart';
+import 'package:balade/features/reservations/user_reservations_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -72,47 +74,40 @@ GoRouter router(AuthedUser? loggedUser) => GoRouter(
         ),
         GoRoute(
           path: "/mes-reservations",
-          pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const UserRegistrationsPage()),
-        ),
-        GoRoute(
-          path: "/paiement/:registrationId",
-          pageBuilder: (context, state) {
-            final registrationId = int.tryParse(state.pathParameters['registrationId'] ?? '');
-            if (registrationId == null) {
-              return _buildPageWithDefaultTransition(
-                context: context,
-                state: state,
-                child: const Scaffold(body: Center(child: Text('ID d\'inscription invalide'))),
-              );
-            }
-            return _buildPageWithDefaultTransition(
-              context: context,
-              state: state,
-              child: PaymentPage(registrationId: registrationId),
-            );
-          },
-        ),
-        GoRoute(
-          path: "/paiement/groupe/:groupId",
-          pageBuilder: (context, state) {
-            final groupId = int.tryParse(state.pathParameters['groupId'] ?? '');
-            if (groupId == null) {
-              return _buildPageWithDefaultTransition(
-                context: context,
-                state: state,
-                child: const Scaffold(body: Center(child: Text('ID de groupe invalide'))),
-              );
-            }
-            return _buildPageWithDefaultTransition(
-              context: context,
-              state: state,
-              child: PaymentPage(groupId: groupId),
-            );
-          },
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: UserReservationsPage(addToReservationId: int.tryParse(state.uri.queryParameters['ajouter'] ?? '')),
+          ),
+          routes: [
+            GoRoute(
+              path: ":id",
+              pageBuilder: (context, state) {
+                final id = int.tryParse(state.pathParameters['id'] ?? '');
+                final child = id == null ? const Scaffold(body: Center(child: Text('ID de réservation invalide'))) : ReservationDetailsPage(reservationId: id);
+                return _buildPageWithDefaultTransition(context: context, state: state, child: child);
+              },
+              routes: [
+                GoRoute(
+                  path: "paiement",
+                  pageBuilder: (context, state) {
+                    final id = int.tryParse(state.pathParameters['id'] ?? '');
+                    final payment = state.extra is PaymentToMake ? state.extra as PaymentToMake : null;
+                    final child = id == null ? const Scaffold(body: Center(child: Text('ID de réservation invalide'))) : ReservationPaymentPage(reservationId: id, payment: payment);
+                    return _buildPageWithDefaultTransition(context: context, state: state, child: child);
+                  },
+                ),
+              ],
+            ),
+          ],
         ),
         GoRoute(
           path: "/connexion",
-          pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const LoginPage()),
+          pageBuilder: (context, state) => _buildPageWithDefaultTransition(
+            context: context,
+            state: state,
+            child: LoginPage(email: state.uri.queryParameters['email'], redirection: state.uri.queryParameters['redirection']),
+          ),
         ),
         GoRoute(
           path: "/mon-compte",
@@ -153,8 +148,8 @@ GoRouter router(AuthedUser? loggedUser) => GoRouter(
               pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const AdminGuidesPage()),
             ),
             GoRoute(
-              path: "/admin/inscriptions",
-              pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const AdminRegistrationsPage()),
+              path: "/admin/reservations",
+              pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const AdminReservationsPage()),
             ),
             GoRoute(
               path: "/admin/mon-profil",
@@ -208,7 +203,6 @@ class _HomePage extends StatelessWidget {
   }
 }
 
-// Removed temporary Reservations placeholder; now using UserRegistrationsPage
 
 class _AccountPage extends StatelessWidget {
   const _AccountPage();

@@ -61,6 +61,8 @@ abstract class Ramble with _$Ramble {
     @JsonKey(name: 'additional_documents_url') String? additionalDocumentsUrl,
     @Default(<Guide>[]) List<Guide> guides,
     @JsonKey(name: 'places_left') int? placesLeft,
+    // Capacity of the ramble, or a safeguard set by the API when it is unlimited
+    @JsonKey(name: 'max_participants_per_reservation') @Default(1) int maxParticipantsPerReservation,
     // NEW PAYMENT FIELDS
     @JsonKey(name: 'payment_guide_id') int? paymentGuideId,
     @JsonKey(name: 'payment_enabled') @Default(false) bool paymentEnabled,

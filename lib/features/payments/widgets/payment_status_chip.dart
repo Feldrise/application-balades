@@ -1,21 +1,23 @@
-import 'package:balade/features/payments/models/payment.dart';
+import 'package:balade/features/payments/models/payment_status.dart';
 import 'package:flutter/material.dart';
 
 class PaymentStatusChip extends StatelessWidget {
   const PaymentStatusChip({super.key, required this.status, this.showIcon = true});
 
-  final PaymentStatus status;
+  /// The status of the payment, as the API gives it
+  final String status;
   final bool showIcon;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final (color, icon) = _getStatusStyle();
+    final parsed = PaymentStatus.tryParse(status);
+    final (color, icon) = _getStatusStyle(parsed);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         border: Border.all(color: color),
         borderRadius: BorderRadius.circular(12),
       ),
@@ -24,7 +26,7 @@ class PaymentStatusChip extends StatelessWidget {
         children: [
           if (showIcon) ...[Icon(icon, size: 14, color: color), const SizedBox(width: 4)],
           Text(
-            status.label,
+            parsed?.label ?? status,
             style: theme.textTheme.bodySmall?.copyWith(color: color, fontWeight: FontWeight.w600),
           ),
         ],
@@ -32,7 +34,7 @@ class PaymentStatusChip extends StatelessWidget {
     );
   }
 
-  (Color, IconData) _getStatusStyle() {
+  (Color, IconData) _getStatusStyle(PaymentStatus? status) {
     switch (status) {
       case PaymentStatus.pending:
         return (Colors.orange, Icons.schedule);
@@ -44,6 +46,8 @@ class PaymentStatusChip extends StatelessWidget {
         return (Colors.grey, Icons.cancel);
       case PaymentStatus.refunded:
         return (Colors.blue, Icons.undo);
+      case null:
+        return (Colors.grey, Icons.help_outline);
     }
   }
 }

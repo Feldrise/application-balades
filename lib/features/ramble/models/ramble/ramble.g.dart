@@ -41,6 +41,8 @@ _Ramble _$RambleFromJson(Map<String, dynamic> json) => _Ramble(
           .toList() ??
       const <Guide>[],
   placesLeft: (json['places_left'] as num?)?.toInt(),
+  maxParticipantsPerReservation:
+      (json['max_participants_per_reservation'] as num?)?.toInt() ?? 1,
   paymentGuideId: (json['payment_guide_id'] as num?)?.toInt(),
   paymentEnabled: json['payment_enabled'] as bool? ?? false,
   paymentRequired: json['payment_required'] as bool? ?? false,
@@ -75,6 +77,7 @@ Map<String, dynamic> _$RambleToJson(_Ramble instance) => <String, dynamic>{
   'additional_documents_url': instance.additionalDocumentsUrl,
   'guides': instance.guides,
   'places_left': instance.placesLeft,
+  'max_participants_per_reservation': instance.maxParticipantsPerReservation,
   'payment_guide_id': instance.paymentGuideId,
   'payment_enabled': instance.paymentEnabled,
   'payment_required': instance.paymentRequired,
