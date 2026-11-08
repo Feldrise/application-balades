@@ -64,7 +64,7 @@ class RambleDetailsInfo extends StatelessWidget {
                     children: [
                       Icon(Icons.description, color: colorScheme.primary, size: 20),
                       const SizedBox(width: 8),
-                      Text('Description', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      Expanded(child: Text('Description', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold))),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -87,7 +87,7 @@ class RambleDetailsInfo extends StatelessWidget {
                   children: [
                     Icon(Icons.info_outline, color: colorScheme.primary, size: 20),
                     const SizedBox(width: 8),
-                    Text('Informations pratiques', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    Expanded(child: Text('Informations pratiques', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold))),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -125,7 +125,7 @@ class RambleDetailsInfo extends StatelessWidget {
                     children: [
                       Icon(Icons.euro, color: colorScheme.primary, size: 20),
                       const SizedBox(width: 8),
-                      Text('Tarifs', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      Expanded(child: Text('Tarifs', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold))),
                     ],
                   ),
                   const SizedBox(height: 16),

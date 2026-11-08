@@ -1,3 +1,4 @@
+import 'package:balade/features/admin/design/design.dart';
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
 import 'package:balade/features/ramble/public_ramble_details_page/widgets/ramble_details_header.dart';
 import 'package:balade/features/ramble/public_ramble_details_page/widgets/ramble_details_info.dart';
@@ -5,6 +6,7 @@ import 'package:balade/features/ramble/public_ramble_details_page/widgets/ramble
 import 'package:balade/features/ramble/public_ramble_details_page/widgets/ramble_registration_section.dart';
 import 'package:balade/features/ramble/rambles_service.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class PublicRambleDetailsPage extends StatefulWidget {
   const PublicRambleDetailsPage({super.key, required this.rambleId});
@@ -31,6 +33,14 @@ class _PublicRambleDetailsPageState extends State<PublicRambleDetailsPage> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(isFavorite ? 'Ajouté aux favoris' : 'Retiré des favoris')));
   }
 
+  /// Back to the catalogue: the page is opened with `go`, so there may be nothing to pop.
+  void _goBack() {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/balades');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,15 +81,18 @@ class _PublicRambleDetailsPageState extends State<PublicRambleDetailsPage> {
         final isDesktop = screenWidth >= 1200;
         final isTablet = screenWidth >= 768 && screenWidth < 1200;
 
-        return Scaffold(
-          body: CustomScrollView(
-            slivers: [
-              // Header with cover image
-              RambleDetailsHeader(ramble: ramble, onBack: () => Navigator.of(context).pop(), onShare: _handleShare, onFavorite: _handleFavorite, isFavorite: isFavorite),
-
-              // Content with responsive layout
-              SliverToBoxAdapter(child: _buildResponsiveContent(ramble, isDesktop, isTablet)),
-            ],
+        return Theme(
+          data: managementTheme(Theme.of(context)),
+          child: Scaffold(
+            body: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  RambleDetailsHeader(ramble: ramble, onBack: _goBack, onShare: _handleShare, onFavorite: _handleFavorite, isFavorite: isFavorite),
+                  _buildResponsiveContent(ramble, isDesktop, isTablet),
+                ],
+              ),
+            ),
           ),
         );
       },

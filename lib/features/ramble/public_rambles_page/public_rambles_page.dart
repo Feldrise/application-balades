@@ -1,3 +1,4 @@
+import 'package:balade/features/admin/design/design.dart';
 import 'package:balade/features/ramble/public_rambles_page/providers/public_rambles_provider.dart';
 import 'package:balade/features/ramble/public_rambles_page/widgets/public_rambles_filters.dart';
 import 'package:balade/features/ramble/public_rambles_page/widgets/ramble_public_card.dart';
@@ -47,26 +48,50 @@ class _PublicRamblesPageState extends ConsumerState<PublicRamblesPage> {
     final isTablet = screenWidth >= 768 && screenWidth < 1200;
     final isDesktop = screenWidth >= 1200;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Balades EcoLogiques'),
-        centerTitle: false,
-        actions: [
-          if (isMobile) IconButton(onPressed: _showFiltersBottomSheet, icon: const Icon(Icons.filter_list)),
-          IconButton(onPressed: () => ref.read(publicRamblesProvider.notifier).refresh(), icon: const Icon(Icons.refresh)),
-        ],
+    return Theme(
+      data: managementTheme(Theme.of(context)),
+      child: Scaffold(
+        body: Column(
+          children: [
+            _buildHeader(isMobile),
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  if (isDesktop) {
+                    return _buildDesktopLayout(state);
+                  } else if (isTablet) {
+                    return _buildTabletLayout(state);
+                  } else {
+                    return _buildMobileLayout(state);
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          if (isDesktop) {
-            return _buildDesktopLayout(state);
-          } else if (isTablet) {
-            return _buildTabletLayout(state);
-          } else {
-            return _buildMobileLayout(state);
-          }
-        },
-      ),
+    );
+  }
+
+  /// The green header of the page, with the search field of the catalogue.
+  Widget _buildHeader(bool isMobile) {
+    return ManagementPageHeader(
+      title: 'Balades EcoLogiques',
+      linkToPublicSite: false,
+      actions: [
+        if (isMobile)
+          IconButton(
+            tooltip: 'Filtres',
+            onPressed: _showFiltersBottomSheet,
+            icon: const Icon(Icons.filter_list, color: Colors.white),
+          ),
+        IconButton(
+          tooltip: 'Actualiser',
+          onPressed: () => ref.read(publicRamblesProvider.notifier).refresh(),
+          icon: const Icon(Icons.refresh, color: Colors.white),
+        ),
+      ],
+      bottom: ManagementHeaderSearchField(hint: 'Rechercher une balade...', controller: _searchController),
     );
   }
 
@@ -79,7 +104,6 @@ class _PublicRamblesPageState extends ConsumerState<PublicRamblesPage> {
           width: 320,
           child: Column(
             children: [
-              _buildSearchBar(),
               const SizedBox(height: 16),
               const Expanded(
                 child: SingleChildScrollView(padding: EdgeInsets.all(16), child: PublicRamblesFilters()),
@@ -104,8 +128,6 @@ class _PublicRamblesPageState extends ConsumerState<PublicRamblesPage> {
   Widget _buildTabletLayout(PublicRamblesState state) {
     return Column(
       children: [
-        _buildSearchBar(),
-        const SizedBox(height: 8),
         const PublicRamblesFilters(),
         const SizedBox(height: 8),
         _buildResultsHeader(state),
@@ -117,31 +139,9 @@ class _PublicRamblesPageState extends ConsumerState<PublicRamblesPage> {
   Widget _buildMobileLayout(PublicRamblesState state) {
     return Column(
       children: [
-        _buildSearchBar(),
-        const SizedBox(height: 8),
         _buildResultsHeader(state),
         Expanded(child: _buildRamblesList(state)),
       ],
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: SearchBar(
-        controller: _searchController,
-        hintText: 'Rechercher une balade...',
-        leading: const Icon(Icons.search),
-        trailing: [
-          if (_searchController.text.isNotEmpty)
-            IconButton(
-              onPressed: () {
-                _searchController.clear();
-              },
-              icon: const Icon(Icons.clear),
-            ),
-        ],
-      ),
     );
   }
 
@@ -201,7 +201,7 @@ class _PublicRamblesPageState extends ConsumerState<PublicRamblesPage> {
         childAspectRatio: 12 / 10,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
-        mainAxisExtent: 330,
+        mainAxisExtent: 350,
       ),
       itemCount: state.rambles.length,
       itemBuilder: (context, index) {
@@ -243,10 +243,7 @@ class _PublicRamblesPageState extends ConsumerState<PublicRamblesPage> {
         final ramble = state.rambles[index];
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
-          child: SizedBox(
-            height: 280,
-            child: RamblePublicCard(ramble: ramble, onTap: () => _onRambleDetails(ramble.id)),
-          ),
+          child: RamblePublicCard(ramble: ramble, expand: false, onTap: () => _onRambleDetails(ramble.id)),
         );
       },
     );
