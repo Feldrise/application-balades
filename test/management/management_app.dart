@@ -128,6 +128,9 @@ class FakeApi {
   /// Requests whose path matches one of these never get an answer, e.g. to stop on a page while it loads.
   final List<Pattern> unanswered;
 
+  /// When set, the API refuses the roll call with this answer.
+  http.Response? presenceRefusal;
+
   final List<http.Request> requests = [];
 
   Future<http.Response> handle(http.Request request) async {
@@ -153,7 +156,7 @@ class FakeApi {
       reservations[index] = {...reservations[index], 'status': status};
       return _json(reservations[index]);
     }
-    if (request.method == 'PUT' && RegExp(r'/reservations/admin/rambles/\d+/presence$').hasMatch(path)) return _markPresence(request);
+    if (request.method == 'PUT' && RegExp(r'/reservations/admin/rambles/\d+/presence$').hasMatch(path)) return presenceRefusal ?? _markPresence(request);
     final rambleId = RegExp(r'/rambles/(\d+)$').firstMatch(path)?.group(1);
     final ramble = rambles.where((r) => '${r.id}' == rambleId).firstOrNull;
     if (ramble != null) return _json(ramble.toJson());

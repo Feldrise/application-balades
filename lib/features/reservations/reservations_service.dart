@@ -11,10 +11,13 @@ import 'package:http/http.dart' as http;
 
 /// A reservation refused by the API, with its machine-readable reason when it has one.
 class ReservationException implements Exception {
-  const ReservationException(this.message, {this.reason});
+  const ReservationException(this.message, {this.reason, this.statusCode});
 
   final String message;
   final String? reason;
+
+  /// The HTTP status of the refusal, when the API answered.
+  final int? statusCode;
 
   @override
   String toString() => message;
@@ -275,7 +278,7 @@ class ReservationsService {
     if (reason == 'reservation_already_exists' && reservationId is int) {
       return ReservationAlreadyExistsException(message, reservationId: reservationId);
     }
-    return ReservationException(message, reason: reason);
+    return ReservationException(message, reason: reason, statusCode: response.statusCode);
   }
 
   Map<String, String> _headers(String? token) => {'Content-Type': 'application/json', if (token != null) 'Authorization': 'Bearer $token'};

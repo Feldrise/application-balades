@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 
 import 'management_app.dart';
 
@@ -158,6 +159,22 @@ void main() {
 
       expect(find.text('0 / 2 présents'), findsOneWidget);
       expect(find.text('Synchronisé'), findsOneWidget);
+    });
+    semantics.dispose();
+  });
+
+  testWidgets('a roll call refused by the API is shown, the ticks staying on the phone', (tester) async {
+    final semantics = tester.ensureSemantics();
+    final api = FakeApi(rambles: [balade(1, inDays: 0)], reservations: [_martins], myGuide: vera)..presenceRefusal = http.Response('{"error":"forbidden"}', 403);
+    await withFakeApi(api, () async {
+      await pumpManagementApp(tester, api: api, location: '/admin/balade/1', user: guide, size: phone);
+
+      await tester.tap(_box('Claire Martin'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 / 2 présents'), findsOneWidget);
+      expect(find.text('1 modification en attente'), findsOneWidget);
+      expect(find.text('Vous n\'avez pas le droit de pointer cette balade.'), findsOneWidget);
     });
     semantics.dispose();
   });

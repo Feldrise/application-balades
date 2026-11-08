@@ -18,6 +18,9 @@ class _PresenceApi {
   final Map<int, Map<String, Object?>> outcomes = {};
   final List<List<Map<String, Object?>>> batches = [];
 
+  /// When set, the API refuses every batch with this answer.
+  http.Response? refusal;
+
   /// When set, the next answer waits for it: the batch is on its way.
   Completer<void>? onTheWay;
 
@@ -28,6 +31,10 @@ class _PresenceApi {
       await wait.future;
     }
     if (!online) throw http.ClientException('no network');
+    if (refusal != null) {
+      batches.add(const []);
+      return refusal!;
+    }
     expect(request.method, 'PUT');
     expect(request.url.path, '/api/v1/reservations/admin/rambles/1/presence');
     final changes = [for (final c in (jsonDecode(request.body) as Map<String, Object?>)['changes'] as List) c as Map<String, Object?>];
@@ -221,5 +228,37 @@ void main() {
 
     expect(sync.presenceOf(_claire.copyWith(present: null)), isNull, reason: 'the reloaded state is the latest one recorded by the API');
     expect(sync.presenceOf(_leo.copyWith(present: null)), isTrue, reason: 'the change not sent yet is newer');
+  });
+
+  test('a change refused by the API stays on the phone, the refusal is shown and it is not sent again by itself', () async {
+    final sync = openSync(retryDelay: const Duration(milliseconds: 20));
+    await sync.load();
+    api.online = true;
+    api.refusal = http.Response('{"error":"presence can be marked from the day of the ramble","reason":"ramble_not_started"}', 409);
+
+    await sync.mark(_claire, true);
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    expect(sync.pendingCount, 1);
+    expect(sync.presenceOf(_claire), isTrue);
+    expect(sync.refusal, 'Le pointage n\'est possible qu\'à partir du jour de la balade.');
+    expect(api.batches, hasLength(1), reason: 'a refusal is not sent again every few seconds');
+
+    api.refusal = null;
+    await sync.send();
+    expect(sync.pendingCount, 0);
+    expect(sync.refusal, isNull);
+  });
+
+  test('a change the guide may not make is refused with its reason', () async {
+    final sync = openSync();
+    await sync.load();
+    api.online = true;
+    api.refusal = http.Response('{"error":"forbidden"}', 403);
+
+    await sync.mark(_claire, true);
+
+    expect(sync.pendingCount, 1);
+    expect(sync.refusal, 'Vous n\'avez pas le droit de pointer cette balade.');
   });
 }

@@ -43,13 +43,14 @@ class PresenceCheckbox extends StatelessWidget {
   }
 }
 
-/// The state of the roll call: « X / Y présents », and whether every change reached the API.
+/// The state of the roll call: « X / Y présents », whether every change reached the API, and why the API refused them.
 class RollCallBar extends StatelessWidget {
-  const RollCallBar({super.key, required this.present, required this.expected, required this.pendingCount});
+  const RollCallBar({super.key, required this.present, required this.expected, required this.pendingCount, this.refusal});
 
   final int present;
   final int expected;
   final int pendingCount;
+  final String? refusal;
 
   @override
   Widget build(BuildContext context) {
@@ -82,6 +83,16 @@ class RollCallBar extends StatelessWidget {
               ),
             ],
           ),
+          if (refusal != null && !synced)
+            Row(
+              children: [
+                const Icon(Icons.error_outline, size: 16, color: ManagementColors.cancelled),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(refusal!, style: theme.textTheme.bodySmall?.copyWith(color: ManagementColors.cancelled)),
+                ),
+              ],
+            ),
         ],
       ),
     );
