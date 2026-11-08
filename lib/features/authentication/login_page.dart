@@ -161,7 +161,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       if (_error != null) ...[
                         Container(
                           padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(color: theme.colorScheme.error.withOpacity(0.08), borderRadius: BorderRadius.circular(8)),
+                          decoration: BoxDecoration(color: theme.colorScheme.error.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(8)),
                           child: Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
                         ),
                         const SizedBox(height: 12),

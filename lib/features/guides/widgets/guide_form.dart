@@ -167,7 +167,7 @@ class GuideFormState extends ConsumerState<GuideForm> {
               title: 'Compétences et certification',
               children: [
                 DropdownButtonFormField<String>(
-                  value: _selectedCertificationLevel,
+                  initialValue: _selectedCertificationLevel,
                   decoration: const InputDecoration(labelText: 'Niveau de certification'),
                   items: [
                     for (final level in kCertificationLevelLabels.keys)

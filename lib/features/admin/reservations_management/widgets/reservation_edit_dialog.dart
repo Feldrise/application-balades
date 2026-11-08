@@ -223,10 +223,12 @@ class _ReservationEditDialogState extends ConsumerState<ReservationEditDialog> {
     } catch (e) {
       // What was saved before the refusal is shown by the list once it is loaded again.
       if (saved != null) ref.read(adminReservationsProvider.notifier).refreshReservation(saved);
-      if (mounted) setState(() {
-        _isLoading = false;
-        _error = adminReservationErrorMessage(e);
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _error = adminReservationErrorMessage(e);
+        });
+      }
       return;
     }
 
