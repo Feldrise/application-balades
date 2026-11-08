@@ -1,4 +1,5 @@
 import 'package:balade/core/widgets/app_logo.dart';
+import 'package:balade/features/admin/design/management_theme.dart';
 import 'package:balade/themes/screen_helper.dart';
 import 'package:flutter/material.dart';
 
@@ -18,13 +19,13 @@ class BeAppbar extends StatelessWidget implements PreferredSizeWidget {
 
     return AppBar(
       elevation: 0,
-      backgroundColor: theme.colorScheme.primary,
-      foregroundColor: theme.colorScheme.onPrimary,
+      backgroundColor: ManagementColors.deepGreen,
+      foregroundColor: Colors.white,
       title: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(color: theme.colorScheme.onPrimary.withAlpha(25), borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
             child: const AppLogo(height: 32),
           ),
           const SizedBox(width: 12),
@@ -34,9 +35,9 @@ class BeAppbar extends StatelessWidget implements PreferredSizeWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(title, style: theme.textTheme.titleLarge?.copyWith(color: theme.colorScheme.onPrimary)),
+                Text(title, style: theme.textTheme.titleLarge?.copyWith(color: Colors.white)),
                 if (!isDesktop && subtitle != null) // Show subtitle only on mobile/tablet
-                  Text(subtitle!, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onPrimary.withAlpha(201))),
+                  Text(subtitle!, style: theme.textTheme.bodySmall?.copyWith(color: Colors.white70)),
               ],
             ),
           ),
