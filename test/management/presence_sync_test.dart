@@ -207,4 +207,19 @@ void main() {
     expect(restarted.presenceOf(_leo), isTrue, reason: 'the change made after reopening is still on the phone');
     expect(restarted.pendingCount, 1, reason: 'only the change the API recorded left the phone');
   });
+
+  test('once the participants are reloaded, they tell the presence of the changes already sent; the changes waiting still win', () async {
+    final sync = openSync();
+    await sync.load();
+    api.online = true;
+    await sync.mark(_claire, true);
+    api.online = false;
+    await sync.mark(_leo, true);
+
+    // Meanwhile an admin unticked Claire and Léo from another device.
+    sync.participantsReloaded();
+
+    expect(sync.presenceOf(_claire.copyWith(present: null)), isNull, reason: 'the reloaded state is the latest one recorded by the API');
+    expect(sync.presenceOf(_leo.copyWith(present: null)), isTrue, reason: 'the change not sent yet is newer');
+  });
 }

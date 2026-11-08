@@ -59,6 +59,13 @@ class PresenceSync extends ChangeNotifier {
     return participant.present;
   }
 
+  /// The participants were loaded again from the API: for the changes already sent, they now tell the latest presence,
+  /// maybe changed from another device since. The changes waiting still win.
+  void participantsReloaded() {
+    _recorded.clear();
+    _notify();
+  }
+
   /// The number of changes not sent yet.
   int get pendingCount => _pending.length;
 

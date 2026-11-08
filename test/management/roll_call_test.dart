@@ -114,4 +114,29 @@ void main() {
     });
     semantics.dispose();
   });
+
+  testWidgets('once the roll call is synced, refreshing the feuille shows the presence changed from another device', (tester) async {
+    final semantics = tester.ensureSemantics();
+    final api = FakeApi(rambles: [balade(1, inDays: 0)], reservations: [_martins], myGuide: vera);
+    await withFakeApi(api, () async {
+      await pumpManagementApp(tester, api: api, location: '/admin/balade/1', user: guide, size: phone);
+      await tester.tap(_box('Claire Martin'));
+      await tester.pumpAndSettle();
+      expect(find.text('1 / 2 présents'), findsOneWidget);
+
+      // An admin unticks Claire from another device.
+      api.reservations[0] = {
+        ...api.reservations[0],
+        'participants': [
+          for (final p in api.reservations[0]['participants'] as List) {...p as Map<String, Object?>, 'present': null},
+        ],
+      };
+      await tester.fling(find.text('1 / 2 présents'), const Offset(0, 400), 1000);
+      await tester.pumpAndSettle();
+
+      expect(find.text('0 / 2 présents'), findsOneWidget);
+      expect(find.text('Synchronisé'), findsOneWidget);
+    });
+    semantics.dispose();
+  });
 }

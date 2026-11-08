@@ -1,5 +1,6 @@
 import 'package:balade/core/permission.dart';
 import 'package:balade/features/admin/ramble_details_page/presence/presence_sync.dart';
+import 'package:balade/features/admin/ramble_details_page/ramble_sheet.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
 import 'package:balade/features/reservations/providers/reservation_providers.dart';
@@ -15,9 +16,13 @@ bool canMarkPresence(Permission? permission, Ramble ramble, int? guideId, {DateT
   return guideId != null && ramble.guides.any((g) => g.id == guideId);
 }
 
-/// The roll call of a balade while its feuille is open: the changes left on the phone are sent as it opens.
+/// The roll call of a balade while its feuille is open: the changes left on the phone are sent as it opens. Each time
+/// the feuille is reloaded, its participants tell the presence of the changes already sent.
 final presenceSyncProvider = ChangeNotifierProvider.autoDispose.family<PresenceSync, int>((ref, rambleId) {
   final sync = PresenceSync(rambleId: rambleId, service: ref.read(reservationsServiceProvider), token: ref.read(authenticationProvider)?.token ?? '');
   sync.load().then((_) => sync.send(), onError: (_) => sync.send());
+  ref.listen(rambleSheetProvider(rambleId), (previous, next) {
+    if (next is AsyncData && !identical(previous?.value, next.value)) sync.participantsReloaded();
+  });
   return sync;
 });
