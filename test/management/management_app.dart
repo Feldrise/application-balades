@@ -66,16 +66,17 @@ Ramble balade(
 }
 
 /// A participant of [reservation], as the admin reservations of the API give it.
-Map<String, Object?> participant(int id, String firstName, String lastName, {String priceLabel = 'Adulte', double priceAmount = 12, bool priceMissing = false, bool isBooker = false, bool? present}) => {
-  'id': id,
-  'first_name': firstName,
-  'last_name': lastName,
-  'price_label': priceMissing ? '' : priceLabel,
-  'price_amount': priceMissing ? 0 : priceAmount,
-  'price_missing': priceMissing,
-  'is_booker': isBooker,
-  'present': present,
-};
+Map<String, Object?> participant(int id, String firstName, String lastName, {String priceLabel = 'Adulte', double priceAmount = 12, bool priceMissing = false, bool isBooker = false, bool? present}) =>
+    {
+      'id': id,
+      'first_name': firstName,
+      'last_name': lastName,
+      'price_label': priceMissing ? '' : priceLabel,
+      'price_amount': priceMissing ? 0 : priceAmount,
+      'price_missing': priceMissing,
+      'is_booker': isBooker,
+      'present': present,
+    };
 
 /// A reservation of the balade [rambleId], as the admin reservations of the API give it.
 Map<String, Object?> reservation(
@@ -108,9 +109,12 @@ Map<String, Object?> reservation(
 
 /// The fake API behind the management area: what it serves and the requests it received.
 class FakeApi {
-  FakeApi({this.rambles = const [], List<Map<String, Object?>> reservations = const [], this.myGuide, this.unanswered = const []}) : reservations = [...reservations];
+  FakeApi({this.rambles = const [], this.guides = const [], List<Map<String, Object?>> reservations = const [], this.myGuide, this.unanswered = const []}) : reservations = [...reservations];
 
   final List<Ramble> rambles;
+
+  /// The guides of the platform, served by the guides list.
+  final List<Guide> guides;
 
   /// The reservations served by the admin reservations route; a status change updates them.
   final List<Map<String, Object?>> reservations;
@@ -127,9 +131,12 @@ class FakeApi {
     requests.add(request);
     final path = request.url.path;
     if (unanswered.any((p) => p.allMatches(path).isNotEmpty)) return Completer<http.Response>().future;
-    if (path.endsWith('/guides/me')) {
+    if (request.method == 'GET' && path.endsWith('/guides/me')) {
       return myGuide == null ? http.Response('{"error":"not found"}', 404) : _json(myGuide!.toJson());
     }
+    if (request.method == 'PUT' && path.endsWith('/guides/me')) return _json({});
+    if (request.method == 'POST' && path.endsWith('/rambles')) return http.Response('{"id":99}', 201, headers: {'content-type': 'application/json'});
+    if (path.endsWith('/guides')) return _json([for (final g in guides) g.toJson()]);
     if (path.endsWith('/rambles')) return _json([for (final r in rambles) r.toJson()]);
     final cancelled = RegExp(r'/rambles/(\d+)/cancel$').firstMatch(path)?.group(1);
     if (cancelled != null) {
@@ -148,7 +155,10 @@ class FakeApi {
     if (ramble != null) return _json(ramble.toJson());
     if (path.endsWith('/reservations/admin')) {
       final rambleId = request.url.queryParameters['ramble_id'];
-      final served = [for (final r in reservations) if (rambleId == null || '${r['ramble_id']}' == rambleId) r];
+      final served = [
+        for (final r in reservations)
+          if (rambleId == null || '${r['ramble_id']}' == rambleId) r,
+      ];
       return _json({'reservations': served, 'total': served.length, 'page': 1, 'per_page': 500, 'total_pages': 1});
     }
     return http.Response('{"error":"not faked: $path"}', 404);
