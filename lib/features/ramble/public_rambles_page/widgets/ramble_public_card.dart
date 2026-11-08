@@ -1,13 +1,17 @@
 import 'package:balade/core/constants.dart';
+import 'package:balade/features/admin/design/design.dart';
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class RamblePublicCard extends StatelessWidget {
-  const RamblePublicCard({super.key, required this.ramble, this.onTap});
+  const RamblePublicCard({super.key, required this.ramble, this.onTap, this.expand = true});
 
   final Ramble ramble;
   final VoidCallback? onTap;
+
+  /// Whether the card fills the height it is given (a grid cell) or takes the height of its content (a list).
+  final bool expand;
 
   bool get _isPastRamble {
     if (ramble.date == null) return false;
@@ -26,16 +30,18 @@ class RamblePublicCard extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           child: Column(
+            mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Cover image or type icon
               _buildHeader(context),
 
               // Content
-              Expanded(
-                child: Padding(
+              _body(
+                Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
+                    mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Title and status
@@ -61,20 +67,20 @@ class RamblePublicCard extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.red.withValues(alpha: 0.1),
+                            color: ManagementColors.cancelled.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                            border: Border.all(color: ManagementColors.cancelled.withValues(alpha: 0.3)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
                                 children: [
-                                  Icon(Icons.cancel, size: 16, color: Colors.red),
+                                  Icon(Icons.cancel, size: 16, color: ManagementColors.cancelled),
                                   const SizedBox(width: 4),
                                   Text(
                                     'Balade annulée',
-                                    style: theme.textTheme.bodySmall?.copyWith(color: Colors.red, fontWeight: FontWeight.w600),
+                                    style: theme.textTheme.bodySmall?.copyWith(color: ManagementColors.cancelled, fontWeight: FontWeight.w600),
                                   ),
                                 ],
                               ),
@@ -114,7 +120,7 @@ class RamblePublicCard extends StatelessWidget {
                         ],
                       ],
 
-                      const Spacer(),
+                      if (expand) const Spacer() else const SizedBox(height: 12),
 
                       // Date and location
                       if (ramble.date != null) ...[
@@ -158,11 +164,15 @@ class RamblePublicCard extends StatelessWidget {
                       Row(
                         children: [
                           if (ramble.prices.isNotEmpty && !ramble.isCancelled) ...[
-                            Text(
-                              _formatPrice(),
-                              style: theme.textTheme.titleSmall?.copyWith(color: colorScheme.primary, fontWeight: FontWeight.bold),
+                            Expanded(
+                              child: Text(
+                                _formatPrice(),
+                                style: theme.textTheme.titleSmall?.copyWith(color: colorScheme.primary, fontWeight: FontWeight.bold),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                            const Spacer(),
+                            const SizedBox(width: 8),
                           ] else ...[
                             const Spacer(),
                           ],
@@ -191,7 +201,19 @@ class RamblePublicCard extends StatelessWidget {
     );
   }
 
+  Widget _body(Widget child) => expand ? Expanded(child: child) : child;
+
+  /// The cover, with the calendar date block of the management area in its corner.
   Widget _buildHeader(BuildContext context) {
+    return Stack(
+      children: [
+        _buildCover(context),
+        Positioned(top: 10, left: 10, child: CalendarDateBlock(date: ramble.date)),
+      ],
+    );
+  }
+
+  Widget _buildCover(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -229,7 +251,7 @@ class RamblePublicCard extends StatelessWidget {
             height: 120,
             width: double.infinity,
             decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.4)),
-            child: Center(child: Icon(Icons.cancel, size: 32, color: Colors.red)),
+            child: Center(child: Icon(Icons.cancel, size: 32, color: ManagementColors.cancelled)),
           ),
         ],
       );
@@ -262,13 +284,13 @@ class RamblePublicCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.red.withValues(alpha: 0.1),
+        color: ManagementColors.cancelled.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+        border: Border.all(color: ManagementColors.cancelled.withValues(alpha: 0.3)),
       ),
       child: Text(
         'Annulée',
-        style: theme.textTheme.bodySmall?.copyWith(color: Colors.red, fontWeight: FontWeight.w500),
+        style: theme.textTheme.bodySmall?.copyWith(color: ManagementColors.cancelled, fontWeight: FontWeight.w500),
       ),
     );
   }

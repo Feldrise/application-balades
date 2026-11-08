@@ -117,6 +117,7 @@ class PublicRamblesFilters extends ConsumerWidget {
 
   Widget _buildTypeFilter(PublicRamblesState state, PublicRamblesNotifier notifier) {
     return DropdownButtonFormField<String>(
+      isExpanded: true,
       initialValue: state.filterState.type,
       decoration: const InputDecoration(labelText: 'Type de balade', border: OutlineInputBorder(), isDense: true),
       items: [
@@ -124,7 +125,13 @@ class PublicRamblesFilters extends ConsumerWidget {
         ...rambleTypeLabels.entries.map(
           (entry) => DropdownMenuItem(
             value: entry.key,
-            child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(rambleTypeIcons[entry.key], size: 16), const SizedBox(width: 8), Text(entry.value)]),
+            child: Row(
+              children: [
+                Icon(rambleTypeIcons[entry.key], size: 16),
+                const SizedBox(width: 8),
+                Expanded(child: Text(entry.value, overflow: TextOverflow.ellipsis)),
+              ],
+            ),
           ),
         ),
       ],
@@ -134,6 +141,7 @@ class PublicRamblesFilters extends ConsumerWidget {
 
   Widget _buildDifficultyFilter(PublicRamblesState state, PublicRamblesNotifier notifier) {
     return DropdownButtonFormField<String>(
+      isExpanded: true,
       initialValue: state.filterState.difficulty,
       decoration: const InputDecoration(labelText: 'Difficulté', border: OutlineInputBorder(), isDense: true),
       items: [
@@ -142,7 +150,6 @@ class PublicRamblesFilters extends ConsumerWidget {
           (entry) => DropdownMenuItem(
             value: entry.key,
             child: Row(
-              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
                   width: 12,
@@ -150,7 +157,7 @@ class PublicRamblesFilters extends ConsumerWidget {
                   decoration: BoxDecoration(color: rambleDifficultyColors[entry.key], shape: BoxShape.circle),
                 ),
                 const SizedBox(width: 8),
-                Text(entry.value),
+                Expanded(child: Text(entry.value, overflow: TextOverflow.ellipsis)),
               ],
             ),
           ),
@@ -164,6 +171,7 @@ class PublicRamblesFilters extends ConsumerWidget {
     final sortOptions = {'date': 'Date', 'title': 'Titre', 'difficulty': 'Difficulté'};
 
     return DropdownButtonFormField<String>(
+      isExpanded: true,
       initialValue: state.sortState.sortBy,
       decoration: const InputDecoration(labelText: 'Trier par', border: OutlineInputBorder(), isDense: true),
       items: sortOptions.entries
@@ -171,8 +179,11 @@ class PublicRamblesFilters extends ConsumerWidget {
             (entry) => DropdownMenuItem(
               value: entry.key,
               child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [Text(entry.value), const SizedBox(width: 4), Icon(state.sortState.sortOrder == 'asc' ? Icons.arrow_upward : Icons.arrow_downward, size: 14)],
+                children: [
+                  Expanded(child: Text(entry.value, overflow: TextOverflow.ellipsis)),
+                  const SizedBox(width: 4),
+                  Icon(state.sortState.sortOrder == 'asc' ? Icons.arrow_upward : Icons.arrow_downward, size: 14),
+                ],
               ),
             ),
           )
@@ -190,14 +201,16 @@ class PublicRamblesFilters extends ConsumerWidget {
       children: [
         Checkbox(value: state.filterState.showCancelled, onChanged: (value) => notifier.updateShowCancelled(value ?? false)),
         const SizedBox(width: 8),
-        GestureDetector(
-          onTap: () => notifier.updateShowCancelled(!state.filterState.showCancelled),
-          child: Row(
-            children: [
-              Icon(Icons.cancel, size: 16, color: Colors.red),
-              const SizedBox(width: 4),
-              const Text('Inclure les balades annulées'),
-            ],
+        Expanded(
+          child: GestureDetector(
+            onTap: () => notifier.updateShowCancelled(!state.filterState.showCancelled),
+            child: Row(
+              children: [
+                Icon(Icons.cancel, size: 16, color: Colors.red),
+                const SizedBox(width: 4),
+                const Flexible(child: Text('Inclure les balades annulées', overflow: TextOverflow.ellipsis)),
+              ],
+            ),
           ),
         ),
       ],
@@ -209,14 +222,16 @@ class PublicRamblesFilters extends ConsumerWidget {
       children: [
         Checkbox(value: state.filterState.hidePastRambles, onChanged: (value) => notifier.updateHidePastRambles(value ?? true)),
         const SizedBox(width: 8),
-        GestureDetector(
-          onTap: () => notifier.updateHidePastRambles(!state.filterState.hidePastRambles),
-          child: Row(
-            children: [
-              Icon(Icons.history, size: 16, color: Colors.grey),
-              const SizedBox(width: 4),
-              const Text('Masquer les balades passées'),
-            ],
+        Expanded(
+          child: GestureDetector(
+            onTap: () => notifier.updateHidePastRambles(!state.filterState.hidePastRambles),
+            child: Row(
+              children: [
+                Icon(Icons.history, size: 16, color: Colors.grey),
+                const SizedBox(width: 4),
+                const Flexible(child: Text('Masquer les balades passées', overflow: TextOverflow.ellipsis)),
+              ],
+            ),
           ),
         ),
       ],
