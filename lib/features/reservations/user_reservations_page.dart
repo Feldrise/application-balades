@@ -1,7 +1,9 @@
+import 'package:balade/features/admin/design/design.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/reservations/models/reservation/reservation.dart';
 import 'package:balade/features/reservations/providers/reservation_providers.dart';
 import 'package:balade/features/reservations/widgets/reservation_actions.dart';
+import 'package:balade/features/reservations/widgets/booker_page_frame.dart';
 import 'package:balade/features/reservations/widgets/reservation_card.dart';
 import 'package:balade/features/reservations/widgets/reservations_empty_state.dart';
 import 'package:flutter/material.dart';
@@ -37,9 +39,7 @@ class UserReservationsPage extends ConsumerWidget {
                   Text('Connectez-vous pour voir vos réservations', style: theme.textTheme.titleMedium),
                   const SizedBox(height: 12),
                   FilledButton.icon(
-                    onPressed: () => context.go(
-                      Uri(path: '/connexion', queryParameters: {if (addToReservationId != null) 'redirection': addParticipantsLocation(addToReservationId!)}).toString(),
-                    ),
+                    onPressed: () => context.go(Uri(path: '/connexion', queryParameters: {if (addToReservationId != null) 'redirection': addParticipantsLocation(addToReservationId!)}).toString()),
                     icon: const Icon(Icons.login),
                     label: const Text('Se connecter'),
                   ),
@@ -51,13 +51,17 @@ class UserReservationsPage extends ConsumerWidget {
       );
     }
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: const Text('Mes réservations'),
-        actions: [IconButton(onPressed: () => ref.invalidate(userReservationsProvider), icon: const Icon(Icons.refresh), tooltip: 'Actualiser')],
-      ),
-      body: _ReservationsContent(addToReservationId: addToReservationId),
+    return BookerPageFrame(
+      title: 'Mes réservations',
+      actions: [
+        IconButton(
+          onPressed: () => ref.invalidate(userReservationsProvider),
+          icon: const Icon(Icons.refresh, color: Colors.white),
+          tooltip: 'Actualiser',
+        ),
+      ],
+      scrollable: false,
+      child: _ReservationsContent(addToReservationId: addToReservationId),
     );
   }
 }
@@ -120,7 +124,18 @@ class _ReservationsContentState extends ConsumerState<_ReservationsContent> {
         _openAddition(reservations);
         if (reservations.isEmpty) return const ReservationsEmptyState();
 
-        return ListView.builder(padding: const EdgeInsets.all(16), itemCount: reservations.length, itemBuilder: (context, index) => ReservationCard(reservation: reservations[index]));
+        final gutter = ManagementBreakpoints.gutter(context);
+        return ListView.separated(
+          padding: EdgeInsets.fromLTRB(gutter, 16, gutter, 24),
+          itemCount: reservations.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 10),
+          itemBuilder: (context, index) => Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 720),
+              child: ReservationCard(reservation: reservations[index]),
+            ),
+          ),
+        );
       },
     );
   }

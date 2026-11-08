@@ -8,7 +8,7 @@ import 'package:go_router/go_router.dart';
 /// typically a [ManagementHeaderSearchField] or a row of stat chips. On a phone, where there is no sidebar,
 /// the header also carries the link to the public site.
 class ManagementPageHeader extends StatelessWidget {
-  const ManagementPageHeader({super.key, required this.title, this.subtitle, this.leading, this.actions = const [], this.bottom});
+  const ManagementPageHeader({super.key, required this.title, this.subtitle, this.leading, this.actions = const [], this.bottom, this.showPublicSiteLink = true});
 
   final String title;
   final String? subtitle;
@@ -17,6 +17,9 @@ class ManagementPageHeader extends StatelessWidget {
   final Widget? leading;
   final List<Widget> actions;
   final Widget? bottom;
+
+  /// On a phone, the link to the public site. The public pages that use this header already are the public site.
+  final bool showPublicSiteLink;
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +58,7 @@ class ManagementPageHeader extends StatelessWidget {
                   ),
                 ),
                 ...actions,
-                if (isPhone)
+                if (isPhone && showPublicSiteLink)
                   IconButton(
                     tooltip: 'Voir le site public',
                     onPressed: () => context.go('/'),
