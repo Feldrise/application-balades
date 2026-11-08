@@ -78,7 +78,9 @@ class SheetRamblePanel extends ConsumerWidget {
               children: [
                 const Icon(Icons.description_outlined, size: 18, color: ManagementColors.green),
                 const SizedBox(width: 8),
-                Expanded(child: Text('Documents complémentaires', style: theme.textTheme.labelLarge?.copyWith(color: ManagementColors.green))),
+                Expanded(
+                  child: Text('Documents complémentaires', style: theme.textTheme.labelLarge?.copyWith(color: ManagementColors.green)),
+                ),
                 const Icon(Icons.open_in_new, size: 16, color: ManagementColors.green),
               ],
             ),

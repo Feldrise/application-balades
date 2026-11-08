@@ -57,10 +57,7 @@ class _ReservationDetail extends ConsumerWidget {
             ReservationStatusBadge(status: reservation.status),
             const SizedBox(width: 10),
             Expanded(
-              child: Text(
-                formatReservationPayment(reservation),
-                style: theme.textTheme.labelMedium?.copyWith(color: paid ? ManagementColors.green : ManagementColors.muted),
-              ),
+              child: Text(formatReservationPayment(reservation), style: theme.textTheme.labelMedium?.copyWith(color: paid ? ManagementColors.green : ManagementColors.muted)),
             ),
             BookerContactButtons(reservation: reservation),
           ],
@@ -86,7 +83,10 @@ class _ReservationDetail extends ConsumerWidget {
             if (canEdit)
               OutlinedButton.icon(
                 onPressed: () async {
-                  final saved = await showDialog<Reservation>(context: context, builder: (context) => ReservationEditDialog(reservation: reservation));
+                  final saved = await showDialog<Reservation>(
+                    context: context,
+                    builder: (context) => ReservationEditDialog(reservation: reservation),
+                  );
                   if (saved != null && context.mounted) changed();
                 },
                 icon: const Icon(Icons.edit_outlined, size: 18),

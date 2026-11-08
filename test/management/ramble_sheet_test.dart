@@ -12,12 +12,18 @@ final _claire = reservation(
   phone: '06 12 34 56 78',
   amountPaid: 2400,
   estimatedAmount: 2400,
-  participants: [participant(1, 'Claire', 'Martin', isBooker: true), participant(2, 'Léo', 'Martin', priceLabel: 'Enfant', priceAmount: 6)],
+  participants: [
+    participant(1, 'Claire', 'Martin', isBooker: true),
+    participant(2, 'Léo', 'Martin', priceLabel: 'Enfant', priceAmount: 6),
+  ],
 );
 
 void main() {
   testWidgets('on a phone, the feuille de balade opens on the participants of the reservations', (tester) async {
-    final api = FakeApi(rambles: [balade(1, inDays: 3, title: 'Champignons de Paimpont')], reservations: [_claire]);
+    final api = FakeApi(
+      rambles: [balade(1, inDays: 3, title: 'Champignons de Paimpont')],
+      reservations: [_claire],
+    );
     await withFakeApi(api, () async {
       await pumpManagementApp(tester, api: api, location: '/admin/balade/1', user: admin, size: phone);
 
@@ -58,7 +64,10 @@ void main() {
   testWidgets('« Appeler » is offered only when the booker gave a phone, « Écrire » always', (tester) async {
     final api = FakeApi(
       rambles: [balade(1, inDays: 3)],
-      reservations: [_claire, reservation(2, email: 'paul@example.com', participants: [participant(3, 'Paul', 'Durand', isBooker: true)])],
+      reservations: [
+        _claire,
+        reservation(2, email: 'paul@example.com', participants: [participant(3, 'Paul', 'Durand', isBooker: true)]),
+      ],
     );
     await withFakeApi(api, () async {
       await pumpManagementApp(tester, api: api, location: '/admin/balade/1', user: admin, size: phone);
@@ -91,7 +100,10 @@ void main() {
   testWidgets('the search finds a reservation by participant name or email', (tester) async {
     final api = FakeApi(
       rambles: [balade(1, inDays: 3)],
-      reservations: [_claire, reservation(2, email: 'paul@example.com', participants: [participant(3, 'Paul', 'Durand', isBooker: true)])],
+      reservations: [
+        _claire,
+        reservation(2, email: 'paul@example.com', participants: [participant(3, 'Paul', 'Durand', isBooker: true)]),
+      ],
     );
     await withFakeApi(api, () async {
       await pumpManagementApp(tester, api: api, location: '/admin/balade/1', user: admin, size: phone);

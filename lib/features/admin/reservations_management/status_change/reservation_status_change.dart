@@ -103,11 +103,7 @@ class _StatusConfirmation extends StatelessWidget {
         'La réservation sera confirmée sans la confirmation de la personne qui réserve ni son paiement en ligne.',
         'Confirmer la réservation',
       ),
-      _ => (
-        'Mettre en liste d\'attente ?',
-        'Les places de la réservation seront libérées. Elle passera dès que la place le permet.',
-        'Mettre en liste d\'attente',
-      ),
+      _ => ('Mettre en liste d\'attente ?', 'Les places de la réservation seront libérées. Elle passera dès que la place le permet.', 'Mettre en liste d\'attente'),
     };
 
     return AlertDialog(

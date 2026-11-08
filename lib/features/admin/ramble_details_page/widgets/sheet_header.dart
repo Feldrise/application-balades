@@ -26,9 +26,7 @@ class SheetHeader extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: ManagementColors.deepGreen,
-        image: cover == null || cover.isEmpty
-            ? null
-            : DecorationImage(image: NetworkImage('$kBaseUrl/uploads/ramble/${ramble.id}/$cover'), fit: BoxFit.cover, onError: (_, _) {}),
+        image: cover == null || cover.isEmpty ? null : DecorationImage(image: NetworkImage('$kBaseUrl/uploads/ramble/${ramble.id}/$cover'), fit: BoxFit.cover, onError: (_, _) {}),
       ),
       child: Container(
         decoration: const BoxDecoration(
@@ -58,7 +56,12 @@ class SheetHeader extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(ramble.title, style: theme.textTheme.headlineSmall?.copyWith(color: Colors.white), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  Text(
+                    ramble.title,
+                    style: theme.textTheme.headlineSmall?.copyWith(color: Colors.white),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 14,

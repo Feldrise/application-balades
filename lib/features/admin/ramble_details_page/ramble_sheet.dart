@@ -37,7 +37,14 @@ final rambleSheetProvider = FutureProvider.autoDispose.family<RambleSheet, int>(
   final service = ref.read(reservationsServiceProvider);
   final results = await Future.wait([
     RamblesService.instance.fetchRamble(rambleId, includeUnpublished: true, authorization: token),
-    if (token != null) service.fetchAdminReservations(token: token, filter: AdminReservationFilter(rambleId: rambleId), perPage: 500).then((list) => list.reservations),
+    if (token != null)
+      service
+          .fetchAdminReservations(
+            token: token,
+            filter: AdminReservationFilter(rambleId: rambleId),
+            perPage: 500,
+          )
+          .then((list) => list.reservations),
   ]);
   return RambleSheet(results[0] as Ramble, results.length > 1 ? results[1] as List<Reservation> : const []);
 });

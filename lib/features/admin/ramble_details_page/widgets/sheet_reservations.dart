@@ -143,10 +143,7 @@ class _ReservationRow extends StatelessWidget {
       ],
     );
     final badge = ChangeableStatusBadge(reservation: reservation, onChanged: (_) => onChanged());
-    final payment = Text(
-      formatReservationPayment(reservation),
-      style: theme.textTheme.labelMedium?.copyWith(color: paid ? ManagementColors.green : ManagementColors.muted),
-    );
+    final payment = Text(formatReservationPayment(reservation), style: theme.textTheme.labelMedium?.copyWith(color: paid ? ManagementColors.green : ManagementColors.muted));
     final contact = BookerContactButtons(reservation: reservation);
 
     return Container(
@@ -162,17 +159,34 @@ class _ReservationRow extends StatelessWidget {
                 ? Row(
                     children: [
                       Expanded(child: who),
-                      SizedBox(width: 150, child: Align(alignment: Alignment.centerLeft, child: badge)),
+                      SizedBox(
+                        width: 150,
+                        child: Align(alignment: Alignment.centerLeft, child: badge),
+                      ),
                       SizedBox(width: 130, child: payment),
-                      SizedBox(width: 96, child: Align(alignment: Alignment.centerRight, child: contact)),
+                      SizedBox(
+                        width: 96,
+                        child: Align(alignment: Alignment.centerRight, child: contact),
+                      ),
                     ],
                   )
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Row(children: [Expanded(child: who), contact]),
+                      Row(
+                        children: [
+                          Expanded(child: who),
+                          contact,
+                        ],
+                      ),
                       const SizedBox(height: 4),
-                      Row(children: [badge, const SizedBox(width: 10), Expanded(child: payment)]),
+                      Row(
+                        children: [
+                          badge,
+                          const SizedBox(width: 10),
+                          Expanded(child: payment),
+                        ],
+                      ),
                     ],
                   ),
           ),
