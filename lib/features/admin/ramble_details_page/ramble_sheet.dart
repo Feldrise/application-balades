@@ -25,7 +25,8 @@ class RambleSheet {
   /// The places taken: the participants of the pending and confirmed reservations.
   int get placesTaken => expectedParticipants.length;
 
-  int get presentCount => expectedParticipants.where((p) => p.present == true).length;
+  /// The expected participants marked present, as recorded by the API or, during the roll call, as shown by [presenceOf].
+  int presentCount([bool? Function(Participant)? presenceOf]) => expectedParticipants.where((p) => (presenceOf?.call(p) ?? p.present) == true).length;
 
   int count(ReservationStatus status) => _withStatus(status).length;
 

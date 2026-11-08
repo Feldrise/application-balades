@@ -18,6 +18,7 @@ import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Screen sizes of the management area tests.
 const phone = Size(390, 844);
@@ -152,6 +153,7 @@ class FakeApi {
       reservations[index] = {...reservations[index], 'status': status};
       return _json(reservations[index]);
     }
+    if (request.method == 'PUT' && RegExp(r'/reservations/admin/rambles/\d+/presence$').hasMatch(path)) return _markPresence(request);
     final rambleId = RegExp(r'/rambles/(\d+)$').firstMatch(path)?.group(1);
     final ramble = rambles.where((r) => '${r.id}' == rambleId).firstOrNull;
     if (ramble != null) return _json(ramble.toJson());
@@ -176,6 +178,24 @@ class FakeApi {
     return http.Response('{"error":"not faked: $path"}', 404);
   }
 
+  /// Records each presence change on the participant served, as the API does.
+  http.Response _markPresence(http.Request request) {
+    final changes = (jsonDecode(request.body) as Map<String, Object?>)['changes'] as List;
+    final outcomes = <Map<String, Object?>>[];
+    for (final change in changes.cast<Map<String, Object?>>()) {
+      final id = change['participant_id'];
+      for (var i = 0; i < reservations.length; i++) {
+        final participants = [for (final p in reservations[i]['participants'] as List) p as Map<String, Object?>];
+        final index = participants.indexWhere((p) => p['id'] == id);
+        if (index < 0) continue;
+        participants[index] = {...participants[index], 'present': change['present']};
+        reservations[i] = {...reservations[i], 'participants': participants};
+      }
+      outcomes.add({'participant_id': id, 'outcome': 'applied', 'present': change['present'], 'presence_marked_at': change['marked_at'], 'presence_marked_by': 2});
+    }
+    return _json({'participants': outcomes});
+  }
+
   static http.Response _json(Object body) => http.Response.bytes(utf8.encode(jsonEncode(body)), 200, headers: {'content-type': 'application/json; charset=utf-8'});
 }
 
@@ -196,6 +216,7 @@ String currentLocation(WidgetTester tester) => GoRouter.of(tester.element(find.b
 /// [ReservationsService] through [reservationsServiceProvider].
 Future<void> pumpManagementApp(WidgetTester tester, {required FakeApi api, required String location, required AuthedUser user, required Size size}) async {
   await initializeDateFormatting('fr');
+  SharedPreferences.setMockInitialValues({});
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);

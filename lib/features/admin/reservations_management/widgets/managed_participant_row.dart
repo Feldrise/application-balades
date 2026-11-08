@@ -10,7 +10,7 @@ class ManagedParticipantRow extends StatelessWidget {
 
   final Participant participant;
 
-  /// Before the name, e.g. the roll-call checkbox. A plain person icon by default.
+  /// Before the name, sized by itself, e.g. the roll-call checkbox. A plain person icon by default.
   final Widget? leading;
 
   /// For the participants of a reservation that is not expected (waiting list, cancelled).
@@ -24,10 +24,11 @@ class ManagedParticipantRow extends StatelessWidget {
       constraints: const BoxConstraints(minHeight: 34),
       child: Row(
         children: [
-          SizedBox(
-            width: 32,
-            child: leading ?? Icon(Icons.person_outline, size: 16, color: ManagementColors.muted.withValues(alpha: muted ? 0.6 : 1)),
-          ),
+          leading ??
+              SizedBox(
+                width: 32,
+                child: Icon(Icons.person_outline, size: 16, color: ManagementColors.muted.withValues(alpha: muted ? 0.6 : 1)),
+              ),
           Expanded(
             child: Text(
               '${participant.firstName} ${participant.lastName}',
