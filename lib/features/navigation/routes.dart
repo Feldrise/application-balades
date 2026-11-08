@@ -4,6 +4,7 @@ import 'package:balade/features/admin/guide_profile/guide_profile_page.dart';
 import 'package:balade/features/admin/guides_management/admin_guides_page.dart';
 import 'package:balade/features/admin/layout/admin_shell.dart';
 import 'package:balade/features/admin/ramble_details_page/admin_ramble_details_page.dart';
+import 'package:balade/features/admin/ramble_details_page/prototype/prototype_switcher.dart';
 import 'package:balade/features/admin/rambles_management/admin_rambles_page.dart';
 import 'package:balade/features/admin/reservations_management/admin_reservations_page.dart';
 import 'package:balade/features/admin/settings/admin_settings_page.dart';
@@ -42,7 +43,8 @@ CustomTransitionPage<dynamic> _buildPageWithDefaultTransition<T>({required Build
 GoRouter router(AuthedUser? loggedUser) => GoRouter(
   routes: [
     ShellRoute(
-      builder: (context, state, child) => MainPage(child: LoadingOverlay(child: child)),
+      // PROTOTYPE: a ?variant= page brings its own shell
+      builder: (context, state, child) => protoVariantOf(state) != null ? child : MainPage(child: LoadingOverlay(child: child)),
       routes: [
         GoRoute(
           path: "/",
@@ -115,11 +117,15 @@ GoRouter router(AuthedUser? loggedUser) => GoRouter(
         ),
         // Admin routes with nested layout
         ShellRoute(
-          builder: (context, state, child) => AdminShell(child: child),
+          builder: (context, state, child) => protoVariantOf(state) != null ? child : AdminShell(child: child),
           routes: [
             GoRoute(
               path: "/admin",
-              pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const AdminRamblesPage()),
+              pageBuilder: (context, state) {
+                final variant = protoVariantOf(state);
+                final child = variant != null ? PrototypeRamblesListHost(variant: variant) : const AdminRamblesPage();
+                return _buildPageWithDefaultTransition(context: context, state: state, child: child);
+              },
               routes: [
                 GoRoute(
                   path: "nouvelle-balade",
@@ -137,7 +143,12 @@ GoRouter router(AuthedUser? loggedUser) => GoRouter(
                   path: "balade/:id",
                   pageBuilder: (context, state) {
                     final id = int.tryParse(state.pathParameters['id'] ?? '');
-                    final child = id == null ? const Scaffold(body: Center(child: Text('ID de balade invalide'))) : AdminRambleDetailsPage(rambleId: id);
+                    final variant = protoVariantOf(state);
+                    final child = id == null
+                        ? const Scaffold(body: Center(child: Text('ID de balade invalide')))
+                        : variant != null
+                        ? PrototypeRambleSheetHost(rambleId: id, variant: variant)
+                        : AdminRambleDetailsPage(rambleId: id);
                     return _buildPageWithDefaultTransition(context: context, state: state, child: child);
                   },
                 ),
@@ -149,7 +160,11 @@ GoRouter router(AuthedUser? loggedUser) => GoRouter(
             ),
             GoRoute(
               path: "/admin/reservations",
-              pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const AdminReservationsPage()),
+              pageBuilder: (context, state) {
+                final variant = protoVariantOf(state);
+                final child = variant != null ? PrototypeReservationsHost(variant: variant) : const AdminReservationsPage();
+                return _buildPageWithDefaultTransition(context: context, state: state, child: child);
+              },
             ),
             GoRoute(
               path: "/admin/mon-profil",
