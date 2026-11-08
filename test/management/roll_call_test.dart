@@ -139,4 +139,26 @@ void main() {
     });
     semantics.dispose();
   });
+
+  testWidgets('unticking a participant already present takes them out of the present ones', (tester) async {
+    final semantics = tester.ensureSemantics();
+    final api = FakeApi(
+      rambles: [balade(1, inDays: 0)],
+      reservations: [
+        reservation(1, participants: [participant(1, 'Claire', 'Martin', isBooker: true, present: true), participant(2, 'Léo', 'Martin')]),
+      ],
+      myGuide: vera,
+    );
+    await withFakeApi(api, () async {
+      await pumpManagementApp(tester, api: api, location: '/admin/balade/1', user: guide, size: phone);
+      expect(find.text('1 / 2 présents'), findsOneWidget);
+
+      await tester.tap(_box('Claire Martin'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('0 / 2 présents'), findsOneWidget);
+      expect(find.text('Synchronisé'), findsOneWidget);
+    });
+    semantics.dispose();
+  });
 }
