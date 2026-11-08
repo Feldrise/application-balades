@@ -67,8 +67,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     try {
       await action();
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      _update(() => _isLoading = false);
     }
+  }
+
+  /// Updates the screen after a request, unless the user has left it meanwhile.
+  void _update(VoidCallback change) {
+    if (mounted) setState(change);
   }
 
   /// Sends the code straight away to a known email, asks for the new account otherwise.
@@ -77,13 +82,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     await _run(() async {
       try {
         final exists = await AuthenticationService.instance.checkEmailExists(_email);
+        if (!mounted) return;
         if (!exists) {
           setState(() => _step = _Step.newAccount);
           return;
         }
         await _sendCode();
       } catch (_) {
-        setState(() => _error = 'Impossible d\'envoyer le code. Vérifiez l\'email et réessayez.');
+        _update(() => _error = 'Impossible d\'envoyer le code. Vérifiez l\'email et réessayez.');
       }
     });
   }
@@ -94,7 +100,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       try {
         await _sendCode();
       } catch (_) {
-        setState(() => _error = 'Impossible de créer le compte. Vérifiez les informations et réessayez.');
+        _update(() => _error = 'Impossible de créer le compte. Vérifiez les informations et réessayez.');
       }
     });
   }
@@ -102,9 +108,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Future<void> _resendCode() => _run(() async {
     try {
       await _sendCode();
-      _codeController.clear();
+      if (mounted) _codeController.clear();
     } catch (_) {
-      setState(() => _error = 'Impossible de renvoyer le code. Réessayez dans un instant.');
+      _update(() => _error = 'Impossible de renvoyer le code. Réessayez dans un instant.');
     }
   });
 
@@ -117,7 +123,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       lastName: isNew ? optional(_lastNameController) : null,
       phone: isNew ? optional(_phoneController) : null,
     );
-    setState(() {
+    _update(() {
       _step = _Step.code;
       _codeExpiresAt = DateTime.now().add(const Duration(minutes: 5));
     });
@@ -134,11 +140,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         if (mounted) context.go(landingAfterLogin(user.user, redirection: widget.redirection));
       } on PlatformException catch (e) {
         final expired = '${e.details}'.contains('expired');
-        setState(
+        _update(
           () => _error = expired ? 'Ce code a expiré. Demandez un nouveau code avec « Renvoyer le code ».' : 'Ce code est incorrect. Vérifiez le code reçu par email, ou demandez-en un nouveau.',
         );
       } catch (_) {
-        setState(() => _error = 'La connexion a échoué. Réessayez dans un instant.');
+        _update(() => _error = 'La connexion a échoué. Réessayez dans un instant.');
       }
     });
   }

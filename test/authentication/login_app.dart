@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:balade/features/authentication/authentication_provider.dart';
@@ -37,9 +38,13 @@ class LoginApi extends FakeApi {
   /// Bodies of the code requests received.
   final List<Map<String, Object?>> codeRequests = [];
 
+  /// While set, the login requests wait for it before being answered, e.g. to leave the screen meanwhile.
+  Completer<void>? hold;
+
   @override
   Future<http.Response> handle(http.Request request) async {
     final path = request.url.path;
+    if (path.contains('/authentication/')) await hold?.future;
     if (path.endsWith('/authentication/check-email')) {
       requests.add(request);
       final known = accounts.containsKey(request.url.queryParameters['email']);

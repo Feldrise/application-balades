@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'login_app.dart';
@@ -94,6 +97,58 @@ void main() {
 
       expect(find.textContaining('Ce code a expiré'), findsOneWidget);
       expect(currentLocation(tester), '/connexion');
+    });
+  });
+
+  group('leaving the login while a request is pending does not break the app', () {
+    /// Holds the login requests, taps [button], leaves for the catalogue, then lets the API answer.
+    Future<void> leaveThenAnswer(WidgetTester tester, LoginApi api, Finder button) async {
+      final hold = api.hold = Completer<void>();
+      await tester.tap(button);
+      await tester.pump();
+      GoRouter.of(tester.element(find.byType(Form))).go('/balades');
+      await tester.pumpAndSettle();
+      hold.complete();
+      await tester.pumpAndSettle();
+      expect(currentLocation(tester), '/balades');
+    }
+
+    testWidgets('on the email check of a new account', (tester) async {
+      final api = LoginApi();
+      await withFakeApi(api, () async {
+        await pumpSignedOutApp(tester, api: api, location: '/connexion');
+        await tester.enterText(find.widgetWithText(TextFormField, 'Adresse email'), 'leo@example.com');
+        await leaveThenAnswer(tester, api, find.widgetWithText(FilledButton, 'Recevoir le code'));
+      });
+    });
+
+    testWidgets('on the code sending', (tester) async {
+      final api = LoginApi(accounts: [booker]);
+      await withFakeApi(api, () async {
+        await pumpSignedOutApp(tester, api: api, location: '/connexion');
+        await tester.enterText(find.widgetWithText(TextFormField, 'Adresse email'), 'claire@example.com');
+        await leaveThenAnswer(tester, api, find.widgetWithText(FilledButton, 'Recevoir le code'));
+      });
+    });
+
+    testWidgets('on a refused code', (tester) async {
+      final api = LoginApi(accounts: [booker]);
+      await withFakeApi(api, () async {
+        await pumpSignedOutApp(tester, api: api, location: '/connexion');
+        await enterEmail(tester, 'claire@example.com');
+        await tester.enterText(find.widgetWithText(TextFormField, 'Code à 6 chiffres'), '000000');
+        await leaveThenAnswer(tester, api, find.descendant(of: find.byType(Form), matching: find.widgetWithText(FilledButton, 'Se connecter')));
+      });
+    });
+
+    testWidgets('on a failed code resending', (tester) async {
+      final api = LoginApi(accounts: [booker]);
+      await withFakeApi(api, () async {
+        await pumpSignedOutApp(tester, api: api, location: '/connexion');
+        await enterEmail(tester, 'claire@example.com');
+        api.accounts.clear();
+        await leaveThenAnswer(tester, api, find.widgetWithText(TextButton, 'Renvoyer le code'));
+      });
     });
   });
 }
