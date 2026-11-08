@@ -1,17 +1,19 @@
-import 'package:balade/features/admin/reservations_management/models/admin_reservation_filter.dart';
-import 'package:balade/features/authentication/authentication_provider.dart';
-import 'package:balade/features/ramble/models/ramble/ramble.dart';
-import 'package:balade/features/ramble/public_ramble_details_page/widgets/ramble_details_header.dart';
-import 'package:balade/features/ramble/public_ramble_details_page/widgets/ramble_details_info.dart';
-import 'package:balade/features/ramble/rambles_service.dart';
-import 'package:balade/features/reservations/models/reservation/reservation.dart';
-import 'package:balade/features/reservations/reservations_service.dart';
+import 'package:balade/features/admin/design/design.dart';
+import 'package:balade/features/authentication/permission_provider.dart';
+import 'package:balade/features/guides/providers/current_guide_provider.dart';
+import 'package:balade/features/ramble/ramble_permissions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import 'widgets/admin_reservations_list.dart';
-import 'widgets/additional_documents_card.dart';
+import 'ramble_sheet.dart';
+import 'widgets/ramble_sheet_actions.dart';
+import 'widgets/sheet_header.dart';
+import 'widgets/sheet_ramble_panel.dart';
+import 'widgets/sheet_reservations.dart';
 
+/// The feuille de balade: who is coming first, the balade second. Tabs Participants / Balade on a phone and a tablet,
+/// two columns on desktop.
 class AdminRambleDetailsPage extends ConsumerStatefulWidget {
   const AdminRambleDetailsPage({super.key, required this.rambleId});
 
@@ -21,210 +23,135 @@ class AdminRambleDetailsPage extends ConsumerStatefulWidget {
   ConsumerState<AdminRambleDetailsPage> createState() => _AdminRambleDetailsPageState();
 }
 
+enum _Tab { participants, ramble }
+
 class _AdminRambleDetailsPageState extends ConsumerState<AdminRambleDetailsPage> {
-  late Future<(Ramble, List<Reservation>)> _future;
+  _Tab _tab = _Tab.participants;
 
-  @override
-  void initState() {
-    super.initState();
-    _future = _load();
-  }
-
-  Future<(Ramble, List<Reservation>)> _load() async {
-    final auth = ref.read(authenticationProvider);
-    final token = auth?.token;
-
-    try {
-      final rambleFuture = RamblesService.instance.fetchRamble(widget.rambleId, includeUnpublished: true, authorization: token);
-      final reservationsFuture = token == null
-          ? Future.value(<Reservation>[]) // no token: avoid 401 spam; page will show warning
-          : ReservationsService.instance.fetchAdminReservations(token: token, filter: AdminReservationFilter(rambleId: widget.rambleId), perPage: 500).then((list) => list.reservations);
-      final result = await Future.wait([rambleFuture, reservationsFuture]);
-      return (result[0] as Ramble, result[1] as List<Reservation>);
-    } catch (e) {
-      rethrow;
-    }
-  }
+  void _reload() => ref.invalidate(rambleSheetProvider(widget.rambleId));
 
   @override
   Widget build(BuildContext context) {
-    final authed = ref.watch(authenticationProvider);
-    final hasToken = (authed?.token ?? '').isNotEmpty;
-    return FutureBuilder<(Ramble, List<Reservation>)>(
-      future: _future,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
-        }
-
-        if (snapshot.hasError) {
-          final message = snapshot.error.toString();
-          return Scaffold(
-            appBar: AppBar(title: const Text('Balade - Détails')),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 64),
-                  const SizedBox(height: 16),
-                  Text('Erreur lors du chargement\n$message', textAlign: TextAlign.center),
-                  const SizedBox(height: 16),
-                  FilledButton(onPressed: () => setState(() => _future = _load()), child: const Text('Réessayer')),
-                ],
+    final sheet = ref.watch(rambleSheetProvider(widget.rambleId));
+    return sheet.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => Column(
+        children: [
+          ManagementPageHeader(
+            title: 'Feuille de balade',
+            leading: IconButton(tooltip: 'Balades', onPressed: () => context.go('/admin'), icon: const Icon(Icons.arrow_back)),
+          ),
+          Expanded(
+            child: Center(
+              child: ManagementEmptyState(
+                icon: Icons.cloud_off,
+                title: 'Impossible de charger la balade',
+                message: 'Vérifiez votre connexion puis réessayez.',
+                action: FilledButton(onPressed: _reload, child: const Text('Réessayer')),
               ),
             ),
-          );
-        }
-
-        if (!snapshot.hasData) {
-          return const Scaffold(body: Center(child: Text('Aucune donnée')));
-        }
-
-        final ramble = snapshot.data!.$1;
-        final reservations = snapshot.data!.$2;
-
-        final screenWidth = MediaQuery.of(context).size.width;
-        final isDesktop = screenWidth >= 1200;
-        final isTablet = screenWidth >= 768 && screenWidth < 1200;
-
-        return Scaffold(
-          body: CustomScrollView(
-            slivers: [
-              RambleDetailsHeader(ramble: ramble, onBack: () => Navigator.of(context).pop()),
-              SliverToBoxAdapter(child: _buildResponsiveContent(context, ramble, reservations, isDesktop, isTablet, hasToken)),
-            ],
           ),
-        );
-      },
+        ],
+      ),
+      data: _buildSheet,
     );
   }
 
-  Widget _buildResponsiveContent(BuildContext context, Ramble ramble, List<Reservation> reservations, bool isDesktop, bool isTablet, bool hasToken) {
-    if (isDesktop) return _buildDesktopLayout(context, ramble, reservations, hasToken);
-    if (isTablet) return _buildTabletLayout(context, ramble, reservations, hasToken);
-    return _buildMobileLayout(context, ramble, reservations, hasToken);
-  }
+  Widget _buildSheet(RambleSheet sheet) {
+    final ramble = sheet.ramble;
+    final permission = ref.watch(permissionProvider);
+    final guideId = ref.watch(currentGuideProvider.select((s) => s.guide?.id));
+    final canEdit = canManageRamble(permission, ramble, guideId);
+    final canDuplicate = canEdit && canCreateBalade(permission, ref.watch(isFunctionalGuideProvider));
+    final canCancel = !ramble.isCancelled && canDeleteRamble(permission, ramble, guideId);
+    final desktop = ManagementBreakpoints.isDesktop(context);
+    final gutter = ManagementBreakpoints.gutter(context);
 
-  Widget _buildDesktopLayout(BuildContext context, Ramble ramble, List<Reservation> reservations, bool hasToken) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 60,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                RambleDetailsInfo(ramble: ramble),
-                const SizedBox(height: 16),
-                AdditionalDocumentsCard(url: ramble.additionalDocumentsUrl),
-              ],
-            ),
-          ),
-          const SizedBox(width: 32),
-          Expanded(
-            flex: 40,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (!hasToken)
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                        children: [
-                          Icon(Icons.lock_outline, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                          const SizedBox(width: 8),
-                          Expanded(child: Text('Connectez-vous en tant qu\'administrateur pour voir les réservations.', style: Theme.of(context).textTheme.bodyMedium)),
-                        ],
-                      ),
+    final reservations = SheetReservations(sheet: sheet, wide: desktop, onChanged: _reload);
+    final ramblePanel = SheetRamblePanel(ramble: ramble, canEdit: canEdit, canDuplicate: canDuplicate);
+
+    return Column(
+      children: [
+        SheetHeader(
+          ramble: ramble,
+          actions: [
+            PopupMenuButton<String>(
+              tooltip: 'Plus d\'actions',
+              icon: const Icon(Icons.more_horiz),
+              onSelected: (action) async {
+                switch (action) {
+                  case 'export':
+                    exportParticipants(context, sheet.reservations);
+                  case 'emails':
+                    copyBookerEmails(context, sheet.reservations);
+                  case 'cancel':
+                    if (await cancelRambleWithConfirmation(context, ref, ramble)) _reload();
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'export',
+                  child: ListTile(leading: Icon(Icons.download), title: Text('Exporter les participants')),
+                ),
+                const PopupMenuItem(
+                  value: 'emails',
+                  child: ListTile(leading: Icon(Icons.alternate_email), title: Text('Copier les emails')),
+                ),
+                if (canCancel) ...[
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
+                    value: 'cancel',
+                    child: ListTile(
+                      leading: Icon(Icons.event_busy, color: ManagementColors.cancelled),
+                      title: Text('Annuler la balade', style: TextStyle(color: ManagementColors.cancelled)),
                     ),
                   ),
-                AdminReservationsList(
-                  reservations: reservations,
-                  maxParticipants: ramble.maxParticipants,
-                  onRefresh: _reload,
-                ),
+                ],
+              ],
+            ),
+          ],
+        ),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () => ref.refresh(rambleSheetProvider(widget.rambleId).future),
+            child: ListView(
+              padding: EdgeInsets.fromLTRB(gutter, 12, gutter, 32),
+              children: [
+                SheetNumbers(sheet: sheet),
+                const SizedBox(height: 12),
+                if (desktop)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(flex: 2, child: reservations),
+                      const SizedBox(width: 16),
+                      Expanded(child: ramblePanel),
+                    ],
+                  )
+                else ...[
+                  SegmentedButton<_Tab>(
+                    showSelectedIcon: false,
+                    style: SegmentedButton.styleFrom(
+                      selectedBackgroundColor: ManagementColors.deepGreen,
+                      selectedForegroundColor: Colors.white,
+                      backgroundColor: ManagementColors.surface,
+                      side: const BorderSide(color: ManagementColors.border),
+                    ),
+                    segments: [
+                      ButtonSegment(value: _Tab.participants, label: Text('Participants (${sheet.placesTaken})')),
+                      const ButtonSegment(value: _Tab.ramble, label: Text('Balade')),
+                    ],
+                    selected: {_tab},
+                    onSelectionChanged: (selection) => setState(() => _tab = selection.first),
+                  ),
+                  const SizedBox(height: 12),
+                  if (_tab == _Tab.participants) reservations else ramblePanel,
+                ],
               ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
-  }
-
-  Widget _buildTabletLayout(BuildContext context, Ramble ramble, List<Reservation> reservations, bool hasToken) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          RambleDetailsInfo(ramble: ramble),
-          const SizedBox(height: 16),
-          AdditionalDocumentsCard(url: ramble.additionalDocumentsUrl),
-          const SizedBox(height: 16),
-          if (!hasToken)
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    Icon(Icons.lock_outline, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                    const SizedBox(width: 8),
-                    Expanded(child: Text('Connectez-vous en tant qu\'administrateur pour voir les réservations.', style: Theme.of(context).textTheme.bodyMedium)),
-                  ],
-                ),
-              ),
-            ),
-          AdminReservationsList(
-            reservations: reservations,
-            maxParticipants: ramble.maxParticipants,
-            onRefresh: _reload,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMobileLayout(BuildContext context, Ramble ramble, List<Reservation> reservations, bool hasToken) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          RambleDetailsInfo(ramble: ramble),
-          const SizedBox(height: 16),
-          AdditionalDocumentsCard(url: ramble.additionalDocumentsUrl),
-          const SizedBox(height: 16),
-          if (!hasToken)
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    Icon(Icons.lock_outline, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                    const SizedBox(width: 8),
-                    Expanded(child: Text('Connectez-vous en tant qu\'administrateur pour voir les réservations.', style: Theme.of(context).textTheme.bodyMedium)),
-                  ],
-                ),
-              ),
-            ),
-          AdminReservationsList(
-            reservations: reservations,
-            maxParticipants: ramble.maxParticipants,
-            onRefresh: _reload,
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _reload() {
-    if (mounted) {
-      setState(() {
-        _future = _load();
-      });
-    }
   }
 }

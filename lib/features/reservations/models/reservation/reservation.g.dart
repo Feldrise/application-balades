@@ -13,6 +13,7 @@ _Reservation _$ReservationFromJson(Map<String, dynamic> json) => _Reservation(
   rambleId: (json['ramble_id'] as num).toInt(),
   userId: (json['user_id'] as num).toInt(),
   contactEmail: json['contact_email'] as String,
+  contactPhone: json['contact_phone'] as String?,
   status: json['status'] as String,
   confirmationDeadline: const DateSerializer().fromJson(
     json['confirmation_deadline'] as String?,
@@ -55,6 +56,7 @@ Map<String, dynamic> _$ReservationToJson(
   'ramble_id': instance.rambleId,
   'user_id': instance.userId,
   'contact_email': instance.contactEmail,
+  'contact_phone': instance.contactPhone,
   'status': instance.status,
   'confirmation_deadline': const DateSerializer().toJson(
     instance.confirmationDeadline,
@@ -80,6 +82,7 @@ _Participant _$ParticipantFromJson(Map<String, dynamic> json) => _Participant(
   priceAmount: (json['price_amount'] as num?)?.toDouble() ?? 0.0,
   priceMissing: json['price_missing'] as bool? ?? false,
   isBooker: json['is_booker'] as bool? ?? false,
+  present: json['present'] as bool?,
 );
 
 Map<String, dynamic> _$ParticipantToJson(_Participant instance) =>
@@ -91,6 +94,7 @@ Map<String, dynamic> _$ParticipantToJson(_Participant instance) =>
       'price_amount': instance.priceAmount,
       'price_missing': instance.priceMissing,
       'is_booker': instance.isBooker,
+      'present': instance.present,
     };
 
 _ReservationPayment _$ReservationPaymentFromJson(Map<String, dynamic> json) =>
