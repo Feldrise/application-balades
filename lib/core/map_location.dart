@@ -21,14 +21,25 @@ MapLocation? parseMapLocation(String input) {
   final text = input.trim();
   if (text.isEmpty) return null;
 
-  final decoded = Uri.decodeFull(text);
-  final match = _pin.firstMatch(decoded) ?? _viewport.firstMatch(decoded) ?? _queryPair.firstMatch(text) ?? _plain.firstMatch(text);
+  final decoded = _decode(text);
+  final match = _pin.firstMatch(decoded) ?? _viewport.firstMatch(decoded) ?? _queryPair.firstMatch(decoded) ?? _plain.firstMatch(text);
   if (match == null) return null;
 
   final latitude = _toDouble(match.group(1)!);
   final longitude = _toDouble(match.group(2)!);
   if (latitude.abs() > 90 || longitude.abs() > 180) return null;
   return (latitude: latitude, longitude: longitude);
+}
+
+/// The link with its percent-encoding decoded (`%2C%20` → `, `), or as typed when that encoding is broken (`?q=48%`).
+String _decode(String text) {
+  try {
+    return Uri.decodeFull(text);
+  } on ArgumentError {
+    return text;
+  } on FormatException {
+    return text;
+  }
 }
 
 double _toDouble(String value) => double.parse(value.replaceAll(',', '.'));
