@@ -1,72 +1,52 @@
+import 'package:balade/features/admin/design/design.dart';
 import 'package:balade/features/admin/reservations_management/providers/bulk_actions_provider.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/authentication/permission_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+/// Whether the account can act on several reservations at once: the admin, and those with the bulk permission.
+bool canBulkReservations(WidgetRef ref) {
+  final permission = ref.watch(permissionProvider);
+  return permission?.isAdmin() == true || permission?.canBulkRegistrationActions() == true;
+}
+
+String _selection(int count) => '$count réservation${count > 1 ? 's' : ''} sélectionnée${count > 1 ? 's' : ''}';
+
+/// The bar fixed at the bottom of the desktop list once reservations are selected: the three status changes and « Plus d'options ».
+/// Hidden without a selection, and for accounts that cannot act on several reservations.
 class BulkActionsToolbar extends ConsumerWidget {
   const BulkActionsToolbar({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bulkActionsState = ref.watch(bulkActionsProvider);
-    final bulkActionsNotifier = ref.read(bulkActionsProvider.notifier);
-    final permission = ref.watch(permissionProvider);
-
-    if (!bulkActionsState.hasSelection) {
-      return const SizedBox.shrink();
-    }
-
-    final canBulk = permission?.isAdmin() == true || permission?.canBulkRegistrationActions() == true;
-    if (!canBulk) {
-      return const SizedBox.shrink();
-    }
+    final bulk = ref.watch(bulkActionsProvider);
+    if (!bulk.hasSelection || !canBulkReservations(ref)) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      margin: const EdgeInsets.all(16),
-      child: Material(
-        elevation: 8,
-        borderRadius: BorderRadius.circular(12),
-        color: theme.colorScheme.primaryContainer,
+    return Material(
+      color: ManagementColors.deepGreen,
+      child: SafeArea(
+        top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+          padding: EdgeInsets.symmetric(horizontal: ManagementBreakpoints.gutter(context), vertical: 10),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Icon(Icons.check_circle_outline, color: theme.colorScheme.onPrimaryContainer),
-              const SizedBox(width: 12),
-              Text(
-                '${bulkActionsState.selectionCount} réservation(s) sélectionnée(s)',
-                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500, color: theme.colorScheme.onPrimaryContainer),
-              ),
-              const SizedBox(width: 24),
+              Text(_selection(bulk.selectionCount), style: theme.textTheme.titleSmall?.copyWith(color: Colors.white)),
               TextButton(
-                onPressed: bulkActionsNotifier.clearSelection,
-                style: TextButton.styleFrom(foregroundColor: theme.colorScheme.onPrimaryContainer),
+                onPressed: ref.read(bulkActionsProvider.notifier).clearSelection,
+                style: TextButton.styleFrom(foregroundColor: Colors.white70),
                 child: const Text('Désélectionner'),
               ),
-              const SizedBox(width: 8),
-              _buildQuickActionButton(context, 'Confirmer', Icons.check_circle, Colors.green, () => _showQuickActionConfirmation(context, ref, 'confirm', 'confirmer')),
-              const SizedBox(width: 8),
-              _buildQuickActionButton(context, 'Annuler', Icons.cancel, Colors.red, () => _showQuickActionConfirmation(context, ref, 'cancel', 'annuler')),
-              const SizedBox(width: 8),
-              _buildQuickActionButton(
-                context,
-                'Liste d\'attente',
-                Icons.queue,
-                Colors.blue,
-                () => _showQuickActionConfirmation(context, ref, 'move_to_waiting', 'mettre en liste d\'attente'),
-              ),
-              const SizedBox(width: 8),
-              FilledButton.icon(
-                onPressed: () => _showBulkActionsDialog(context, ref),
-                icon: const Icon(Icons.more_horiz),
-                label: const Text('Plus d\'options'),
-                style: FilledButton.styleFrom(backgroundColor: theme.colorScheme.primary, foregroundColor: theme.colorScheme.onPrimary),
+              const SizedBox(width: 12),
+              for (final action in _BulkAction.quick) _QuickButton(action: action),
+              TextButton(
+                onPressed: () => showDialog<void>(context: context, builder: (context) => const _MoreOptionsDialog()),
+                style: TextButton.styleFrom(foregroundColor: Colors.white),
+                child: const Text('Plus d\'options'),
               ),
             ],
           ),
@@ -74,186 +54,153 @@ class BulkActionsToolbar extends ConsumerWidget {
       ),
     );
   }
-
-  Widget _buildQuickActionButton(BuildContext context, String label, IconData icon, Color color, VoidCallback onPressed) {
-    return OutlinedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon, size: 18),
-      label: Text(label),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: color,
-        side: BorderSide(color: color),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      ),
-    );
-  }
-
-  void _showQuickActionConfirmation(BuildContext context, WidgetRef ref, String action, String actionLabel) {
-    final bulkActionsState = ref.read(bulkActionsProvider);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Confirmer l\'action'),
-        content: Text('Êtes-vous sûr de vouloir $actionLabel les ${bulkActionsState.selectionCount} réservation(s) sélectionnée(s) ?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Annuler')),
-          FilledButton(onPressed: () => _performQuickAction(context, ref, action), child: const Text('Confirmer')),
-        ],
-      ),
-    );
-  }
-
-  void _performQuickAction(BuildContext context, WidgetRef ref, String action) async {
-    Navigator.of(context).pop(); // Close confirmation dialog
-
-    final auth = ref.read(authenticationProvider);
-    if (auth == null) return;
-
-    final success = await ref.read(bulkActionsProvider.notifier).performBulkAction(action: action, token: auth.token, sendEmail: true);
-
-    if (context.mounted) {
-      final result = ref.read(bulkActionsProvider).lastResult;
-      if (success && result != null) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${result.successCount} réservation(s) mise(s) à jour avec succès'), backgroundColor: Colors.green));
-      } else if (result != null && result.failureCount > 0) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${result.failureCount} erreur(s) lors de l\'opération'), backgroundColor: Theme.of(context).colorScheme.error));
-      }
-    }
-  }
-
-  void _showBulkActionsDialog(BuildContext context, WidgetRef ref) {
-    showDialog(context: context, builder: (context) => const BulkActionsAdvancedDialog());
-  }
 }
 
-class BulkActionsAdvancedDialog extends ConsumerStatefulWidget {
-  const BulkActionsAdvancedDialog({super.key});
+enum _BulkAction {
+  confirm('confirm', 'Confirmer', 'confirmer', 'Elles seront confirmées sans la confirmation des personnes qui réservent ni leur paiement en ligne.'),
+  cancel(
+    'cancel',
+    'Annuler',
+    'annuler',
+    'Les places seront libérées et les personnes qui réservent seront prévenues par email. La plateforme ne fait aucun remboursement automatique : celles qui ont déjà payé seront invitées à contacter le guide.',
+  ),
+  waiting('move_to_waiting', 'Liste d\'attente', 'mettre en liste d\'attente', 'Les places seront libérées. Elles passeront dès que la place le permet.');
+
+  const _BulkAction(this.api, this.label, this.verb, this.consequence);
+
+  final String api;
+  final String label;
+  final String verb;
+  final String consequence;
+
+  static const quick = [confirm, cancel, waiting];
+}
+
+class _QuickButton extends ConsumerWidget {
+  const _QuickButton({required this.action});
+
+  final _BulkAction action;
 
   @override
-  ConsumerState<BulkActionsAdvancedDialog> createState() => _BulkActionsAdvancedDialogState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    return OutlinedButton(
+      key: ValueKey('bulk-action-${action.api}'),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: Colors.white,
+        side: const BorderSide(color: Colors.white54),
+      ),
+      onPressed: () async {
+        final count = ref.read(bulkActionsProvider).selectionCount;
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('${action.label} ${count > 1 ? 'ces $count réservations' : 'cette réservation'} ?'),
+            content: Text('Vous allez ${action.verb} ${_selection(count)}. ${action.consequence}'),
+            actions: [
+              TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Retour')),
+              FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Confirmer')),
+            ],
+          ),
+        );
+        if (confirmed == true && context.mounted) await _perform(context, ref, action.api, sendEmail: true);
+      },
+      child: Text(action.label),
+    );
+  }
 }
 
-class _BulkActionsAdvancedDialogState extends ConsumerState<BulkActionsAdvancedDialog> {
-  String selectedAction = 'confirm';
-  String? reason;
-  bool sendEmail = true;
+/// Applies [action] to the selection and tells how it went.
+Future<void> _perform(BuildContext context, WidgetRef ref, String action, {String? reason, required bool sendEmail}) async {
+  final token = ref.read(authenticationProvider)?.token;
+  if (token == null) return;
+  final messenger = ScaffoldMessenger.of(context);
+  final errorColor = Theme.of(context).colorScheme.error;
+
+  final success = await ref.read(bulkActionsProvider.notifier).performBulkAction(action: action, token: token, reason: reason, sendEmail: sendEmail);
+
+  final result = ref.read(bulkActionsProvider).lastResult;
+  if (success && result != null) {
+    messenger.showSnackBar(SnackBar(content: Text('${result.successCount} réservation(s) mise(s) à jour avec succès')));
+  } else if (result != null && result.failureCount > 0) {
+    messenger.showSnackBar(SnackBar(content: Text('${result.failureCount} erreur(s) lors de l\'opération'), backgroundColor: errorColor));
+  } else if (ref.read(bulkActionsProvider).error != null) {
+    messenger.showSnackBar(SnackBar(content: const Text('L\'opération a échoué'), backgroundColor: errorColor));
+  }
+}
+
+/// The actions that need more than a tap: with a reason, whether to tell the bookers, and the deletion.
+class _MoreOptionsDialog extends ConsumerStatefulWidget {
+  const _MoreOptionsDialog();
+
+  @override
+  ConsumerState<_MoreOptionsDialog> createState() => _MoreOptionsDialogState();
+}
+
+class _MoreOptionsDialogState extends ConsumerState<_MoreOptionsDialog> {
+  String _action = 'confirm';
+  String? _reason;
+  bool _sendEmail = true;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bulkActionsState = ref.watch(bulkActionsProvider);
+    final bulk = ref.watch(bulkActionsProvider);
+    final deleting = _action == 'delete';
 
     return AlertDialog(
-      title: Text('Actions groupées avancées (${bulkActionsState.selectionCount} réservations)'),
+      title: Text('Actions groupées · ${_selection(bulk.selectionCount)}'),
       content: SizedBox(
-        width: 450,
+        width: 420,
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Sélectionnez l\'action à effectuer:', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
-            const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              initialValue: selectedAction,
-              decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+              initialValue: _action,
+              decoration: const InputDecoration(labelText: 'Action', border: OutlineInputBorder()),
               items: const [
-                DropdownMenuItem(value: 'confirm', child: Text('✅ Confirmer les réservations')),
-                DropdownMenuItem(value: 'cancel', child: Text('❌ Annuler les réservations')),
-                DropdownMenuItem(value: 'move_to_waiting', child: Text('📋 Mettre en liste d\'attente')),
-                DropdownMenuItem(value: 'delete', child: Text('🗑️ Supprimer les réservations')),
+                DropdownMenuItem(value: 'confirm', child: Text('Confirmer les réservations')),
+                DropdownMenuItem(value: 'cancel', child: Text('Annuler les réservations')),
+                DropdownMenuItem(value: 'move_to_waiting', child: Text('Mettre en liste d\'attente')),
+                DropdownMenuItem(value: 'delete', child: Text('Supprimer les réservations')),
               ],
-              onChanged: (value) => setState(() => selectedAction = value!),
+              onChanged: (value) => setState(() => _action = value!),
             ),
             const SizedBox(height: 16),
             TextField(
-              decoration: const InputDecoration(
-                labelText: 'Raison de l\'action (optionnel)',
-                border: OutlineInputBorder(),
-                helperText: 'Cette raison sera enregistrée dans l\'historique',
-              ),
-              maxLines: 3,
-              onChanged: (value) => reason = value.isEmpty ? null : value,
+              decoration: const InputDecoration(labelText: 'Motif (optionnel)', border: OutlineInputBorder()),
+              maxLines: 2,
+              onChanged: (value) => _reason = value.trim().isEmpty ? null : value.trim(),
             ),
-            const SizedBox(height: 16),
-            Card(
-              color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  children: [
-                    CheckboxListTile(
-                      title: const Text('Envoyer un email de notification'),
-                      subtitle: const Text('Les participants recevront un email les informant du changement'),
-                      value: sendEmail,
-                      onChanged: (value) => setState(() => sendEmail = value ?? false),
-                      controlAffinity: ListTileControlAffinity.leading,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ],
-                ),
-              ),
+            CheckboxListTile(
+              title: const Text('Prévenir les personnes qui réservent par email'),
+              value: _sendEmail,
+              onChanged: (value) => setState(() => _sendEmail = value ?? false),
+              controlAffinity: ListTileControlAffinity.leading,
+              contentPadding: EdgeInsets.zero,
             ),
-            if (selectedAction == 'delete') ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.errorContainer.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: theme.colorScheme.error.withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.warning, color: theme.colorScheme.error),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Attention: Cette action est irréversible. Les réservations seront définitivement supprimées.',
-                        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.error),
-                      ),
-                    ),
-                  ],
-                ),
+            if (deleting)
+              Text(
+                'Les réservations seront définitivement supprimées : les places qu\'elles occupent iront à la liste d\'attente.',
+                style: theme.textTheme.bodySmall?.copyWith(color: ManagementColors.cancelled),
               ),
-            ],
           ],
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Annuler')),
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Retour')),
         FilledButton(
-          onPressed: bulkActionsState.isLoading ? null : _performAdvancedAction,
-          style: selectedAction == 'delete' ? FilledButton.styleFrom(backgroundColor: theme.colorScheme.error) : null,
-          child: bulkActionsState.isLoading
-              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-              : Text(selectedAction == 'delete' ? 'Supprimer' : 'Appliquer'),
+          style: deleting ? FilledButton.styleFrom(backgroundColor: ManagementColors.cancelled) : null,
+          onPressed: bulk.isLoading
+              ? null
+              : () async {
+                  final navigator = Navigator.of(context);
+                  await _perform(context, ref, _action, reason: _reason, sendEmail: _sendEmail);
+                  navigator.pop();
+                },
+          child: bulk.isLoading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : Text(deleting ? 'Supprimer' : 'Appliquer'),
         ),
       ],
     );
-  }
-
-  void _performAdvancedAction() async {
-    final auth = ref.read(authenticationProvider);
-    if (auth == null) return;
-
-    final success = await ref
-        .read(bulkActionsProvider.notifier)
-        .performBulkAction(action: selectedAction, token: auth.token, reason: reason, sendEmail: sendEmail);
-
-    if (mounted) {
-      Navigator.of(context).pop();
-
-      final result = ref.read(bulkActionsProvider).lastResult;
-      if (success && result != null) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${result.successCount} réservation(s) mise(s) à jour avec succès'), backgroundColor: Colors.green));
-      } else if (result != null && result.failureCount > 0) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${result.failureCount} erreur(s) lors de l\'opération'), backgroundColor: Theme.of(context).colorScheme.error));
-      }
-    }
   }
 }
