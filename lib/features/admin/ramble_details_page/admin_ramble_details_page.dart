@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'presence/presence_sync.dart';
+import 'presence/roll_call.dart';
 import 'ramble_sheet.dart';
 import 'widgets/ramble_sheet_actions.dart';
 import 'widgets/sheet_header.dart';
@@ -27,6 +29,23 @@ enum _Tab { participants, ramble }
 
 class _AdminRambleDetailsPageState extends ConsumerState<AdminRambleDetailsPage> {
   _Tab _tab = _Tab.participants;
+
+  /// The roll call is sent again when the app comes back to the foreground, often with the network.
+  late final AppLifecycleListener _lifecycle;
+
+  PresenceSync? _presence;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle = AppLifecycleListener(onResume: () => _presence?.send());
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
+  }
 
   void _reload() => ref.invalidate(rambleSheetProvider(widget.rambleId));
 
@@ -64,10 +83,11 @@ class _AdminRambleDetailsPageState extends ConsumerState<AdminRambleDetailsPage>
     final canEdit = canManageRamble(permission, ramble, guideId);
     final canDuplicate = canEdit && canCreateBalade(permission, ref.watch(isFunctionalGuideProvider));
     final canCancel = !ramble.isCancelled && canDeleteRamble(permission, ramble, guideId);
+    final presence = _presence = canMarkPresence(permission, ramble, guideId) ? ref.watch(presenceSyncProvider(widget.rambleId)) : null;
     final desktop = ManagementBreakpoints.isDesktop(context);
     final gutter = ManagementBreakpoints.gutter(context);
 
-    final reservations = SheetReservations(sheet: sheet, wide: desktop, onChanged: _reload);
+    final reservations = SheetReservations(sheet: sheet, wide: desktop, onChanged: _reload, presence: presence);
     final ramblePanel = SheetRamblePanel(ramble: ramble, canEdit: canEdit, canDuplicate: canDuplicate);
 
     return Column(
@@ -117,7 +137,7 @@ class _AdminRambleDetailsPageState extends ConsumerState<AdminRambleDetailsPage>
             child: ListView(
               padding: EdgeInsets.fromLTRB(gutter, 12, gutter, 32),
               children: [
-                SheetNumbers(sheet: sheet),
+                SheetNumbers(sheet: sheet, presence: presence),
                 const SizedBox(height: 12),
                 if (desktop)
                   Row(
