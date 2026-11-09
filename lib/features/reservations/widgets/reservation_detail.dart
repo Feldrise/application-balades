@@ -431,14 +431,13 @@ class _Actions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final now = ref.watch(reservationClockProvider)();
     final paymentEnabled = ref.watch(reservationRambleProvider(reservation.rambleId)).valueOrNull?.paymentEnabled ?? false;
 
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: [
-        if (canPayBalance(reservation, now: now) && paymentEnabled)
+        if (canPayBalance(reservation) && paymentEnabled)
           FilledButton.icon(
             onPressed: () => context.push(reservationPaymentLocation(reservation.id)),
             icon: const Icon(Icons.credit_card),

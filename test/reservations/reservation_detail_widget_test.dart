@@ -184,6 +184,13 @@ void main() {
     expect(find.byTooltip('Modifier'), findsNothing);
   });
 
+  testWidgets('still offers to pay the balance after the ramble', (tester) async {
+    await _pump(tester, _reservation(status: 'confirmed', payments: [], amountDue: 1850), paymentEnabled: true, now: DateTime.utc(2026, 12, 8, 9));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Payer 18,50 €'), findsOneWidget);
+  });
+
   testWidgets('still offers to specify the missing tariff of a participant once paid', (tester) async {
     await _pump(
       tester,
