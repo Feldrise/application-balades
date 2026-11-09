@@ -1,4 +1,3 @@
-import 'package:balade/core/widgets/app_logo.dart';
 import 'package:balade/core/widgets/loading_overlay.dart';
 import 'package:balade/features/admin/guide_profile/guide_profile_page.dart';
 import 'package:balade/features/admin/guides_management/admin_guides_page.dart';
@@ -7,6 +6,7 @@ import 'package:balade/features/admin/ramble_details_page/admin_ramble_details_p
 import 'package:balade/features/admin/rambles_management/admin_rambles_page.dart';
 import 'package:balade/features/admin/reservations_management/admin_reservations_page.dart';
 import 'package:balade/features/admin/settings/admin_settings_page.dart';
+import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/authentication/data/models/authed_user/authed_user.dart';
 import 'package:balade/features/authentication/login_page.dart';
 import 'package:balade/features/navigation/main_page/main_page.dart';
@@ -19,6 +19,7 @@ import 'package:balade/features/reservations/reservation_payment_page.dart';
 import 'package:balade/features/reservations/reservations_service.dart';
 import 'package:balade/features/reservations/user_reservations_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 CustomTransitionPage<dynamic> _buildPageWithDefaultTransition<T>({required BuildContext context, required GoRouterState state, required Widget child}) {
@@ -39,16 +40,24 @@ CustomTransitionPage<dynamic> _buildPageWithDefaultTransition<T>({required Build
   );
 }
 
-GoRouter router(AuthedUser? loggedUser, {String initialLocation = '/'}) => GoRouter(
+/// The management area, opened signed out, goes through the single login screen and comes back to the page asked.
+String? _loginBeforeManagementArea(BuildContext context, GoRouterState state) {
+  final path = state.uri.path;
+  if (path != '/admin' && !path.startsWith('/admin/')) return null;
+  if (ProviderScope.containerOf(context, listen: false).read(authenticationProvider) != null) return null;
+  return Uri(path: '/connexion', queryParameters: {'redirection': state.uri.toString()}).toString();
+}
+
+/// The routes of the app. [refreshListenable] re-runs the redirections, e.g. on login and logout.
+GoRouter router(AuthedUser? loggedUser, {String initialLocation = '/', Listenable? refreshListenable}) => GoRouter(
   initialLocation: initialLocation,
+  refreshListenable: refreshListenable,
+  redirect: _loginBeforeManagementArea,
   routes: [
     ShellRoute(
       builder: (context, state, child) => MainPage(child: LoadingOverlay(child: child)),
       routes: [
-        GoRoute(
-          path: "/",
-          pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const _HomePage()),
-        ),
+        GoRoute(path: "/", redirect: (context, state) => '/balades'),
         GoRoute(
           path: "/balades",
           pageBuilder: (context, state) => _buildPageWithDefaultTransition(context: context, state: state, child: const PublicRamblesPage()),
@@ -171,40 +180,7 @@ GoRouter router(AuthedUser? loggedUser, {String initialLocation = '/'}) => GoRou
   ],
 );
 
-// Temporary placeholder pages - these will be replaced with actual feature pages
-class _HomePage extends StatelessWidget {
-  const _HomePage();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const AppLogo(height: 80),
-            const SizedBox(height: 16),
-            Text(
-              'Bienvenue sur Balade EcoLogique',
-              style: theme.textTheme.headlineMedium?.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Découvrez la nature à travers nos balades guidées',
-              style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.7)),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-
+// Placeholder pages, out of the navigation until they are built
 class _AccountPage extends StatelessWidget {
   const _AccountPage();
 

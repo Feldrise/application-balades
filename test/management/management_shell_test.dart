@@ -89,7 +89,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(NavigationBar), findsNothing);
-      expect(find.text('Bienvenue sur Balade EcoLogique'), findsOneWidget);
+      expect(currentLocation(tester), '/balades');
     });
   });
 

@@ -4,6 +4,7 @@ import 'package:balade/features/ramble/rambles_service.dart';
 import 'package:balade/features/reservations/models/reservation/reservation.dart';
 import 'package:balade/features/reservations/reservation_draft.dart';
 import 'package:balade/features/reservations/reservations_service.dart';
+import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final reservationsServiceProvider = Provider<ReservationsService>((ref) => ReservationsService.instance);
@@ -113,4 +114,4 @@ class ReservationFormNotifier extends StateNotifier<ReservationFormState> {
 }
 
 /// The current time for the reservation rules, replaced in tests.
-final reservationClockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
+final reservationClockProvider = Provider<DateTime Function()>((ref) => () => clock.now());

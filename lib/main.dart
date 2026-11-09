@@ -2,10 +2,8 @@ import 'package:balade/core/configure_url_strategy_stub.dart'
     if (dart.library.html) 'package:balade/core/configure_url_strategy_web.dart';
 import 'package:balade/core/widgets/splash_screen.dart';
 import 'package:balade/features/authentication/authentication_provider.dart';
-import 'package:balade/features/authentication/data/models/authed_user/authed_user.dart';
-import 'package:balade/features/navigation/routes.dart';
+import 'package:balade/features/navigation/routed_app.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl_standalone.dart';
 import 'util.dart';
@@ -46,22 +44,7 @@ class MyApp extends ConsumerWidget {
           return const SplashScreen();
         }
 
-        return Builder(
-          builder: (context) {
-            final AuthedUser? authedUser = ref.watch(authenticationProvider);
-
-            return MaterialApp.router(
-              title: 'Balade',
-              theme: brightness == Brightness.light ? theme.light() : theme.dark(),
-              debugShowCheckedModeBanner: false,
-              localizationsDelegates: GlobalMaterialLocalizations.delegates,
-              supportedLocales: const [
-                Locale('fr', ''), // French
-              ],
-              routerConfig: router(authedUser),
-            );
-          },
-        );
+        return RoutedApp(theme: brightness == Brightness.light ? theme.light() : theme.dark());
       },
     );
   }

@@ -1,6 +1,7 @@
 import 'package:balade/features/authentication/authentication_provider.dart';
 import 'package:balade/features/reservations/providers/reservation_providers.dart';
-import 'package:balade/features/reservations/widgets/reservation_card.dart';
+import 'package:balade/features/reservations/widgets/booker_page_frame.dart';
+import 'package:balade/features/reservations/widgets/reservation_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -44,15 +45,21 @@ class ReservationDetailsPage extends ConsumerWidget {
     }
 
     final reservationAsync = ref.watch(reservationProvider(reservationId));
+    final refresh = IconButton(
+      onPressed: () {
+        ref.invalidate(reservationProvider(reservationId));
+        ref.invalidate(reservationRambleProvider);
+      },
+      icon: const Icon(Icons.refresh, color: Colors.white),
+      tooltip: 'Actualiser',
+    );
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: const Text('Ma réservation'),
-        leading: IconButton(onPressed: () => context.go('/mes-reservations'), icon: const Icon(Icons.arrow_back), tooltip: 'Mes réservations'),
-        actions: [IconButton(onPressed: () => ref.invalidate(reservationProvider(reservationId)), icon: const Icon(Icons.refresh), tooltip: 'Actualiser')],
-      ),
-      body: reservationAsync.when(
+    return BookerPageFrame(
+      title: 'Ma réservation',
+      leading: IconButton(onPressed: () => context.go('/mes-reservations'), icon: const Icon(Icons.arrow_back), tooltip: 'Mes réservations'),
+      actions: [refresh],
+      scrollable: reservationAsync.hasValue,
+      child: reservationAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
           child: Column(
@@ -66,15 +73,7 @@ class ReservationDetailsPage extends ConsumerWidget {
             ],
           ),
         ),
-        data: (reservation) => SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 720),
-              child: ReservationCard(reservation: reservation),
-            ),
-          ),
-        ),
+        data: (reservation) => ReservationDetail(reservation: reservation),
       ),
     );
   }

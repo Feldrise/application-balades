@@ -172,10 +172,7 @@ class FakeApi {
       final search = query['search']?.single.toLowerCase();
       final served = [
         for (final r in reservations)
-          if ((rambleId == null || '${r['ramble_id']}' == rambleId) &&
-              (statuses == null || statuses.contains(r['status'])) &&
-              (search == null || jsonEncode(r).toLowerCase().contains(search)))
-            r,
+          if ((rambleId == null || '${r['ramble_id']}' == rambleId) && (statuses == null || statuses.contains(r['status'])) && (search == null || jsonEncode(r).toLowerCase().contains(search))) r,
       ];
       return _json({'reservations': served, 'total': served.length, 'page': 1, 'per_page': 500, 'total_pages': 1});
     }

@@ -13,10 +13,11 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Opens the meeting point of [ramble] in Maps: its coordinates when known, else its address.
+/// Opens the meeting point of [ramble] in Maps: its coordinates when known, else its address, else its place.
 Future<void> openMeetingPoint(BuildContext context, Ramble ramble) async {
   final lat = ramble.meetingLatitude, lng = ramble.meetingLongitude;
-  final query = lat != null && lng != null ? '$lat,$lng' : (ramble.meetingPoint ?? ramble.location ?? '');
+  String? filled(String? text) => (text?.trim().isEmpty ?? true) ? null : text!.trim();
+  final query = lat != null && lng != null ? '$lat,$lng' : (filled(ramble.meetingPoint) ?? filled(ramble.location) ?? '');
   final uri = Uri.https('www.google.com', '/maps/search/', {'api': '1', 'query': query});
   final messenger = ScaffoldMessenger.of(context);
   final opened = await launchUrl(uri, mode: LaunchMode.externalApplication).catchError((_) => false);

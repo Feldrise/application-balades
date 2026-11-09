@@ -6,33 +6,20 @@ class NavigationItem {
   final IconData selectedIcon;
   final String label;
   final String route;
-  final bool adminOnly;
 
-  const NavigationItem({required this.icon, required this.selectedIcon, required this.label, required this.route, this.adminOnly = false});
+  const NavigationItem({required this.icon, required this.selectedIcon, required this.label, required this.route});
 }
 
-const List<NavigationItem> mainNavigationItems = [
-  NavigationItem(icon: Icons.home_outlined, selectedIcon: Icons.home, label: 'Accueil', route: '/'),
-  NavigationItem(icon: Icons.nature_people_outlined, selectedIcon: Icons.nature_people, label: 'Balades', route: '/balades'),
-  NavigationItem(icon: Icons.calendar_today_outlined, selectedIcon: Icons.calendar_today, label: 'Mes réservations', route: '/mes-reservations'),
-  NavigationItem(icon: Icons.person_outline, selectedIcon: Icons.person, label: 'Mon compte', route: '/mon-compte'),
+/// The pages of the public navigation: only pages that exist (no « À venir » page), plus the management area
+/// for admins and guides.
+List<NavigationItem> publicNavigationItems(Permission? permission) => [
+  const NavigationItem(icon: Icons.nature_people_outlined, selectedIcon: Icons.nature_people, label: 'Balades', route: '/balades'),
+  const NavigationItem(icon: Icons.calendar_today_outlined, selectedIcon: Icons.calendar_today, label: 'Mes réservations', route: '/mes-reservations'),
+  if (permission != null && permission.canAccessAdminArea())
+    permission.isAdmin()
+        ? const NavigationItem(icon: Icons.admin_panel_settings_outlined, selectedIcon: Icons.admin_panel_settings, label: 'Administration', route: '/admin')
+        : const NavigationItem(icon: Icons.hiking_outlined, selectedIcon: Icons.hiking, label: 'Espace guide', route: '/admin'),
 ];
 
-const List<NavigationItem> adminNavigationItems = [
-  NavigationItem(icon: Icons.admin_panel_settings_outlined, selectedIcon: Icons.admin_panel_settings, label: 'Admin', route: '/admin', adminOnly: true),
-  NavigationItem(icon: Icons.help_outline, selectedIcon: Icons.help, label: 'Aide', route: '/aide'),
-];
-
-List<NavigationItem> visiblePublicAdminItems(Permission? permission) {
-  if (permission == null || !permission.canAccessAdminArea()) {
-    return adminNavigationItems.where((item) => !item.adminOnly).toList();
-  }
-
-  return adminNavigationItems.map((item) {
-    if (!item.adminOnly) return item;
-    final label = permission.isAdmin() ? 'Administration' : 'Espace guide';
-    final icon = permission.isAdmin() ? Icons.admin_panel_settings_outlined : Icons.nature_people_outlined;
-    final selectedIcon = permission.isAdmin() ? Icons.admin_panel_settings : Icons.nature_people;
-    return NavigationItem(icon: icon, selectedIcon: selectedIcon, label: label, route: item.route, adminOnly: true);
-  }).toList();
-}
+/// Whether [item] is the section of [path], e.g. a balade page belongs to « Balades ».
+bool isInSection(NavigationItem item, String path) => path == item.route || path.startsWith('${item.route}/');

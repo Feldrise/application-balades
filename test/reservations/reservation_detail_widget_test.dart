@@ -1,11 +1,13 @@
 import 'package:balade/features/ramble/models/ramble/ramble.dart';
 import 'package:balade/features/reservations/models/reservation/reservation.dart';
 import 'package:balade/features/reservations/providers/reservation_providers.dart';
-import 'package:balade/features/reservations/widgets/reservation_card.dart';
+import 'package:balade/features/reservations/widgets/reservation_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+
+import '../support/fake_url_launcher.dart';
 
 Reservation _reservation({
   String status = 'pending',
@@ -48,19 +50,24 @@ Reservation _reservation({
 /// The ramble of the reservations, taking online payment.
 Ramble _payingRamble() => Ramble(3, title: 'Sortie champignons', type: 'champignons', difficulty: 'facile', paymentEnabled: true);
 
+/// The ramble of the reservations, without online payment.
+Ramble _freeRamble() => Ramble(3, title: 'Sortie champignons', type: 'champignons', difficulty: 'facile');
+
 /// Before the confirmation period of the ramble of the reservations, on 1 December 2026 at 9:00.
 final _beforeConfirmation = DateTime.utc(2026, 11, 20, 9);
 
-Future<void> _pump(WidgetTester tester, Reservation reservation, {bool paymentEnabled = false, DateTime? now}) async {
+Future<void> _pump(WidgetTester tester, Reservation reservation, {bool paymentEnabled = false, DateTime? now, Ramble? ramble}) async {
   await initializeDateFormatting('fr');
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        if (paymentEnabled) reservationRambleProvider.overrideWith((ref, id) async => _payingRamble()),
+        reservationRambleProvider.overrideWith((ref, id) async => ramble ?? (paymentEnabled ? _payingRamble() : _freeRamble())),
         reservationClockProvider.overrideWithValue(() => now ?? _beforeConfirmation),
       ],
       child: MaterialApp(
-        home: Scaffold(body: SingleChildScrollView(child: ReservationCard(reservation: reservation))),
+        home: Scaffold(
+          body: SingleChildScrollView(child: ReservationDetail(reservation: reservation)),
+        ),
       ),
     ),
   );
@@ -71,9 +78,8 @@ void main() {
     await _pump(tester, _reservation());
 
     expect(find.text('Sortie champignons'), findsOneWidget);
-    expect(find.text('Forêt de Fontainebleau'), findsOneWidget);
-    expect(find.text('En attente de confirmation'), findsOneWidget);
-    expect(find.text('Participants (2)'), findsOneWidget);
+    expect(find.text('À confirmer'), findsOneWidget);
+    expect(find.text('PARTICIPANTS (2)'), findsOneWidget);
     expect(find.text('Claire Martin (vous)'), findsOneWidget);
     expect(find.text('Adulte · 12,50 €'), findsOneWidget);
     expect(find.text('Léo Martin'), findsOneWidget);
@@ -137,14 +143,14 @@ void main() {
     await _pump(tester, _reservation(confirmationDeadline: '2026-11-30T21:00:00Z'), now: DateTime.utc(2026, 11, 29, 10));
 
     expect(find.text('Confirmer ma réservation'), findsOneWidget);
-    expect(find.textContaining('Confirmez votre réservation avant le'), findsOneWidget);
+    expect(find.textContaining('À confirmer entre le 28 novembre'), findsOneWidget);
   });
 
   testWidgets('tells when the confirmation opens before the confirmation period', (tester) async {
     await _pump(tester, _reservation(), now: _beforeConfirmation);
 
     expect(find.text('Confirmer ma réservation'), findsNothing);
-    expect(find.textContaining('La confirmation ouvrira le 28/11/2026'), findsOneWidget);
+    expect(find.textContaining('À confirmer entre le 28 novembre'), findsOneWidget);
   });
 
   testWidgets('tells that the confirmation deadline has passed', (tester) async {
@@ -194,5 +200,18 @@ void main() {
 
     expect(find.byTooltip('Préciser le tarif'), findsOneWidget);
     expect(find.byTooltip('Modifier'), findsNothing);
+  });
+
+  testWidgets('opens the place of the balade in Maps when the meeting point is left blank', (tester) async {
+    final launcher = FakeUrlLauncher.install();
+    final ramble = Ramble(3, title: 'Sortie champignons', type: 'champignons', difficulty: 'facile', meetingPoint: '', location: 'Forêt de Paimpont');
+    await _pump(tester, _reservation(), ramble: ramble);
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Ouvrir dans Maps'));
+    await tester.tap(find.text('Ouvrir dans Maps'));
+    await tester.pumpAndSettle();
+
+    expect(launcher.launched, ['https://www.google.com/maps/search/?api=1&query=For%C3%AAt+de+Paimpont']);
   });
 }
