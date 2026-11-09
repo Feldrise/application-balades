@@ -50,12 +50,9 @@ String? confirmationUnavailableReason(Reservation reservation, {required DateTim
   return 'Le délai de confirmation est dépassé : la réservation n\'a pas été confirmée à temps.';
 }
 
-/// The balance of a confirmed reservation can be paid until the ramble starts.
-bool canPayBalance(Reservation reservation, {required DateTime now}) {
-  if (reservation.status != 'confirmed' || reservation.hasMissingPrices || amountDue(reservation) <= 0) return false;
-  final date = reservation.ramble?.date;
-  return date == null || now.isBefore(date);
-}
+/// The balance of a confirmed reservation can be paid, even after the ramble.
+bool canPayBalance(Reservation reservation) =>
+    reservation.status == 'confirmed' && !reservation.hasMissingPrices && amountDue(reservation) > 0;
 
 /// The amount in cents left to pay, computed by the API: the estimated amount minus the amount paid and kept,
 /// a partially refunded payment counting for its net amount.
@@ -88,7 +85,7 @@ String reservationErrorMessage(ReservationException error) {
     case 'ramble_cancelled':
       return 'La balade est annulée : la réservation ne peut plus être confirmée, payée ni complétée.';
     case 'ramble_started':
-      return 'La balade a commencé : la réservation ne peut plus être réglée en ligne.';
+      return 'La balade a commencé : il n\'est plus possible d\'ajouter des participants.';
     case 'second_booker':
       return 'Un seul participant peut être la personne qui réserve.';
     default:
